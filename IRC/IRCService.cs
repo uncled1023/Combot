@@ -9,11 +9,15 @@ namespace Combot
 {
     internal class IRCService
     {
+        public Action<BotError> ErrorEvent;
+
         private TCPInterface _tcp;
+        private Messages _messages;
 
         internal IRCService()
         {
             _tcp = new TCPInterface();
+            _messages = new Messages(_tcp);
         }
 
         internal bool Connect(IPAddress IP, int port, int readTimeout, int allowedFailedCount = 0)
@@ -30,6 +34,11 @@ namespace Combot
         internal bool Disconnect()
         {
             bool result = false;
+
+            if (_tcp.Connected)
+            {
+                _tcp.Disconnect();
+            }
 
             return result;
         }
