@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Combot
 {
-    public class Interface
+    public class Methods
     {
     }
 }

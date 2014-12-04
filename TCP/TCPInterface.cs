@@ -13,6 +13,7 @@ namespace Combot
     {
         internal event Action<TCPError> TCPErrorEvent;
         internal event Action<int> TCPConnectionEvent;
+        internal bool Connected = false;
 
         private IPEndPoint _serverIP = null;
         private int _readTimeout = 250;
@@ -39,6 +40,7 @@ namespace Combot
                 _tcpClient.ReceiveTimeout = _readTimeout;
 
                 _tcpStream = new NetworkStream(_tcpClient);
+                Connected = true;
                 return true;
             }
             catch
@@ -55,6 +57,7 @@ namespace Combot
 
         internal void Disconnect()
         {
+            Connected = false;
             if (_tcpStream != null)
             {
                 _tcpStream.Close();
@@ -67,7 +70,7 @@ namespace Combot
 
         internal void Write(string data)
         {
-            if (_tcpStream.CanWrite)
+            if (_tcpStream.CanWrite && Connected)
             {
                 byte[] message = System.Text.Encoding.UTF8.GetBytes(data + Environment.NewLine);
                 _tcpStream.Write(message, 0, message.Length);
@@ -78,7 +81,7 @@ namespace Combot
         {
             try
             {
-                if (_tcpStream.CanRead)
+                if (_tcpStream.CanRead && Connected)
                 {
                     byte[] readBytes = new byte[100000];
                     _tcpStream.Read(readBytes, 0, readBytes.Length);
