@@ -19,7 +19,9 @@ namespace Combot
     {
         Service = 0,
         Channel = 1,
-        Query = 2
+        Query = 2,
+        Notice = 3,
+        CTCP = 4
     }
 
     public enum ChannelMode

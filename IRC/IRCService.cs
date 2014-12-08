@@ -11,13 +11,15 @@ namespace Combot
     {
         public Action<BotError> ErrorEvent;
 
+        private Bot _bot;
         private TCPInterface _tcp;
         private Messages _messages;
 
-        internal IRCService()
+        internal IRCService(Bot bot)
         {
+            _bot = bot;
             _tcp = new TCPInterface();
-            _messages = new Messages(_tcp);
+            _messages = new Messages(_tcp, _bot);
         }
 
         internal bool Connect(IPAddress IP, int port, int readTimeout, int allowedFailedCount = 0)
