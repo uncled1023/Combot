@@ -8,9 +8,11 @@ namespace Combot
 {
     class Bot
     {
+        public event Action<BotError> ErrorEvent;
+
         public Config Config;
 
-        private IRCService _ircService;
+        internal IRCService _ircService;
 
         internal Bot()
         {

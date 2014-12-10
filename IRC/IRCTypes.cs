@@ -234,6 +234,7 @@ namespace Combot
     {
         public string Name { get; set; }
         public string Topic { get; set; }
+        public string Key { get; set; }
         public DateTime Registration { get; set; }
         public List<ChannelMode> Modes { get; set; }
         public List<Nick> Nicks { get; set; }
@@ -242,6 +243,7 @@ namespace Combot
         {
             Name = string.Empty;
             Topic = string.Empty;
+            Key = string.Empty;
             Registration = DateTime.Now;
             Modes = new List<ChannelMode>();
             Nicks = new List<Nick>();
@@ -315,6 +317,11 @@ namespace Combot
         public Nick Sender { get; set; }
         public Nick Receiver { get; set; }
         public Channel Channel { get; set; }
-        public string Message { get; set; }
+        public string Parameters { get; set; }
+    }
+
+    public class Sender
+    {
+
     }
 }

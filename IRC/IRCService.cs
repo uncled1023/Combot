@@ -2,32 +2,38 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 
 namespace Combot
 {
-    internal class IRCService
+    internal partial class IRCService
     {
-        public Action<BotError> ErrorEvent;
-
-        private Bot _bot;
-        private TCPInterface _tcp;
-        private Messages _messages;
+        protected Bot _Bot;
+        protected TCPInterface _TCP;
+        protected Thread TCPReader;
+        protected event Action<string> TCPMessageEvent;
 
         internal IRCService(Bot bot)
         {
-            _bot = bot;
-            _tcp = new TCPInterface();
-            _messages = new Messages(_tcp, _bot);
+            _Bot = bot;
+            _TCP = new TCPInterface();
+            TCPMessageEvent += ParseTCPMessage;
         }
 
         internal bool Connect(IPAddress IP, int port, int readTimeout, int allowedFailedCount = 0)
         {
             bool result = false;
-            if (!_tcp.Connected)
+            if (!_TCP.Connected)
             {
-                result = _tcp.Connect(IP, port, readTimeout, allowedFailedCount);
+                result = _TCP.Connect(IP, port, readTimeout, allowedFailedCount);
+                if (result)
+                {
+                    TCPReader = new Thread(ReadTCPMessages);
+                    TCPReader.IsBackground = true;
+                    TCPReader.Start();
+                }
             }
 
             return result;
@@ -37,12 +43,43 @@ namespace Combot
         {
             bool result = false;
 
-            if (_tcp.Connected)
+            if (_TCP.Connected)
             {
-                _tcp.Disconnect();
+                _TCP.Disconnect();
             }
 
             return result;
+        }
+
+        protected void ReadTCPMessages()
+        {
+            while (_TCP.Connected)
+            {
+                string response = ReadTCPMessage();
+                if (TCPMessageEvent != null && response != null && response != string.Empty)
+                {
+                    TCPMessageEvent(response);
+                }
+
+                Thread.Sleep(10);
+            }
+        }
+
+        protected string ReadTCPMessage()
+        {
+            if (_TCP.Connected)
+            {
+                return _TCP.Read();
+            }
+            return null;
+        }
+
+        protected void SendTCPMessage(string message)
+        {
+            if (_TCP.Connected)
+            {
+                _TCP.Write(message);
+            }
         }
     }
 }
