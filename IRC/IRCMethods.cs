@@ -10,9 +10,13 @@ namespace Combot
     internal partial class IRCService
     {
 
+        // ----------------------- //
+        // Public Mapped Functions //
+        // ----------------------- //
+
         // ------------------- //
-        // Internal Functions //
-        // ------------------ //
+        // Internal Functions  //
+        // ------------------- //
 
         /// <summary>
         /// Sends a private message to a nick or channel
@@ -236,6 +240,110 @@ namespace Combot
         protected void SendTopic(Channel channel, string topic)
         {
             SendTCPMessage(string.Format("TOPIC {0} :{1}", channel.Name, topic));
+        }
+
+        /// <summary>
+        /// Sends a Names command to get a list of visible users
+        /// </summary>
+        protected void SendNames()
+        {
+            SendTCPMessage("NAMES");
+        }
+
+        protected void SendNames(Channel channel)
+        {
+            SendTCPMessage(string.Format("NAMES ", channel.Name));
+        }
+
+        protected void SendNames(List<Channel> channels)
+        {
+            string channel_list = string.Empty;
+            foreach(Channel channel in channels)
+            {
+                channel_list += channel.Name + ",";
+            }
+            SendTCPMessage(string.Format("NAMES ", channel_list.TrimEnd(',')));
+        }
+
+        /// <summary>
+        /// Sends a List command to get the topic of channels
+        /// </summary>
+        protected void SendList()
+        {
+            SendTCPMessage("LIST");
+        }
+
+        protected void SendList(Channel channel)
+        {
+            SendTCPMessage(string.Format("LIST ", channel.Name));
+        }
+
+        protected void SendList(List<Channel> channels)
+        {
+            string channel_list = string.Empty;
+            foreach (Channel channel in channels)
+            {
+                channel_list += channel.Name + ",";
+            }
+            SendTCPMessage(string.Format("LIST ", channel_list.TrimEnd(',')));
+        }
+
+        /// <summary>
+        /// Sends an Invite command that invites the specified nick to the channel 
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="nick"></param>
+        protected void SendInvite(Channel channel, Nick nick)
+        {
+            SendTCPMessage(string.Format("INVITE {0} {1}", nick.Nickname, channel.Name));
+        }
+
+        /// <summary>
+        /// Sends a Kick command to remove a user from a channel
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="nick"></param>
+        protected void SendKick(Channel channel, Nick nick)
+        {
+            SendTCPMessage(string.Format("KICK {0} {1}", channel.Name, nick.Nickname));
+        }
+
+        protected void SendKick(Channel channel, Nick nick, string reason)
+        {
+            SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel.Name, nick.Nickname, reason));
+        }
+
+        /// <summary>
+        /// Sends a Version command to the server to get a Version reply
+        /// </summary>
+        /// <param name="server"></param>
+        protected void SendVersion(string server)
+        {
+            SendTCPMessage(string.Format("VERSION {0}", server));
+        }
+
+        /// <summary>
+        /// Sends a Stats command to view Server information and statistics
+        /// </summary>
+        /// <param name="stat"></param>
+        protected void SendStats(ServerStat stat)
+        {
+            SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
+        }
+
+        protected void SendStats(ServerStat stat, string parameter)
+        {
+            SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
+        }
+
+        protected void SendLinks(string server)
+        {
+            SendTCPMessage(string.Format("LINKS {0}", server));
+        }
+
+        protected void SendLinks(List<string> servers)
+        {
+
         }
     }
 }

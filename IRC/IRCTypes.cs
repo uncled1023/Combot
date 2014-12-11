@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Net;
 
 namespace Combot
 {
@@ -183,6 +184,28 @@ namespace Combot
         z
     }
 
+    public enum ServerStat
+    {
+        [Description("List of Servers that allow Server Connection")]
+        c,
+        [Description("List of Server Hubs")]
+        h,
+        [Description("List of Hosts that allow Client Connection")]
+        i,
+        [Description("List of banned user/hostname of Server")]
+        k,
+        [Description("Lists Server Connections")]
+        l,
+        [Description("Commands Supported")]
+        m,
+        [Description("Lists Hosts that allow Normal Operators")]
+        o,
+        [Description("List Class lines from Server Config")]
+        y,
+        [Description("Server Uptime")]
+        u
+    }
+
     public class BotError
     {
         public ErrorType Type { get; set; }
@@ -194,6 +217,7 @@ namespace Combot
         public string Realname { get; set; }
         public string Host { get; set; }
         public string Nickname { get; set; }
+        public string Password { get; set; }
         public bool Identified { get; set; }
         public bool Registered { get; set; }
         public List<UserMode> Modes { get; set; }
@@ -203,16 +227,18 @@ namespace Combot
             Realname = string.Empty;
             Host = string.Empty;
             Nickname = string.Empty;
+            Password = string.Empty;
             Identified = false;
             Registered = false;
             Modes = new List<UserMode>();
         }
 
-        public Nick(string realname, string host, string nickname, bool identified, bool registered, List<UserMode> modes)
+        public Nick(string realname, string host, string nickname, string password, bool identified, bool registered, List<UserMode> modes)
         {
             Realname = realname;
             Host = host;
             Nickname = nickname;
+            Password = password;
             Identified = identified;
             Registered = registered;
             Modes = modes;
@@ -250,6 +276,7 @@ namespace Combot
         public string Name { get; set; }
         public string Topic { get; set; }
         public string Key { get; set; }
+        public bool AutoJoin { get; set; }
         public DateTime Registration { get; set; }
         public List<ChannelMode> Modes { get; set; }
         public List<Nick> Nicks { get; set; }
@@ -259,15 +286,18 @@ namespace Combot
             Name = string.Empty;
             Topic = string.Empty;
             Key = string.Empty;
+            AutoJoin = false;
             Registration = DateTime.Now;
             Modes = new List<ChannelMode>();
             Nicks = new List<Nick>();
         }
 
-        public Channel(string name, string topic, DateTime registration, List<ChannelMode> modes, List<Nick> nicks)
+        public Channel(string name, string topic, string key, bool autojoin, DateTime registration, List<ChannelMode> modes, List<Nick> nicks)
         {
             Name = name;
             Topic = topic;
+            Key = key;
+            AutoJoin = autojoin;
             Registration = registration;
             Modes = modes;
             Nicks = nicks;
@@ -324,6 +354,15 @@ namespace Combot
                 RemoveMode(mode);
             }
         }
+    }
+
+    public class Server
+    {
+        public string Name { get; set; }
+        public List<IPEndPoint> Hosts { get; set; }
+        public List<Channel> Channels { get; set; }
+        public bool AutoConnect { get; set; }
+        public Nick Nick { get; set; }
     }
 
     public class Message
