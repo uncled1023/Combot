@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,20 @@ namespace Combot
         Query = 2,
         Notice = 3,
         CTCP = 4
+    }
+
+    public class ChannelModeInfo
+    {
+        public ChannelMode Mode { get; set; }
+        public bool Set { get; set; }
+        public string Parameter { get; set; }
+    }
+
+    public class UserModeInfo
+    {
+        public UserMode Mode { get; set; }
+        public bool Set { get; set; }
+        public string Parameter { get; set; }
     }
 
     public enum ChannelMode
