@@ -343,7 +343,7 @@ namespace Combot
 
         protected void SendLinks(List<string> servers)
         {
-
+            foreach (
         }
     }
 }
