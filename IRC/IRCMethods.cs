@@ -9,6 +9,11 @@ namespace Combot
 {
     internal partial class IRCService
     {
+
+        // ------------------- //
+        // Internal Functions //
+        // ------------------ //
+
         /// <summary>
         /// Sends a private message to a nick or channel
         /// </summary>
@@ -192,9 +197,45 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="mode"></param>
-        protected void SendMode(Channel channel, ChannelMode mode)
+        protected void SendMode(Channel channel, ChannelModeInfo modeInfo)
         {
+            string mode_set = modeInfo.Set ? "+" : "-";
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", channel.Name, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+        }
 
+        protected void SendMode(Channel channel, List<ChannelModeInfo> modeInfos)
+        {
+            foreach (ChannelModeInfo modeInfo in modeInfos)
+            {
+                SendMode(channel, modeInfo);
+            }
+        }
+        protected void SendMode(Nick nick, UserModeInfo modeInfo)
+        {
+            string mode_set = modeInfo.Set ? "+" : "-";
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", nick.Nickname, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+        }
+
+        protected void SendMode(Nick nick, List<UserModeInfo> modeInfos)
+        {
+            foreach (UserModeInfo modeInfo in modeInfos)
+            {
+                SendMode(nick, modeInfo);
+            }
+        }
+
+        /// <summary>
+        /// Sends a Topic command to change the channels topic or view the current one
+        /// </summary>
+        /// <param name="channel"></param>
+        protected void SendTopic(Channel channel)
+        {
+            SendTCPMessage(string.Format("TOPIC {0}", channel.Name));
+        }
+
+        protected void SendTopic(Channel channel, string topic)
+        {
+            SendTCPMessage(string.Format("TOPIC {0} :{1}", channel.Name, topic));
         }
     }
 }
