@@ -23,36 +23,20 @@ namespace Combot
         /// </summary>
         /// <param name="nick"></param>
         /// <param name="message"></param>
-        protected void SendPrivMessage(Nick nick, string message)
+        protected void SendPrivMessage(string recipient, string message)
         {
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", nick, message));
+            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
         }
 
-        protected void SendPrivMessage(List<Nick> nicks, string message)
+        protected void SendPrivMessage(List<string> recipients, string message)
         {
-            string nick_list = string.Empty;
-            foreach (Nick nick in nicks)
+            string recipient_list = string.Empty;
+            foreach (string recipient in recipients)
             {
-                nick_list += nick.Nickname + ",";
+                recipient_list += recipient + ",";
             }
 
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", nick_list.TrimEnd(','), message));
-        }
-
-        protected void SendPrivMessage(Channel channel, string message)
-        {
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", channel.Name, message));
-        }
-
-        protected void SendPrivMessage(List<Channel> channels, string message)
-        {
-            string channel_list = string.Empty;
-            foreach (Channel channel in channels)
-            {
-                channel_list += channel.Name + ",";
-            }
-
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", channel_list.TrimEnd(','), message));
+            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient_list.TrimEnd(','), message));
         }
 
         /// <summary>
@@ -60,36 +44,20 @@ namespace Combot
         /// </summary>
         /// <param name="nick"></param>
         /// <param name="message"></param>
-        protected void SendNotice(Nick nick, string message)
+        protected void SendNotice(string recipient, string message)
         {
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", nick, message));
+            SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
         }
 
-        protected void SendNotice(List<Nick> nicks, string message)
+        protected void SendNotice(List<string> recipients, string message)
         {
-            string nick_list = string.Empty;
-            foreach (Nick nick in nicks)
+            string recipient_list = string.Empty;
+            foreach (string recipient in recipients)
             {
-                nick_list += nick.Nickname + ",";
+                recipient_list += recipient + ",";
             }
 
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", nick_list.TrimEnd(','), message));
-        }
-
-        protected void SendNotice(Channel channel, string message)
-        {
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", channel.Name, message));
-        }
-
-        protected void SendNotice(List<Channel> channels, string message)
-        {
-            string channel_list = string.Empty;
-            foreach (Channel channel in channels)
-            {
-                channel_list += channel.Name + ",";
-            }
-
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", channel_list.TrimEnd(','), message));
+            SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient_list.TrimEnd(','), message));
         }
 
         /// <summary>
@@ -147,25 +115,28 @@ namespace Combot
         /// Sends a Join command to join a channel
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendJoin(Channel channel)
+        protected void SendJoin(string channel, string key = "")
         {
             string message = string.Empty;
-            message = (channel.Key != string.Empty) ? string.Format("{0}; {1}", channel.Name, channel.Key) : channel.Name;
+            message = (key != string.Empty) ? string.Format("{0}; {1}", channel, key) : channel;
             SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
-        protected void SendJoin(List<Channel> channels)
+        protected void SendJoin(List<string> channels, List<string> keys)
         {
             string message = string.Empty;
             string channel_string = string.Empty;
             string key_string = string.Empty;
 
-            foreach (Channel channel in channels)
+            foreach (string channel in channels)
             {                
-                channel_string += channel.Name + ",";
-                if (channel.Key != string.Empty)
+                channel_string += channel + ",";
+            }
+            foreach (string key in keys)
+            {
+                if (key != string.Empty)
                 {
-                    key_string += channel.Key + ",";
+                    key_string += key + ",";
                 }
             }
             channel_string = channel_string.TrimEnd(',');
@@ -179,17 +150,17 @@ namespace Combot
         /// Sends a Part command to leave a channel
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendPart(Channel channel)
+        protected void SendPart(string channel)
         {
-            SendTCPMessage(string.Format("PART {0}", channel.Name));
+            SendTCPMessage(string.Format("PART {0}", channel));
         }
 
-        protected void SendPart(List<Channel> channels)
+        protected void SendPart(List<string> channels)
         {
             string channel_list = string.Empty;
-            foreach (Channel channel in channels)
+            foreach (string channel in channels)
             {
-                channel_list += channel.Name + ",";
+                channel_list += channel + ",";
             }
 
             SendTCPMessage(string.Format("PART {0}", channel_list.TrimEnd(',')));
@@ -201,26 +172,26 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="mode"></param>
-        protected void SendMode(Channel channel, ChannelModeInfo modeInfo)
+        protected void SendMode(string channel, ChannelModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            SendTCPMessage(string.Format("MODE {0} {1} {2}", channel.Name, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
         }
 
-        protected void SendMode(Channel channel, List<ChannelModeInfo> modeInfos)
+        protected void SendMode(string channel, List<ChannelModeInfo> modeInfos)
         {
             foreach (ChannelModeInfo modeInfo in modeInfos)
             {
                 SendMode(channel, modeInfo);
             }
         }
-        protected void SendMode(Nick nick, UserModeInfo modeInfo)
+        protected void SendMode(string nick, UserModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            SendTCPMessage(string.Format("MODE {0} {1} {2}", nick.Nickname, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", nick, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
         }
 
-        protected void SendMode(Nick nick, List<UserModeInfo> modeInfos)
+        protected void SendMode(string nick, List<UserModeInfo> modeInfos)
         {
             foreach (UserModeInfo modeInfo in modeInfos)
             {
@@ -232,14 +203,14 @@ namespace Combot
         /// Sends a Topic command to change the channels topic or view the current one
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendTopic(Channel channel)
+        protected void SendTopic(string channel)
         {
-            SendTCPMessage(string.Format("TOPIC {0}", channel.Name));
+            SendTCPMessage(string.Format("TOPIC {0}", channel));
         }
 
-        protected void SendTopic(Channel channel, string topic)
+        protected void SendTopic(string channel, string topic)
         {
-            SendTCPMessage(string.Format("TOPIC {0} :{1}", channel.Name, topic));
+            SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
         }
 
         /// <summary>
@@ -250,19 +221,19 @@ namespace Combot
             SendTCPMessage("NAMES");
         }
 
-        protected void SendNames(Channel channel)
+        protected void SendNames(string channel)
         {
-            SendTCPMessage(string.Format("NAMES ", channel.Name));
+            SendTCPMessage(string.Format("NAMES {0}", channel));
         }
 
-        protected void SendNames(List<Channel> channels)
+        protected void SendNames(List<string> channels)
         {
             string channel_list = string.Empty;
-            foreach(Channel channel in channels)
+            foreach (string channel in channels)
             {
-                channel_list += channel.Name + ",";
+                channel_list += channel + ",";
             }
-            SendTCPMessage(string.Format("NAMES ", channel_list.TrimEnd(',')));
+            SendTCPMessage(string.Format("NAMES {0}", channel_list.TrimEnd(',')));
         }
 
         /// <summary>
@@ -273,19 +244,19 @@ namespace Combot
             SendTCPMessage("LIST");
         }
 
-        protected void SendList(Channel channel)
+        protected void SendList(string channel)
         {
-            SendTCPMessage(string.Format("LIST ", channel.Name));
+            SendTCPMessage(string.Format("LIST {0}", channel));
         }
 
-        protected void SendList(List<Channel> channels)
+        protected void SendList(List<string> channels)
         {
             string channel_list = string.Empty;
-            foreach (Channel channel in channels)
+            foreach (string channel in channels)
             {
-                channel_list += channel.Name + ",";
+                channel_list += channel + ",";
             }
-            SendTCPMessage(string.Format("LIST ", channel_list.TrimEnd(',')));
+            SendTCPMessage(string.Format("LIST {0}", channel_list.TrimEnd(',')));
         }
 
         /// <summary>
@@ -293,9 +264,9 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="nick"></param>
-        protected void SendInvite(Channel channel, Nick nick)
+        protected void SendInvite(string channel, string nick)
         {
-            SendTCPMessage(string.Format("INVITE {0} {1}", nick.Nickname, channel.Name));
+            SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
         }
 
         /// <summary>
@@ -303,14 +274,14 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="nick"></param>
-        protected void SendKick(Channel channel, Nick nick)
+        protected void SendKick(string channel, string nick)
         {
-            SendTCPMessage(string.Format("KICK {0} {1}", channel.Name, nick.Nickname));
+            SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
         }
 
-        protected void SendKick(Channel channel, Nick nick, string reason)
+        protected void SendKick(string channel, string nick, string reason)
         {
-            SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel.Name, nick.Nickname, reason));
+            SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
         }
 
         /// <summary>
@@ -336,14 +307,55 @@ namespace Combot
             SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
         }
 
-        protected void SendLinks(string server)
+        /// <summary>
+        /// Sends a Links command to list all servers matching a mask
+        /// </summary>
+        /// <param name="mask"></param>
+        protected void SendLinks(string mask)
         {
-            SendTCPMessage(string.Format("LINKS {0}", server));
+            SendTCPMessage(string.Format("LINKS {0}", mask));
         }
 
-        protected void SendLinks(List<string> servers)
+        protected void SendLinks(string server, string mask)
         {
-            foreach (
+            SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
+        }
+
+        /// <summary>
+        /// Sends a Time command to query the local server time
+        /// </summary>
+        protected void SendTime()
+        {
+            SendTCPMessage("TIME");
+        }
+
+        protected void SendTime(string server)
+        {
+            SendTCPMessage(string.Format("TIME {0}", server));
+        }
+
+        /// <summary>
+        /// Senda a Connect command to have the server try to connect to another server
+        /// </summary>
+        /// <param name="server"></param>
+        protected void SendConnect(string server)
+        {
+            SendTCPMessage(string.Format("CONNECT {0}", server));
+        }
+
+        protected void SendConnect(string server, string originator, int port)
+        {
+            SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
+        }
+
+
+        /// <summary>
+        /// Sends a Trace command to find the route to the target (nick or server)
+        /// </summary>
+        /// <param name="target"></param>
+        protected void SendTrace(string target)
+        {
+            SendTCPMessage(string.Format("TRACE {0}", target));
         }
     }
 }
