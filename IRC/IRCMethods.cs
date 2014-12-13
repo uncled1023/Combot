@@ -348,7 +348,6 @@ namespace Combot
             SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
         }
 
-
         /// <summary>
         /// Sends a Trace command to find the route to the target (nick or server)
         /// </summary>
