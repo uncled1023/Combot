@@ -42,7 +42,9 @@
     <Compile Include="Access.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="IRC\Channel.cs" />
     <Compile Include="IRC\IRCMethods.cs" />
+    <Compile Include="IRC\Nick.cs" />
     <Compile Include="IRC\IRCService.cs" />
     <Compile Include="IRC\IRCTypes.cs" />
     <Compile Include="IRC\IRCMessages.cs" />

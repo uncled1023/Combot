@@ -12,11 +12,15 @@ namespace Combot
 
         public Config Config;
 
-        internal IRCService _ircService;
+        public IRCService IRCService;
 
         internal Bot()
         {
-            _ircService = new IRCService(this);
+            IRCService = new IRCService(this);
+
+            Message msg = new Message();
+            Nick nick = new Nick();
+            msg.Sender = nick;
         }
     }
 }

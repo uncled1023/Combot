@@ -45,11 +45,12 @@ namespace Combot
             }
             catch
             {
-                if (TCPErrorEvent != null)
+                Action<TCPError> localEvent = TCPErrorEvent;
+                if (localEvent != null)
                 {
                     TCPError error = new TCPError();
                     error.Message = string.Format("Unable to connect to {0} on port {1}", _serverIP.Address, _serverIP.Port);
-                    TCPErrorEvent(error);
+                    localEvent(error);
                 }
             }
             return false;
@@ -94,29 +95,32 @@ namespace Combot
             catch (IOException)
             {
                 _currentFailedCount++;
-                if (TCPErrorEvent != null && _tcpStream.CanRead)
+                Action<TCPError> localEvent = TCPErrorEvent;
+                if (localEvent != null && _tcpStream.CanRead)
                 {
                     TCPError error = new TCPError();
                     error.Message = string.Format("Read Timeout, No Response from Server in {0}ms", _readTimeout);
-                    TCPErrorEvent(error);
+                    localEvent(error);
                 }
             }
             catch (Exception ex)
             {
                 _currentFailedCount++;
-                if (TCPErrorEvent != null)
+                Action<TCPError> localEvent = TCPErrorEvent;
+                if (localEvent != null)
                 {
                     TCPError error = new TCPError();
                     error.Message = ex.Message;
-                    TCPErrorEvent(error);
+                    localEvent(error);
                 }
             }
 
             if (_currentFailedCount > _allowedFailedCount)
             {
-                if (TCPConnectionEvent != null)
+                Action<int> localEvent = TCPConnectionEvent;
+                if (localEvent != null)
                 {
-                    TCPConnectionEvent(_currentFailedCount);
+                    localEvent(_currentFailedCount);
                 }
                 Disconnect();
                 _currentFailedCount = 0;

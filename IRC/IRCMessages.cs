@@ -14,9 +14,10 @@ namespace Combot
         {
             Message parsedMessage = new Message();
 
-            if (MessageReceivedEvent != null)
+            Action<Message> localEvent = MessageReceivedEvent;
+            if (localEvent != null)
             {
-                MessageReceivedEvent(parsedMessage);
+                localEvent(parsedMessage);
             }
         }
     }

@@ -14,6 +14,591 @@ namespace Combot
         // Public Mapped Functions //
         // ----------------------- //
 
+        /// <summary>
+        /// Send a message to a nick
+        /// </summary>
+        /// <param name="nick"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendMessage(Nick nick, string message)
+        {
+            bool success = false;
+            if (CanSendMessage())
+            {
+                IRCSendPrivMessage(nick.Nickname, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a message to a channel
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendMessage(Channel channel, string message)
+        {
+            bool success = false;
+            if (CanSendMessage())
+            {
+                IRCSendPrivMessage(channel.Name, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a message to multiple nicks
+        /// </summary>
+        /// <param name="nicks"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendMessage(List<Nick> nicks, string message)
+        {
+            bool success = false;
+            if (CanSendMessage())
+            {
+                List<string> nicknames = new List<string>();
+                foreach (Nick nick in nicks)
+                {
+                    nicknames.Add(nick.Nickname);
+                }
+                IRCSendPrivMessage(nicknames, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a message to multiple channels
+        /// </summary>
+        /// <param name="channels"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendMessage(List<Channel> channels, string message)
+        {
+            bool success = false;
+            if (CanSendMessage())
+            {
+                List<string> channelnames = new List<string>();
+                foreach (Channel channel in channels)
+                {
+                    channelnames.Add(channel.Name);
+                }
+                IRCSendPrivMessage(channelnames, message);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanSendMessage() { return true; }
+
+        /// <summary>
+        /// Send a notice to a nick
+        /// </summary>
+        /// <param name="nick"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendNotice(Nick nick, string message)
+        {
+            bool success = false;
+            if (CanSendNotice())
+            {
+                IRCSendNotice(nick.Nickname, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a notice to a channel
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendNotice(Channel channel, string message)
+        {
+            bool success = false;
+            if (CanSendNotice())
+            {
+                IRCSendNotice(channel.Name, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a notice to multiple nicks
+        /// </summary>
+        /// <param name="nicks"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendNotice(List<Nick> nicks, string message)
+        {
+            bool success = false;
+            if (CanSendNotice())
+            {
+                List<string> nicknames = new List<string>();
+                foreach (Nick nick in nicks)
+                {
+                    nicknames.Add(nick.Nickname);
+                }
+                IRCSendNotice(nicknames, message);
+                success = true;
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Send a notice to multiple channels
+        /// </summary>
+        /// <param name="channels"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool SendNotice(List<Channel> channels, string message)
+        {
+            bool success = false;
+            if (CanSendNotice())
+            {
+                List<string> channelnames = new List<string>();
+                foreach (Channel channel in channels)
+                {
+                    channelnames.Add(channel.Name);
+                }
+                IRCSendNotice(channelnames, message);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanSendNotice() { return true; }
+
+        /// <summary>
+        /// Set your connection password
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public bool SendPassword(string password)
+        {
+            bool success = false;
+            if (CanSendPassword())
+            {
+                IRCSendPassword(password);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanSendPassword() { return true; }
+
+        /// <summary>
+        /// Set your nickname
+        /// </summary>
+        /// <param name="nick"></param>
+        /// <returns></returns>
+        public bool SetNick(Nick nick)
+        {
+            bool success = false;
+            if (CanSetNick())
+            {
+                IRCSendNick(nick.Nickname);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanSetNick() { return true; }
+
+        /// <summary>
+        /// Sets the user for the client connection
+        /// </summary>
+        /// <param name="nick"></param>
+        /// <returns></returns>
+        public bool SetUser(Nick nick)
+        {
+            bool success = false;
+            if (CanSetUser())
+            {
+                IRCSendUser(nick.Nickname, nick.Host, _Bot.Config.Name, nick.Realname);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanSetUser() { return true; }
+
+
+        public bool Oper(string username, string password)
+        {
+            bool success = false;
+            if (CanOper())
+            {
+                IRCSendOper(username, password);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanOper() { return true; }
+
+        public bool Quit()
+        {
+            bool success = false;
+            if (CanQuit())
+            {
+                IRCSendQuit();
+                success = true;
+            }
+            return success;
+        }
+
+        public bool Quit(string message)
+        {
+            bool success = false;
+            if (CanQuit())
+            {
+                IRCSendQuit(message);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanQuit() { return true; }
+
+        public bool Join(Channel channel)
+        {
+            bool success = false;
+            if (CanJoin())
+            {
+                IRCSendJoin(channel.Name, channel.Key);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool IRCSendJoin(List<Channel> channels)
+        {
+            bool success = false;
+            if (CanJoin())
+            {
+                List<string> channel_names = new List<string>();
+                List<string> keys = new List<string>();
+                foreach (Channel channel in channels)
+                {
+                    channel_names.Add(channel.Name);
+                    keys.Add(channel.Key);
+                }
+                IRCSendJoin(channel_names, keys);
+                success = true;
+            }
+            return success;
+        }
+
+        public bool CanJoin() { return true; }
+
+        public bool IRCSendPart(string channel)
+        {
+            SendTCPMessage(string.Format("PART {0}", channel));
+        }
+
+        public bool IRCSendPart(List<string> channels)
+        {
+            string channel_list = string.Empty;
+            foreach (string channel in channels)
+            {
+                channel_list += channel + ",";
+            }
+
+            SendTCPMessage(string.Format("PART {0}", channel_list.TrimEnd(',')));
+        }
+
+        public bool IRCSendMode(string channel, ChannelModeInfo modeInfo)
+        {
+            string mode_set = modeInfo.Set ? "+" : "-";
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+        }
+
+        public bool IRCSendMode(string channel, List<ChannelModeInfo> modeInfos)
+        {
+            foreach (ChannelModeInfo modeInfo in modeInfos)
+            {
+                IRCSendMode(channel, modeInfo);
+            }
+        }
+        public bool IRCSendMode(string nick, UserModeInfo modeInfo)
+        {
+            string mode_set = modeInfo.Set ? "+" : "-";
+            SendTCPMessage(string.Format("MODE {0} {1} {2}", nick, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+        }
+
+        public bool IRCSendMode(string nick, List<UserModeInfo> modeInfos)
+        {
+            foreach (UserModeInfo modeInfo in modeInfos)
+            {
+                IRCSendMode(nick, modeInfo);
+            }
+        }
+
+        public bool IRCSendTopic(string channel)
+        {
+            SendTCPMessage(string.Format("TOPIC {0}", channel));
+        }
+
+        public bool IRCSendTopic(string channel, string topic)
+        {
+            SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
+        }
+
+        public bool IRCSendNames()
+        {
+            SendTCPMessage("NAMES");
+        }
+
+        public bool IRCSendNames(string channel)
+        {
+            SendTCPMessage(string.Format("NAMES {0}", channel));
+        }
+
+        public bool IRCSendNames(List<string> channels)
+        {
+            string channel_list = string.Empty;
+            foreach (string channel in channels)
+            {
+                channel_list += channel + ",";
+            }
+            SendTCPMessage(string.Format("NAMES {0}", channel_list.TrimEnd(',')));
+        }
+
+        public bool IRCSendList()
+        {
+            SendTCPMessage("LIST");
+        }
+
+        public bool IRCSendList(string channel)
+        {
+            SendTCPMessage(string.Format("LIST {0}", channel));
+        }
+
+        public bool IRCSendList(List<string> channels)
+        {
+            string channel_list = string.Empty;
+            foreach (string channel in channels)
+            {
+                channel_list += channel + ",";
+            }
+            SendTCPMessage(string.Format("LIST {0}", channel_list.TrimEnd(',')));
+        }
+
+        public bool IRCSendInvite(string channel, string nick)
+        {
+            SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
+        }
+
+        public bool IRCSendKick(string channel, string nick)
+        {
+            SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
+        }
+
+        public bool IRCSendKick(string channel, string nick, string reason)
+        {
+            SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
+        }
+
+        public bool IRCSendVersion(string server)
+        {
+            SendTCPMessage(string.Format("VERSION {0}", server));
+        }
+
+        public bool IRCSendStats(ServerStat stat)
+        {
+            SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
+        }
+
+        public bool IRCSendStats(ServerStat stat, string parameter)
+        {
+            SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
+        }
+
+        public bool IRCSendLinks(string mask)
+        {
+            SendTCPMessage(string.Format("LINKS {0}", mask));
+        }
+
+        public bool IRCSendLinks(string server, string mask)
+        {
+            SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
+        }
+
+        public bool IRCSendTime()
+        {
+            SendTCPMessage("TIME");
+        }
+
+        public bool IRCSendTime(string server)
+        {
+            SendTCPMessage(string.Format("TIME {0}", server));
+        }
+
+        public bool IRCSendConnect(string server)
+        {
+            SendTCPMessage(string.Format("CONNECT {0}", server));
+        }
+
+        public bool IRCSendConnect(string server, string originator, int port)
+        {
+            SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
+        }
+
+        public bool IRCSendTrace(string target)
+        {
+            SendTCPMessage(string.Format("TRACE {0}", target));
+        }
+
+        public bool IRCSendAdmin()
+        {
+            SendTCPMessage("ADMIN");
+        }
+
+        public bool IRCSendAdmin(string host)
+        {
+            SendTCPMessage(string.Format("ADMIN {0}", host));
+        }
+
+        public bool IRCSendInfo(string host)
+        {
+            SendTCPMessage(string.Format("INFO {0}", host));
+        }
+
+        public bool IRCSendWho()
+        {
+            SendTCPMessage("WHO");
+        }
+
+        public bool IRCSendWho(string host, bool ops = false)
+        {
+            string msg = string.Empty;
+            if (ops)
+            {
+                msg = string.Format("WHO {0} o", host);
+            }
+            else
+            {
+                msg = string.Format("WHO {0}", host);
+            }
+            SendTCPMessage(msg);
+        }
+
+        public bool IRCSendWhois(string nick)
+        {
+            SendTCPMessage(string.Format("WHOIS {0}", nick));
+        }
+
+        public bool IRCSendWhois(string nick, string server)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1}", server, nick));
+        }
+
+        public bool IRCSendWhowas(string nick)
+        {
+            SendTCPMessage(string.Format("WHOIS {0}", nick));
+        }
+
+        public bool IRCSendWhowas(string nick, int entries)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1}", nick, entries));
+        }
+
+        public bool IRCSendWhowas(string nick, int entries, string server)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1} {2}", nick, entries, server));
+        }
+
+        public bool IRCSendKill(string nick, string comment)
+        {
+            SendTCPMessage(string.Format("KILL {0} {1}", nick, comment));
+        }
+
+        public bool IRCSendPing(string recipient)
+        {
+            SendTCPMessage(string.Format("PING {0}", recipient));
+        }
+
+        public bool IRCSendPong()
+        {
+            SendTCPMessage("PONG");
+        }
+
+        public bool IRCSendPong(string sender, string recipient)
+        {
+            SendTCPMessage(string.Format("PONG {0} {1}", sender, recipient));
+        }
+
+        public bool IRCSendAway()
+        {
+            SendTCPMessage("AWAY");
+        }
+
+        public bool IRCSendAway(string message)
+        {
+            SendTCPMessage(string.Format("AWAY {0}", message));
+        }
+
+        public bool IRCSendRehash()
+        {
+            SendTCPMessage("REHASH");
+        }
+
+        public bool IRCSendRestart()
+        {
+            SendTCPMessage("RESTART");
+        }
+
+        public bool IRCSendSummon()
+        {
+            SendTCPMessage("SUMMON");
+        }
+
+        public bool IRCSendSummon(string nick)
+        {
+            SendTCPMessage(string.Format("SUMMON {0}", nick));
+        }
+
+        public bool IRCSendSummon(string nick, string host)
+        {
+            SendTCPMessage(string.Format("SUMMON {0} {1}", nick, host));
+        }
+
+        public bool IRCSendUsers(string server)
+        {
+            SendTCPMessage(string.Format("USERS {0}", server));
+        }
+
+        public bool IRCSendWallops(string message)
+        {
+            SendTCPMessage(string.Format("WALLOPS :{0}", message));
+        }
+
+        public bool IRCSendUserhost(List<string> nicks)
+        {
+            string message = string.Empty;
+            foreach (string nick in nicks)
+            {
+                message += " " + nick;
+            }
+            SendTCPMessage(string.Format("USERHOST {0}", message.Trim()));
+        }
+
+        public bool IRCSendIson(List<string> nicks)
+        {
+            string message = string.Empty;
+            foreach (string nick in nicks)
+            {
+                message += " " + nick;
+            }
+            SendTCPMessage(string.Format("ISON {0}", message.Trim()));
+        }
+
         // ------------------- //
         // Internal Functions  //
         // ------------------- //
@@ -23,12 +608,12 @@ namespace Combot
         /// </summary>
         /// <param name="nick"></param>
         /// <param name="message"></param>
-        protected void SendPrivMessage(string recipient, string message)
+        protected void IRCSendPrivMessage(string recipient, string message)
         {
             SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
         }
 
-        protected void SendPrivMessage(List<string> recipients, string message)
+        protected void IRCSendPrivMessage(List<string> recipients, string message)
         {
             string recipient_list = string.Empty;
             foreach (string recipient in recipients)
@@ -44,12 +629,12 @@ namespace Combot
         /// </summary>
         /// <param name="nick"></param>
         /// <param name="message"></param>
-        protected void SendNotice(string recipient, string message)
+        protected void IRCSendNotice(string recipient, string message)
         {
             SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
         }
 
-        protected void SendNotice(List<string> recipients, string message)
+        protected void IRCSendNotice(List<string> recipients, string message)
         {
             string recipient_list = string.Empty;
             foreach (string recipient in recipients)
@@ -64,7 +649,7 @@ namespace Combot
         /// Sends the connection password
         /// </summary>
         /// <param name="password"></param>
-        protected void SendPassword(string password)
+        protected void IRCSendPassword(string password)
         {
             SendTCPMessage(password);
         }
@@ -73,7 +658,7 @@ namespace Combot
         /// Sends a Nick command to set the nickname
         /// </summary>
         /// <param name="nick"></param>
-        protected void SendNick(string nick)
+        protected void IRCSendNick(string nick)
         {
             SendTCPMessage(nick);
         }
@@ -82,7 +667,7 @@ namespace Combot
         /// Sends the User command to set a user
         /// </summary>
         /// <param name="user"></param>
-        protected void SendUser(string username, string hostname, string servername, string realname)
+        protected void IRCSendUser(string username, string hostname, string servername, string realname)
         {
             SendTCPMessage(string.Format("USER {0} {1} {2} :{3}", username, hostname, servername, realname));
         }
@@ -92,7 +677,7 @@ namespace Combot
         /// </summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
-        protected void SendOper(string username, string password)
+        protected void IRCSendOper(string username, string password)
         {
             SendTCPMessage(string.Format("OPER {0} {1}", username, password));
         }
@@ -101,12 +686,12 @@ namespace Combot
         /// Sends a Quit command to end the client session
         /// </summary>
         /// <param name="message"></param>
-        protected void SendQuit()
+        protected void IRCSendQuit()
         {
             SendTCPMessage("QUIT");
         }
 
-        protected void SendQuit(string message)
+        protected void IRCSendQuit(string message)
         {
             SendTCPMessage(string.Format("QUIT :{0}", message));
         }
@@ -115,14 +700,14 @@ namespace Combot
         /// Sends a Join command to join a channel
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendJoin(string channel, string key = "")
+        protected void IRCSendJoin(string channel, string key = "")
         {
             string message = string.Empty;
             message = (key != string.Empty) ? string.Format("{0}; {1}", channel, key) : channel;
             SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
-        protected void SendJoin(List<string> channels, List<string> keys)
+        protected void IRCSendJoin(List<string> channels, List<string> keys)
         {
             string message = string.Empty;
             string channel_string = string.Empty;
@@ -150,12 +735,12 @@ namespace Combot
         /// Sends a Part command to leave a channel
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendPart(string channel)
+        protected void IRCSendPart(string channel)
         {
             SendTCPMessage(string.Format("PART {0}", channel));
         }
 
-        protected void SendPart(List<string> channels)
+        protected void IRCSendPart(List<string> channels)
         {
             string channel_list = string.Empty;
             foreach (string channel in channels)
@@ -172,30 +757,30 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="mode"></param>
-        protected void SendMode(string channel, ChannelModeInfo modeInfo)
+        protected void IRCSendMode(string channel, ChannelModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
             SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
         }
 
-        protected void SendMode(string channel, List<ChannelModeInfo> modeInfos)
+        protected void IRCSendMode(string channel, List<ChannelModeInfo> modeInfos)
         {
             foreach (ChannelModeInfo modeInfo in modeInfos)
             {
-                SendMode(channel, modeInfo);
+                IRCSendMode(channel, modeInfo);
             }
         }
-        protected void SendMode(string nick, UserModeInfo modeInfo)
+        protected void IRCSendMode(string nick, UserModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
             SendTCPMessage(string.Format("MODE {0} {1} {2}", nick, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
         }
 
-        protected void SendMode(string nick, List<UserModeInfo> modeInfos)
+        protected void IRCSendMode(string nick, List<UserModeInfo> modeInfos)
         {
             foreach (UserModeInfo modeInfo in modeInfos)
             {
-                SendMode(nick, modeInfo);
+                IRCSendMode(nick, modeInfo);
             }
         }
 
@@ -203,12 +788,12 @@ namespace Combot
         /// Sends a Topic command to change the channels topic or view the current one
         /// </summary>
         /// <param name="channel"></param>
-        protected void SendTopic(string channel)
+        protected void IRCSendTopic(string channel)
         {
             SendTCPMessage(string.Format("TOPIC {0}", channel));
         }
 
-        protected void SendTopic(string channel, string topic)
+        protected void IRCSendTopic(string channel, string topic)
         {
             SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
         }
@@ -216,17 +801,17 @@ namespace Combot
         /// <summary>
         /// Sends a Names command to get a list of visible users
         /// </summary>
-        protected void SendNames()
+        protected void IRCSendNames()
         {
             SendTCPMessage("NAMES");
         }
 
-        protected void SendNames(string channel)
+        protected void IRCSendNames(string channel)
         {
             SendTCPMessage(string.Format("NAMES {0}", channel));
         }
 
-        protected void SendNames(List<string> channels)
+        protected void IRCSendNames(List<string> channels)
         {
             string channel_list = string.Empty;
             foreach (string channel in channels)
@@ -239,17 +824,17 @@ namespace Combot
         /// <summary>
         /// Sends a List command to get the topic of channels
         /// </summary>
-        protected void SendList()
+        protected void IRCSendList()
         {
             SendTCPMessage("LIST");
         }
 
-        protected void SendList(string channel)
+        protected void IRCSendList(string channel)
         {
             SendTCPMessage(string.Format("LIST {0}", channel));
         }
 
-        protected void SendList(List<string> channels)
+        protected void IRCSendList(List<string> channels)
         {
             string channel_list = string.Empty;
             foreach (string channel in channels)
@@ -264,7 +849,7 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="nick"></param>
-        protected void SendInvite(string channel, string nick)
+        protected void IRCSendInvite(string channel, string nick)
         {
             SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
         }
@@ -274,12 +859,12 @@ namespace Combot
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="nick"></param>
-        protected void SendKick(string channel, string nick)
+        protected void IRCSendKick(string channel, string nick)
         {
             SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
         }
 
-        protected void SendKick(string channel, string nick, string reason)
+        protected void IRCSendKick(string channel, string nick, string reason)
         {
             SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
         }
@@ -288,7 +873,7 @@ namespace Combot
         /// Sends a Version command to the server to get a Version reply
         /// </summary>
         /// <param name="server"></param>
-        protected void SendVersion(string server)
+        protected void IRCSendVersion(string server)
         {
             SendTCPMessage(string.Format("VERSION {0}", server));
         }
@@ -297,12 +882,12 @@ namespace Combot
         /// Sends a Stats command to view Server information and statistics
         /// </summary>
         /// <param name="stat"></param>
-        protected void SendStats(ServerStat stat)
+        protected void IRCSendStats(ServerStat stat)
         {
             SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
         }
 
-        protected void SendStats(ServerStat stat, string parameter)
+        protected void IRCSendStats(ServerStat stat, string parameter)
         {
             SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
         }
@@ -311,12 +896,12 @@ namespace Combot
         /// Sends a Links command to list all servers matching a mask
         /// </summary>
         /// <param name="mask"></param>
-        protected void SendLinks(string mask)
+        protected void IRCSendLinks(string mask)
         {
             SendTCPMessage(string.Format("LINKS {0}", mask));
         }
 
-        protected void SendLinks(string server, string mask)
+        protected void IRCSendLinks(string server, string mask)
         {
             SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
         }
@@ -324,12 +909,12 @@ namespace Combot
         /// <summary>
         /// Sends a Time command to query the local server time
         /// </summary>
-        protected void SendTime()
+        protected void IRCSendTime()
         {
             SendTCPMessage("TIME");
         }
 
-        protected void SendTime(string server)
+        protected void IRCSendTime(string server)
         {
             SendTCPMessage(string.Format("TIME {0}", server));
         }
@@ -338,12 +923,12 @@ namespace Combot
         /// Senda a Connect command to have the server try to connect to another server
         /// </summary>
         /// <param name="server"></param>
-        protected void SendConnect(string server)
+        protected void IRCSendConnect(string server)
         {
             SendTCPMessage(string.Format("CONNECT {0}", server));
         }
 
-        protected void SendConnect(string server, string originator, int port)
+        protected void IRCSendConnect(string server, string originator, int port)
         {
             SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
         }
@@ -352,9 +937,219 @@ namespace Combot
         /// Sends a Trace command to find the route to the target (nick or server)
         /// </summary>
         /// <param name="target"></param>
-        protected void SendTrace(string target)
+        protected void IRCSendTrace(string target)
         {
             SendTCPMessage(string.Format("TRACE {0}", target));
+        }
+
+        /// <summary>
+        /// Sends an Admin command to get the name of the server Administrator
+        /// </summary>
+        protected void IRCSendAdmin()
+        {
+            SendTCPMessage("ADMIN");
+        }
+
+        protected void IRCSendAdmin(string host)
+        {
+            SendTCPMessage(string.Format("ADMIN {0}", host));
+        }
+
+        /// <summary>
+        /// Sends an Info command for a specific server or nick
+        /// </summary>
+        /// <param name="host"></param>
+        protected void IRCSendInfo(string host)
+        {
+            SendTCPMessage(string.Format("INFO {0}", host));
+        }
+
+        /// <summary>
+        /// Sends a Who command to list all public users or matching a mask
+        /// </summary>
+        protected void IRCSendWho()
+        {
+            SendTCPMessage("WHO");
+        }
+
+        protected void IRCSendWho(string host, bool ops = false)
+        {
+            string msg = string.Empty;
+            if (ops)
+            {
+                msg = string.Format("WHO {0} o", host);
+            }
+            else
+            {
+                msg = string.Format("WHO {0}", host);
+            }
+            SendTCPMessage(msg);
+        }
+
+        /// <summary>
+        /// Sends a Whois command to get info about a user
+        /// </summary>
+        /// <param name="nick"></param>
+        protected void IRCSendWhois(string nick)
+        {
+            SendTCPMessage(string.Format("WHOIS {0}", nick));
+        }
+
+        protected void IRCSendWhois(string nick, string server)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1}", server, nick));
+        }
+
+        /// <summary>
+        /// Sends a Whowas command to get the nick history of a user
+        /// </summary>
+        /// <param name="nick"></param>
+        protected void IRCSendWhowas(string nick)
+        {
+            SendTCPMessage(string.Format("WHOIS {0}", nick));
+        }
+
+        protected void IRCSendWhowas(string nick, int entries)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1}", nick, entries));
+        }
+
+        protected void IRCSendWhowas(string nick, int entries, string server)
+        {
+            SendTCPMessage(string.Format("WHOIS {0} {1} {2}", nick, entries, server));
+        }
+
+        /// <summary>
+        /// Sends a Kill command to disconnect a nick
+        /// </summary>
+        /// <param name="nick"></param>
+        /// <param name="comment"></param>
+        protected void IRCSendKill(string nick, string comment)
+        {
+            SendTCPMessage(string.Format("KILL {0} {1}", nick, comment));
+        }
+
+        /// <summary>
+        /// Sends a Ping command to the recipient
+        /// </summary>
+        /// <param name="recipient"></param>
+        protected void IRCSendPing(string recipient)
+        {
+            SendTCPMessage(string.Format("PING {0}", recipient));
+        }
+
+        /// <summary>
+        /// Sends a PONG response to respond to a Ping
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="recipient"></param>
+        protected void IRCSendPong()
+        {
+            SendTCPMessage("PONG");
+        }
+
+        protected void IRCSendPong(string sender, string recipient)
+        {
+            SendTCPMessage(string.Format("PONG {0} {1}", sender, recipient));
+        }
+
+
+        /// <summary>
+        /// Sends an Away command to unset away status
+        /// </summary>
+        protected void IRCSendAway()
+        {
+            SendTCPMessage("AWAY");
+        }
+
+        /// <summary>
+        /// Sends an Away comand to set away status with auto-reply message
+        /// </summary>
+        /// <param name="message"></param>
+        protected void IRCSendAway(string message)
+        {
+            SendTCPMessage(string.Format("AWAY {0}", message));
+        }
+
+        /// <summary>
+        /// Sends a Rehash command to the server to reload it's configuration file
+        /// </summary>
+        protected void IRCSendRehash()
+        {
+            SendTCPMessage("REHASH");
+        }
+
+        /// <summary>
+        /// Sends a Restart command to the server to restart
+        /// </summary>
+        protected void IRCSendRestart()
+        {
+            SendTCPMessage("RESTART");
+        }
+
+        /// <summary>
+        /// Sends a Summon command to summon a nick to the server
+        /// </summary>
+        /// <param name="nick"></param>
+        protected void IRCSendSummon()
+        {
+            SendTCPMessage("SUMMON");
+        }
+
+        protected void IRCSendSummon(string nick)
+        {
+            SendTCPMessage(string.Format("SUMMON {0}", nick));
+        }
+
+        protected void IRCSendSummon(string nick, string host)
+        {
+            SendTCPMessage(string.Format("SUMMON {0} {1}", nick, host));
+        }
+
+        /// <summary>
+        /// Sends a Users command to get a list of Users from a server
+        /// </summary>
+        /// <param name="server"></param>
+        protected void IRCSendUsers(string server)
+        {
+            SendTCPMessage(string.Format("USERS {0}", server));
+        }
+
+        /// <summary>
+        /// Sends a Wallops command which sends a message to all connected ops
+        /// </summary>
+        /// <param name="message"></param>
+        protected void IRCSendWallops(string message)
+        {
+            SendTCPMessage(string.Format("WALLOPS :{0}", message));
+        }
+
+        /// <summary>
+        /// Sends an Userhost command to up to 5 nicknames to return information about each nick
+        /// </summary>
+        /// <param name="nicks"></param>
+        protected void IRCSendUserhost(List<string> nicks)
+        {
+            string message = string.Empty;
+            foreach (string nick in nicks)
+            {
+                message += " " + nick;
+            }
+            SendTCPMessage(string.Format("USERHOST {0}", message.Trim()));
+        }
+
+        /// <summary>
+        /// Sends an IsOn command to get a return if the nicks specified are online
+        /// </summary>
+        /// <param name="nicks"></param>
+        protected void IRCSendIson(List<string> nicks)
+        {
+            string message = string.Empty;
+            foreach (string nick in nicks)
+            {
+                message += " " + nick;
+            }
+            SendTCPMessage(string.Format("ISON {0}", message.Trim()));
         }
     }
 }
