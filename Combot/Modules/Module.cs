@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Combot
+namespace Combot.Modules
 {
-    class Access
+    public class Module
     {
+        internal virtual void Initialize() { }
     }
 }

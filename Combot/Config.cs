@@ -7,44 +7,44 @@ using System.Net;
 
 namespace Combot
 {
-    class Config
+    public class Config
     {
-        private string _name;
-        public string Name
+        private Server _server;
+        public Server Server
         {
             get
             {
-                return _name;
+                return _server;
             }
 
             set
             {
-                if (value != _name)
+                if (value != _server)
                 {
-                    _name = value;
+                    _server = value;
                 }
             }
         }
 
-        private IPEndPoint _host;
-        public IPEndPoint Host
+        private string _realname;
+        public string Realname
         {
             get
             {
-                return _host;
+                return _realname;
             }
 
             set
             {
-                if (value != _host)
+                if (value != _realname)
                 {
-                    _host = value;
+                    _realname = value;
                 }
             }
         }
 
-        private Nick _nick;
-        public Nick Nick
+        private string _nick;
+        public string Nick
         {
             get
             {

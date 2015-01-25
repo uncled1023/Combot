@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Combot
+namespace Combot.IRCServices.TCP
 {
     class TCPInterface
     {

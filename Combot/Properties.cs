@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Combot
 {
-    class Module
+    public class Properties
     {
-        internal virtual void Initialize() { }
     }
 }

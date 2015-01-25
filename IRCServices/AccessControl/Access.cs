@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Combot
+namespace Combot.IRCServices.AccessControl
 {
-    class Properties
+    class Access
     {
     }
 }
