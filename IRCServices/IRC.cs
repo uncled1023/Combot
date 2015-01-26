@@ -14,6 +14,7 @@ namespace Combot.IRCServices
     {
         public List<Channel> Channels = new List<Channel>();
         public Messages Message;
+        public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
         public string Nickname { get; set; }
@@ -57,6 +58,11 @@ namespace Combot.IRCServices
                     TCPReader = new Thread(ReadTCPMessages);
                     TCPReader.IsBackground = true;
                     TCPReader.Start();
+
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
                 }
             }
 
@@ -72,6 +78,10 @@ namespace Combot.IRCServices
                 _TCP.Disconnect();
             }
 
+            ChannelRWLock.EnterWriteLock();
+            Channels = new List<Channel>();
+            ChannelRWLock.ExitWriteLock();
+
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
@@ -84,7 +94,7 @@ namespace Combot.IRCServices
         {
             Nickname = nick.Nickname;
             IRCSendNick(nick.Nickname);
-            IRCSendUser(nick.Nickname, nick.Host, serverName, nick.Realname);
+            IRCSendUser(nick.Username, nick.Host, serverName, nick.Realname);
         }
 
         private void ReadTCPMessages()
@@ -174,6 +184,7 @@ namespace Combot.IRCServices
                                         nickFound = false;
                                         nick = new Nick();
                                     }
+                                    nick.Nickname = nickname;
                                     nick.Host = host;
                                     nick.Realname = realname;
                                     nick.Username = username;

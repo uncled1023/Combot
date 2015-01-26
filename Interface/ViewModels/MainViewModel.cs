@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using System.Net;
 using Combot;
 using Combot.IRCServices.Messaging;
+using Combot.Configurations;
 
 namespace Interface.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        public Bot Combot = new Bot();
+        public List<Bot> CombotSessions = new List<Bot>();
+        public Config Config = new Config();
 
         public string ApplicationTitle { get; set; }
 
@@ -25,36 +27,43 @@ namespace Interface.ViewModels
         public string ToggleConnectionText { get { return _ToggleConnectionText; } set { _ToggleConnectionText = value; OnPropertyChanged("ToggleConnectionText"); } }
 
         public DelegateCommand ToggleConnection { get; private set; }
-        public DelegateCommand JoinChannel { get; private set; }
 
         public MainViewModel()
         {
             ApplicationTitle = "Combot";
-            Combot.Config.Nick = "Combot_V3";
-            Combot.Config.Realname = "Combot_V3_realname";
-            Combot.Config.Server = new Server();
-            Combot.Config.Server.AutoConnect = true;
-            Combot.Config.Server.Channels = new List<string>() { "#testing" };
-            Combot.Config.Server.Name = "Rizon";
-            IPAddress[] ipList = Dns.GetHostAddresses("irc.rizon.net");
-            Combot.Config.Server.Hosts = new List<IPEndPoint>();
-            foreach (IPAddress ip in ipList)
+            Config.LoadServers();
+            /*
+            ServerConfig serverConfig = new ServerConfig();
+            serverConfig.AutoConnect = true;
+            serverConfig.Channels = new List<ChannelConfig>() { new ChannelConfig() { Name = "#testing", Key = string.Empty } };
+            serverConfig.Name = "Rizon";
+            serverConfig.Nickname = "Combot_V3";
+            serverConfig.Realname = "Combot_Realname";
+            serverConfig.Username = "Combot_Username";
+            serverConfig.Hosts = new List<HostConfig>() { new HostConfig() { Host = "irc.rizon.net", Port = 6667 } };
+            Config.Servers.Add(serverConfig);
+            Config.SaveServers();
+            */
+
+            foreach (ServerConfig server in Config.Servers)
             {
-                Combot.Config.Server.Hosts.Add(new System.Net.IPEndPoint(ip, 6667));
+                Bot Combot = new Bot(server);
+
+                Combot.IRC.Message.ErrorMessageEvent += ErrorMessageHandler;
+                Combot.IRC.Message.ServerReplyEvent += ServerReplyHandler;
+                Combot.IRC.Message.ChannelMessageReceivedEvent += ChannelMessageReceivedHandler;
+                Combot.IRC.Message.ChannelNoticeReceivedEvent += ChannelNoticeReceivedHandler;
+                Combot.IRC.Message.PrivateMessageReceivedEvent += PrivateMessageReceivedHandler;
+                Combot.IRC.Message.PrivateNoticeReceivedEvent += PrivateNoticeReceivedHandler;
+
+                Combot.IRC.ConnectEvent += ConnectHandler;
+                Combot.IRC.DisconnectEvent += DisconnectHandler;
+                Combot.IRC.TCPErrorEvent += TCPErrorHandler;
+
+                CombotSessions.Add(Combot);
             }
 
-            Combot.IRC.Message.ErrorMessageEvent += ErrorMessageHandler;
-            Combot.IRC.Message.ServerReplyEvent += ServerReplyHandler;
-            Combot.IRC.Message.ChannelMessageReceivedEvent += ChannelMessageReceivedHandler;
-            Combot.IRC.Message.ChannelNoticeReceivedEvent += ChannelNoticeReceivedHandler;
-            Combot.IRC.Message.PrivateMessageReceivedEvent += PrivateMessageReceivedHandler;
-            Combot.IRC.Message.PrivateNoticeReceivedEvent += PrivateNoticeReceivedHandler;
-
-            Combot.IRC.DisconnectEvent += DisconnectHandler;
-            Combot.IRC.TCPErrorEvent += TCPErrorHandler;
-
             ToggleConnection = new DelegateCommand(ExecuteToggleConnection, CanToggleConnection);
-            JoinChannel = new DelegateCommand(ExecuteJoinChannel, CanJoinChannel);
         }
 
         private void TCPErrorHandler(Combot.IRCServices.TCP.TCPError error)
@@ -92,6 +101,11 @@ namespace Interface.ViewModels
             CurrentBuffer += message.Message + Environment.NewLine;
         }
 
+        private void ConnectHandler()
+        {
+            Connected = true;
+        }
+
         private void DisconnectHandler()
         {
             Connected = false;
@@ -116,22 +130,12 @@ namespace Interface.ViewModels
 
         private void Connect()
         {
-            Connected = Combot.Connect();
+            CombotSessions.ForEach(Combot => Combot.Connect());
         }
 
         private void Disconnect()
         {
-            Connected = Combot.Disconnect();
+            CombotSessions.ForEach(Combot => Combot.Disconnect());
         }
-
-        private void ExecuteJoinChannel()
-        {
-            if (_Connected)
-            {
-                Combot.IRC.IRCSendJoin("#testing");
-            }
-        }
-
-        private bool CanJoinChannel() { return true; }
     }
 }

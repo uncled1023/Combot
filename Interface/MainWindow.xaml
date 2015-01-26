@@ -7,6 +7,5 @@
     <Grid>
         <Button x:Name="ToggleConnectionButton" Content="{Binding ToggleConnectionText}" HorizontalAlignment="Left" Margin="10,0,0,10" Width="156" Command="{Binding ToggleConnection}" Height="33" VerticalAlignment="Bottom"/>
         <TextBox x:Name="BufferWindow" Margin="10,10,10,48" TextWrapping="Wrap" Text="{Binding CurrentBuffer, Mode=TwoWay}"/>
-        <Button Content="Join Channel" HorizontalAlignment="Left" Margin="171,0,0,10" Width="121" Command="{Binding JoinChannel}" Height="33" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

@@ -31,12 +31,4 @@ namespace Combot
         public ErrorType Type { get; set; }
         public string Message { get; set; }
     }
-
-    public class Server
-    {
-        public string Name { get; set; }
-        public List<IPEndPoint> Hosts { get; set; }
-        public List<string> Channels { get; set; }
-        public bool AutoConnect { get; set; }
-    }
 }

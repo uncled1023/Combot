@@ -206,6 +206,7 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     UserModeChangeInfo modeMsg = new UserModeChangeInfo();
                                     modeMsg.Modes = new List<UserModeInfo>();
+                                    modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
                                     string[] modeArgs = args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                                     char[] modeInfo = modeArgs[0].TrimStart(':').ToCharArray();
