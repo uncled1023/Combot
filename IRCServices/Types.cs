@@ -102,7 +102,7 @@ namespace Combot.IRCServices
         B,
         [Description("Connection Notice")]
         c,
-        [Description("C-oAdministrator")]
+        [Description("Co-Administrator")]
         C,
         [Description("Deaf")]
         d,
@@ -186,7 +186,7 @@ namespace Combot.IRCServices
         u
     }
 
-    public enum PrivaledgeMode
+    public enum PrivilegeMode
     {
         [Description("Voice")]
         v,

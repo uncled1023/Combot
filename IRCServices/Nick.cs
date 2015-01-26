@@ -16,7 +16,7 @@ namespace Combot.IRCServices
         public bool Identified { get; set; }
         public bool Registered { get; set; }
         public List<UserMode> Modes { get; set; }
-        public List<PrivaledgeMode> Privaledges { get; set; }
+        public List<PrivilegeMode> Privileges { get; set; }
 
         public Nick()
         {
@@ -28,7 +28,7 @@ namespace Combot.IRCServices
             Identified = false;
             Registered = false;
             Modes = new List<UserMode>();
-            Privaledges = new List<PrivaledgeMode>();
+            Privileges = new List<PrivilegeMode>();
         }
 
         public void AddMode(UserMode mode)
@@ -63,35 +63,35 @@ namespace Combot.IRCServices
             }
         }
 
-        public void AddPrivaledge(PrivaledgeMode privaledge)
+        public void AddPrivilege(PrivilegeMode Privilege)
         {
-            if (!Privaledges.Contains(privaledge))
+            if (!Privileges.Contains(Privilege))
             {
-                Privaledges.Add(privaledge);
+                Privileges.Add(Privilege);
             }
         }
 
-        public void AddPrivaledges(List<PrivaledgeMode> privaledges)
+        public void AddPrivileges(List<PrivilegeMode> Privileges)
         {
-            foreach (PrivaledgeMode privaledge in privaledges)
+            foreach (PrivilegeMode Privilege in Privileges)
             {
-                AddPrivaledge(privaledge);
+                AddPrivilege(Privilege);
             }
         }
 
-        public void RemovePrivaledge(PrivaledgeMode privaledge)
+        public void RemovePrivilege(PrivilegeMode Privilege)
         {
-            if (Privaledges.Contains(privaledge))
+            if (Privileges.Contains(Privilege))
             {
-                Privaledges.Remove(privaledge);
+                Privileges.Remove(Privilege);
             }
         }
 
-        public void RemovePrivaledges(List<PrivaledgeMode> privaledges)
+        public void RemovePrivileges(List<PrivilegeMode> Privileges)
         {
-            foreach (PrivaledgeMode privaledge in privaledges)
+            foreach (PrivilegeMode Privilege in Privileges)
             {
-                RemovePrivaledge(privaledge);
+                RemovePrivilege(Privilege);
             }
         }
     }

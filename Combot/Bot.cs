@@ -26,7 +26,10 @@ namespace Combot
             IRC.Message.ServerReplyEvent += HandleReplyEvent;
         }
 
-        public bool Connect()
+        /// <summary>
+        /// Trys to connect to one of the IPs of the given hostname.  If the connection was successful, it will login the nick.
+        /// </summary>
+        public void Connect()
         {
             bool serverConnected = false;
             int i = 0;
@@ -56,16 +59,15 @@ namespace Combot
             {
                 IRC.Login(ServerConfig.Name, new Nick() { Nickname = ServerConfig.Nickname, Host = Dns.GetHostName(), Realname = ServerConfig.Realname, Username = ServerConfig.Username });
             }
-
-            return Connected;
         }
 
-        public bool Disconnect()
+        /// <summary>
+        /// Disconnects from the current server.
+        /// </summary>
+        public void Disconnect()
         {
             IRC.Disconnect();
             Connected = false;
-
-            return Connected;
         }
 
         private void HandleConnectEvent()
@@ -83,7 +85,8 @@ namespace Combot
             if (e.GetType() == typeof(ServerReplyMessage))
             {
                 ServerReplyMessage reply = (ServerReplyMessage)e;
-                if (reply.ReplyCode == IRCReplyCode.RPL_ENDOFMOTD && Connected)
+                // If the reply is Welcome, that means we are fully connected to the server and can now join the auto-join channels.
+                if (reply.ReplyCode == IRCReplyCode.RPL_WELCOME && Connected)
                 {
                     foreach (ChannelConfig channel in ServerConfig.Channels)
                     {

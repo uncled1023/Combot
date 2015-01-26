@@ -18,7 +18,7 @@ namespace Combot.IRCServices
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
         public string Nickname { get; set; }
-        public Dictionary<string, PrivaledgeMode> PrivaledgeMapping = new Dictionary<string, PrivaledgeMode>() { { "+", PrivaledgeMode.v }, { "%", PrivaledgeMode.h }, { "@", PrivaledgeMode.o }, { "&", PrivaledgeMode.a }, { "~", PrivaledgeMode.q } };
+        public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q } };
 
         private TCPInterface _TCP;
         private Thread TCPReader;
@@ -47,6 +47,14 @@ namespace Combot.IRCServices
             Message.QuitEvent += HandleQuit;
         }
 
+        /// <summary>
+        /// Starts a TCP connection to the specified host.
+        /// </summary>
+        /// <param name="IP">The IP address of the host.</param>
+        /// <param name="port">The port for the tcp connection.</param>
+        /// <param name="readTimeout">The timeout for read operations in milliseconds.</param>
+        /// <param name="allowedFailedCount">Number of times a read can fail before disconnecting.</param>
+        /// <returns></returns>
         public bool Connect(IPAddress IP, int port, int readTimeout = 5000, int allowedFailedCount = 0)
         {
             bool result = false;
@@ -69,6 +77,10 @@ namespace Combot.IRCServices
             return result;
         }
 
+        /// <summary>
+        /// Disconencts from the active TCP connection.
+        /// </summary>
+        /// <returns></returns>
         public bool Disconnect()
         {
             bool result = false;
@@ -90,6 +102,11 @@ namespace Combot.IRCServices
             return result;
         }
 
+        /// <summary>
+        /// Logs in the specified nick using their Username and Realname.
+        /// </summary>
+        /// <param name="serverName">The server's name.</param>
+        /// <param name="nick">The nick information for the login.</param>
         public void Login(string serverName, Nick nick)
         {
             Nickname = nick.Nickname;
@@ -149,6 +166,11 @@ namespace Combot.IRCServices
             Disconnect();
         }
 
+        /// <summary>
+        /// Responds with PONG on a PING with the specified arguments.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandlePing(object sender, PingInfo e)
         {
             IRCSendPong(e.Message);
@@ -161,6 +183,7 @@ namespace Combot.IRCServices
                 ServerReplyMessage msg = (ServerReplyMessage)e;
                 switch (msg.ReplyCode)
                 {
+                    // If we get a WHO response, we parse and add the nicks to the specified channel if they are not there already.
                     case IRCReplyCode.RPL_WHOREPLY:
                         ChannelRWLock.EnterWriteLock();
                         string[] msgSplit = msg.Message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -189,13 +212,13 @@ namespace Combot.IRCServices
                                     nick.Realname = realname;
                                     nick.Username = username;
                                     nick.Modes = new List<UserMode>();
-                                    nick.Privaledges = new List<PrivaledgeMode>();
+                                    nick.Privileges = new List<PrivilegeMode>();
                                     char[] modeArr = modeString.ToCharArray();
                                     for (int i = 1; i <= modeArr.GetUpperBound(0); i++)
                                     {
-                                        if (PrivaledgeMapping.ContainsKey(modeArr[i].ToString()))
+                                        if (PrivilegeMapping.ContainsKey(modeArr[i].ToString()))
                                         {
-                                            nick.Privaledges.Add(PrivaledgeMapping[modeArr[i].ToString()]);
+                                            nick.Privileges.Add(PrivilegeMapping[modeArr[i].ToString()]);
                                         }
                                         else if (modeArr[i].ToString() == "*")
                                         {
@@ -215,6 +238,18 @@ namespace Combot.IRCServices
                         }
                         ChannelRWLock.ExitWriteLock();
                         break;
+                    // On a topic reply, update the channel's topic
+                    case IRCReplyCode.RPL_TOPIC:
+                        ChannelRWLock.EnterWriteLock();
+                        string[] topicSplit = msg.Message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        string topicChan = topicSplit[0];
+                        Channel topicChannel = Channels.Find(chan => chan.Name == topicChan);
+                        if (topicChannel != null)
+                        {
+                            topicChannel.Topic = topicSplit[1].Remove(0, 1);
+                        }
+                        ChannelRWLock.ExitWriteLock();
+                        break;
                     default:
                         break;
                 }
@@ -225,6 +260,11 @@ namespace Combot.IRCServices
             }
         }
 
+        /// <summary>
+        /// Update a channel's mode.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleChannelModeChange(object sender, ChannelModeChangeInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -243,11 +283,11 @@ namespace Combot.IRCServices
                             Nick changedNick = channel.GetNick(mode.Parameter);
                             if (mode.Set)
                             {
-                                changedNick.AddPrivaledge((PrivaledgeMode)Enum.Parse(typeof(PrivaledgeMode), mode.Mode.ToString()));
+                                changedNick.AddPrivilege((PrivilegeMode)Enum.Parse(typeof(PrivilegeMode), mode.Mode.ToString()));
                             }
                             else
                             {
-                                changedNick.RemovePrivaledge((PrivaledgeMode)Enum.Parse(typeof(PrivaledgeMode), mode.Mode.ToString()));
+                                changedNick.RemovePrivilege((PrivilegeMode)Enum.Parse(typeof(PrivilegeMode), mode.Mode.ToString()));
                             }
                             break;
                         case ChannelMode.b:
@@ -288,6 +328,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Update a nick's mode.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleUserModeChange(object sender, UserModeChangeInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -312,6 +357,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Update a nick to use their new nickname.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleNickChange(object sender, NickChangeInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -326,6 +376,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Add a nick to a channel on join.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleJoin(object sender, JoinChannelInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -349,6 +404,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Remove a nick from a channel on part.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandlePart(object sender, PartChannelInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -360,6 +420,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Remove a nick from a channel on kick.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleKick(object sender, KickInfo e)
         {
             ChannelRWLock.EnterWriteLock();
@@ -371,6 +436,11 @@ namespace Combot.IRCServices
             ChannelRWLock.ExitWriteLock();
         }
 
+        /// <summary>
+        /// Remove a nick from all channels on quit.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleQuit(object sender, QuitInfo e)
         {
             ChannelRWLock.EnterWriteLock();

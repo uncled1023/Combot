@@ -36,10 +36,14 @@ namespace Combot.IRCServices.Messaging
             _IRC = irc;
         }
 
+        /// <summary>
+        /// Parses the raw messages coming from the server and triggers an event based on the type of message.
+        /// </summary>
+        /// <param name="tcpMessage">The raw string read from the TCP stream.</param>
         internal void ParseTCPMessage(string tcpMessage)
         {
             DateTime messageTime = DateTime.Now;
-            Regex messageRegex = new Regex(@"^:(?<Sender>[^\s]+)\s(?<Type>[^\s]+)\s(?<Recipient>[^\s]+)\s?(?<Args>.*)", RegexOptions.None);
+            Regex messageRegex = new Regex(@"^:(?<Sender>[^\s]+)\s(?<Type>[^\s]+)\s(?<Recipient>[^\s]+)\s?:?(?<Args>.*)", RegexOptions.None);
             Regex senderRegex = new Regex(@"^(?<Nick>[^\s]+)!(?<Realname>[^\s]+)@(?<Host>[^\s]+)", RegexOptions.None);
             Regex pingRegex = new Regex(@"^PING :(?<Message>.+)", RegexOptions.None);
             Regex pongRegex = new Regex(@"^PONG :(?<Message>.+)", RegexOptions.None);
@@ -90,13 +94,14 @@ namespace Combot.IRCServices.Messaging
                     {
                         switch (type)
                         {
+                            // The message was a private message to a channel or nick
                             case "PRIVMSG":
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
                                     ChannelMessage msg = new ChannelMessage();
                                     msg.Channel = recipient;
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args.Remove(0, 1);
+                                    msg.Message = args;
 
                                     if (ChannelMessageReceivedEvent != null)
                                     {
@@ -107,7 +112,7 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     PrivateMessage msg = new PrivateMessage();
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args.Remove(0, 1);
+                                    msg.Message = args;
 
                                     if (PrivateMessageReceivedEvent != null)
                                     {
@@ -115,13 +120,14 @@ namespace Combot.IRCServices.Messaging
                                     }
                                 }
                                 break;
+                            // The message was a notice to a channel or nick
                             case "NOTICE":
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
                                     ChannelNotice msg = new ChannelNotice();
                                     msg.Channel = recipient;
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args.Remove(0, 1);
+                                    msg.Message = args;
 
                                     if (ChannelNoticeReceivedEvent != null)
                                     {
@@ -132,7 +138,7 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     PrivateNotice msg = new PrivateNotice();
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args.Remove(0, 1);
+                                    msg.Message = args;
 
                                     if (PrivateNoticeReceivedEvent != null)
                                     {
@@ -140,6 +146,7 @@ namespace Combot.IRCServices.Messaging
                                     }
                                 }
                                 break;
+                            // The message was a mode change message for a channel or nick
                             case "MODE":
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
@@ -236,17 +243,19 @@ namespace Combot.IRCServices.Messaging
                                     }
                                 }
                                 break;
+                            // The message was a topic change for a channel
                             case "TOPIC":
                                 TopicChangeInfo topicMsg = new TopicChangeInfo();
                                 topicMsg.Channel = recipient;
                                 topicMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                topicMsg.Topic = args.Remove(0, 1);
+                                topicMsg.Topic = args;
 
                                 if (TopicChangeEvent != null)
                                 {
                                     TopicChangeEvent(this, topicMsg);
                                 }
                                 break;
+                            // The message was a nick change
                             case "NICK":
                                 NickChangeInfo nickMsg = new NickChangeInfo();
                                 nickMsg.OldNick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
@@ -257,17 +266,19 @@ namespace Combot.IRCServices.Messaging
                                     NickChangeEvent(this, nickMsg);
                                 }
                                 break;
+                            // The message was an invite to a channel
                             case "INVITE":
                                 InviteChannelInfo inviteMsg = new InviteChannelInfo();
                                 inviteMsg.Requester = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 inviteMsg.Recipient = new Nick() { Nickname = recipient };
-                                inviteMsg.Channel = args.Remove(0, 1);
+                                inviteMsg.Channel = args;
 
                                 if (InviteChannelEvent != null)
                                 {
                                     InviteChannelEvent(this, inviteMsg);
                                 }
                                 break;
+                            // The message was a nick joining a channel
                             case "JOIN":
                                 JoinChannelInfo joinMsg = new JoinChannelInfo();
                                 joinMsg.Channel = recipient.TrimStart(':');
@@ -278,6 +289,7 @@ namespace Combot.IRCServices.Messaging
                                     JoinChannelEvent(this, joinMsg);
                                 }
                                 break;
+                            // The message was a nick parting a channel
                             case "PART":
                                 PartChannelInfo partMsg = new PartChannelInfo();
                                 partMsg.Channel = recipient;
@@ -288,6 +300,7 @@ namespace Combot.IRCServices.Messaging
                                     PartChannelEvent(this, partMsg);
                                 }
                                 break;
+                            // The message was a nick being kicked from a channel
                             case "KICK":
                                 KickInfo kickMsg = new KickInfo();
                                 kickMsg.Channel = recipient;
@@ -305,6 +318,7 @@ namespace Combot.IRCServices.Messaging
                                     KickEvent(this, kickMsg);
                                 }
                                 break;
+                            // The message was a nick quiting the irc network
                             case "QUIT":
                                 QuitInfo quitMsg = new QuitInfo();
                                 quitMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
@@ -320,7 +334,7 @@ namespace Combot.IRCServices.Messaging
                         }
                     }
                 }
-                else if (pingRegex.IsMatch(message))
+                else if (pingRegex.IsMatch(message)) // The message was a PING
                 {
                     Match match = pingRegex.Match(message);
                     PingInfo ping = new PingInfo();
@@ -331,7 +345,7 @@ namespace Combot.IRCServices.Messaging
                         PingEvent(this, ping);
                     }
                 }
-                else if (pongRegex.IsMatch(message))
+                else if (pongRegex.IsMatch(message)) // The message was a PONG
                 {
                     Match match = pongRegex.Match(message);
                     PongInfo pong = new PongInfo();
@@ -342,7 +356,7 @@ namespace Combot.IRCServices.Messaging
                         PongEvent(this, pong);
                     }
                 }
-                else if (errorRegex.IsMatch(message))
+                else if (errorRegex.IsMatch(message)) // The message was a server error
                 {
                     Match match = errorRegex.Match(message);
                     ErrorMessage error = new ErrorMessage();
