@@ -40,6 +40,11 @@ namespace Combot
             }
             while (!Connected);
 
+            if (Connected)
+            {
+                IRC.Login(Config.Server.Name, new Nick() { Nickname = Config.Nick, Host = Dns.GetHostName(), Realname = Config.Realname });
+            }
+
             return Connected;
         }
 
@@ -49,11 +54,6 @@ namespace Combot
             Connected = false;
 
             return Connected;
-        }
-
-        public void Login()
-        {
-            IRC.Login(Config.Server.Name, new Nick() { Nickname = Config.Nick, Host = Dns.GetHostName(), Realname = Config.Realname });
         }
 
         private void HandleDisconnectEvent()

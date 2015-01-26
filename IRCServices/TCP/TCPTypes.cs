@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Combot.IRCServices.TCP
 {
-    internal class TCPError
+    public class TCPError
     {
-        internal int Code { get; set; }
-        internal string Message { get; set; }
+        public int Code { get; set; }
+        public string Message { get; set; }
     }
 }

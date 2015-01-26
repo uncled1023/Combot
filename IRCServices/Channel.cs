@@ -14,12 +14,11 @@ namespace Combot.IRCServices
         public bool AutoJoin { get; set; }
         public bool Joined { get; set; }
         public DateTime Registration { get; set; }
+        public List<string> Bans { get; set; }
         public List<ChannelMode> Modes { get; set; }
         public List<Nick> Nicks { get; set; }
 
-        private IRC _IRC;
-
-        public Channel(IRC irc)
+        public Channel()
         {
             Name = string.Empty;
             Topic = string.Empty;
@@ -27,9 +26,9 @@ namespace Combot.IRCServices
             AutoJoin = false;
             Joined = false;
             Registration = DateTime.Now;
+            Bans = new List<string>();
             Modes = new List<ChannelMode>();
             Nicks = new List<Nick>();
-            _IRC = irc;
         }
 
         public void AddNick(Nick nick)
@@ -50,6 +49,14 @@ namespace Combot.IRCServices
             }
         }
 
+        public void RemoveNick(string nickname)
+        {
+            if (Nicks.Exists(nick => nick.Nickname == nickname))
+            {
+                Nicks.Remove(Nicks.Find(nick => nick.Nickname == nickname));
+            }
+        }
+
         public void RemoveNicks(List<Nick> nicks)
         {
             foreach (Nick nick in nicks)
@@ -58,26 +65,47 @@ namespace Combot.IRCServices
             }
         }
 
+        public void RemoveNicks(List<string> nicks)
+        {
+            foreach (string nick in nicks)
+            {
+                RemoveNick(nick);
+            }
+        }
+
+        public Nick GetNick(string nickname)
+        {
+            Nick foundNick = Nicks.Find(nick => nick.Nickname == nickname);
+            return foundNick;
+        }
+
+        public List<Nick> GetNicks(List<string> nicknames)
+        {
+            List<Nick> foundNicks = new List<Nick>();
+            foreach (string nickname in nicknames)
+            {
+                Nick foundNick = GetNick(nickname);
+                if (foundNick != null)
+                {
+                    foundNicks.Add(foundNick);
+                }
+            }
+            return foundNicks;
+        }
+
         public void AddMode(ChannelMode mode)
         {
             if (!Modes.Contains(mode))
             {
-                ChannelModeInfo modeInfo = new ChannelModeInfo();
-                modeInfo.Mode = mode;
-                modeInfo.Set = true;
-                _IRC.IRCSendMode(Name, modeInfo);
                 Modes.Add(mode);
             }
         }
 
         public void AddModes(List<ChannelMode> modes)
         {
-            if (!modes.TrueForAll(mode => Modes.Contains(mode)))
+            foreach (ChannelMode mode in modes)
             {
-                List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
-                modes.ForEach(mode => modeInfos.Add(new ChannelModeInfo() { Mode = mode, Set = true }));
-                _IRC.IRCSendMode(Name, modeInfos);
-                Modes.AddRange(modes);
+                AddMode(mode);
             }
         }
 
@@ -85,54 +113,29 @@ namespace Combot.IRCServices
         {
             if (Modes.Contains(mode))
             {
-                ChannelModeInfo modeInfo = new ChannelModeInfo();
-                modeInfo.Mode = mode;
-                modeInfo.Set = false;
-                _IRC.IRCSendMode(Name, modeInfo);
                 Modes.Remove(mode);
             }
         }
 
         public void RemoveModes(List<ChannelMode> modes)
         {
-            List<ChannelMode> validModes = Modes.FindAll(mode => mode == modes.Find(m => m == mode));
-            List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
-            validModes.ForEach(mode => modeInfos.Add(new ChannelModeInfo() { Mode = mode, Set = true }));
-            validModes.ForEach(mode => Modes.Remove(mode));
-            _IRC.IRCSendMode(Name, modeInfos);
-        }
-
-        public void Join()
-        {
-            if (!Joined)
+            foreach (ChannelMode mode in modes)
             {
-                _IRC.IRCSendJoin(Name, Key);
-                Joined = true;
+                RemoveMode(mode);
             }
         }
 
-        public void Part()
+        public void AddBan(string mask)
         {
-            if (Joined)
+            if (!Bans.Contains(mask))
             {
-                _IRC.IRCSendPart(Name);
-                Joined = false;
+                Bans.Add(mask);
             }
         }
 
-        public void SetTopic(string topic)
+        public void RemoveBan(string mask)
         {
-
-            if (Joined)
-            {
-                _IRC.IRCSendTopic(Name, topic);
-            }
-        }
-
-        public string GetTopic()
-        {
-
-            return string.Empty;
+            Bans.Remove(mask);
         }
     }
 }

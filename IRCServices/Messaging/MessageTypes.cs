@@ -33,7 +33,7 @@ namespace Combot.IRCServices.Messaging
 
     public class ChannelMessage : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Sender { get; set; }
         public string Message { get; set; }
     }
@@ -51,7 +51,7 @@ namespace Combot.IRCServices.Messaging
 
     public class ChannelNotice : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Sender { get; set; }
         public string Message { get; set; }
     }
@@ -64,14 +64,14 @@ namespace Combot.IRCServices.Messaging
 
     public class TopicChangeInfo : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Nick { get; set; }
         public string Topic { get; set; }
     }
 
     public class ChannelModeChangeInfo : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Nick { get; set; }
         public List<ChannelModeInfo> Modes { get; set; }
     }
@@ -82,21 +82,34 @@ namespace Combot.IRCServices.Messaging
         public List<UserModeInfo> Modes { get; set; }
     }
 
+    public class NickChangeInfo : IMessage
+    {
+        public Nick OldNick { get; set; }
+        public Nick NewNick { get; set; }
+    }
+
+    public class InviteChannelInfo : IMessage
+    {
+        public string Channel { get; set; }
+        public Nick Requester { get; set; }
+        public Nick Recipient { get; set; }
+    }
+
     public class JoinChannelInfo : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Nick { get; set; }
     }
 
     public class PartChannelInfo : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Nick { get; set; }
     }
 
     public class KickInfo : IMessage
     {
-        public Channel Channel { get; set; }
+        public string Channel { get; set; }
         public Nick Nick { get; set; }
         public Nick KickedNick { get; set; }
         public string Reason { get; set; }

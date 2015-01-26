@@ -45,7 +45,7 @@
     <Compile Include="Messaging\GetReply.cs" />
     <Compile Include="Messaging\Messages.cs" />
     <Compile Include="Messaging\MessageTypes.cs" />
-    <Compile Include="Methods.cs" />
+    <Compile Include="IRCSend.cs" />
     <Compile Include="Nick.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TCP\TCPInterface.cs" />

@@ -185,4 +185,18 @@ namespace Combot.IRCServices
         [Description("Server Uptime")]
         u
     }
+
+    public enum PrivaledgeMode
+    {
+        [Description("Voice")]
+        v,
+        [Description("Half-Operator")]
+        h,
+        [Description("Operator")]
+        o,
+        [Description("Super Operator")]
+        a,
+        [Description("Founder")]
+        q
+    }
 }

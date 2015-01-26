@@ -8,6 +8,7 @@ namespace Combot.IRCServices
 {
     public class Nick
     {
+        public string Username { get; set; }
         public string Realname { get; set; }
         public string Host { get; set; }
         public string Nickname { get; set; }
@@ -15,9 +16,11 @@ namespace Combot.IRCServices
         public bool Identified { get; set; }
         public bool Registered { get; set; }
         public List<UserMode> Modes { get; set; }
+        public List<PrivaledgeMode> Privaledges { get; set; }
 
         public Nick()
         {
+            Username = string.Empty;
             Realname = string.Empty;
             Host = string.Empty;
             Nickname = string.Empty;
@@ -25,27 +28,23 @@ namespace Combot.IRCServices
             Identified = false;
             Registered = false;
             Modes = new List<UserMode>();
-        }
-
-        public Nick(string realname, string host, string nickname, string password, bool identified, bool registered, List<UserMode> modes)
-        {
-            Realname = realname;
-            Host = host;
-            Nickname = nickname;
-            Password = password;
-            Identified = identified;
-            Registered = registered;
-            Modes = modes;
+            Privaledges = new List<PrivaledgeMode>();
         }
 
         public void AddMode(UserMode mode)
         {
-            Modes.Add(mode);
+            if (!Modes.Contains(mode))
+            {
+                Modes.Add(mode);
+            }
         }
 
         public void AddModes(List<UserMode> modes)
         {
-            Modes.AddRange(modes);
+            foreach (UserMode mode in modes)
+            {
+                AddMode(mode);
+            }
         }
 
         public void RemoveMode(UserMode mode)
@@ -61,6 +60,38 @@ namespace Combot.IRCServices
             foreach (UserMode mode in modes)
             {
                 RemoveMode(mode);
+            }
+        }
+
+        public void AddPrivaledge(PrivaledgeMode privaledge)
+        {
+            if (!Privaledges.Contains(privaledge))
+            {
+                Privaledges.Add(privaledge);
+            }
+        }
+
+        public void AddPrivaledges(List<PrivaledgeMode> privaledges)
+        {
+            foreach (PrivaledgeMode privaledge in privaledges)
+            {
+                AddPrivaledge(privaledge);
+            }
+        }
+
+        public void RemovePrivaledge(PrivaledgeMode privaledge)
+        {
+            if (Privaledges.Contains(privaledge))
+            {
+                Privaledges.Remove(privaledge);
+            }
+        }
+
+        public void RemovePrivaledges(List<PrivaledgeMode> privaledges)
+        {
+            foreach (PrivaledgeMode privaledge in privaledges)
+            {
+                RemovePrivaledge(privaledge);
             }
         }
     }

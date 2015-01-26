@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Combot.IRCServices.TCP
 {
-    class TCPInterface
+    internal class TCPInterface
     {
         internal event Action<TCPError> TCPErrorEvent;
         internal event Action<int> TCPConnectionEvent;
@@ -94,6 +94,7 @@ namespace Combot.IRCServices.TCP
             }
             catch (IOException)
             {
+                /*
                 _currentFailedCount++;
                 Action<TCPError> localEvent = TCPErrorEvent;
                 if (localEvent != null && _tcpStream.CanRead)
@@ -102,6 +103,7 @@ namespace Combot.IRCServices.TCP
                     error.Message = string.Format("Read Timeout, No Response from Server in {0}ms", _readTimeout);
                     localEvent(error);
                 }
+                */
             }
             catch (Exception ex)
             {

@@ -9,6 +9,7 @@ namespace Combot.IRCServices.Messaging
 {
     public class Messages
     {
+        public event EventHandler<string> RawMessageEvent;
         public event EventHandler<IReply> ServerReplyEvent;
         public event EventHandler<ErrorMessage> ErrorMessageEvent;
         public event EventHandler<ChannelMessage> ChannelMessageReceivedEvent;
@@ -19,6 +20,8 @@ namespace Combot.IRCServices.Messaging
         public event EventHandler<TopicChangeInfo> TopicChangeEvent;
         public event EventHandler<ChannelModeChangeInfo> ChannelModeChangeEvent;
         public event EventHandler<UserModeChangeInfo> UserModeChangeEvent;
+        public event EventHandler<NickChangeInfo> NickChangeEvent;
+        public event EventHandler<InviteChannelInfo> InviteChannelEvent;
         public event EventHandler<JoinChannelInfo> JoinChannelEvent;
         public event EventHandler<PartChannelInfo> PartChannelEvent;
         public event EventHandler<KickInfo> KickEvent;
@@ -36,8 +39,8 @@ namespace Combot.IRCServices.Messaging
         internal void ParseTCPMessage(string tcpMessage)
         {
             DateTime messageTime = DateTime.Now;
-            Regex messageRegex = new Regex(@"^:(?<Sender>[^\s]+)\s(?<Type>[^\s]+)\s(?<Recipient>[^\s]+)\s(?<Args>.*)", RegexOptions.None);
-            Regex senderRegex = new Regex(@"^:(?<Nick>[^\s]+)!(?<Realname>[^\s]+)@(?<Host>[^\s]+)", RegexOptions.None);
+            Regex messageRegex = new Regex(@"^:(?<Sender>[^\s]+)\s(?<Type>[^\s]+)\s(?<Recipient>[^\s]+)\s?(?<Args>.*)", RegexOptions.None);
+            Regex senderRegex = new Regex(@"^(?<Nick>[^\s]+)!(?<Realname>[^\s]+)@(?<Host>[^\s]+)", RegexOptions.None);
             Regex pingRegex = new Regex(@"^PING :(?<Message>.+)", RegexOptions.None);
             Regex pongRegex = new Regex(@"^PONG :(?<Message>.+)", RegexOptions.None);
             Regex errorRegex = new Regex(@"^ERROR :(?<Message>.+)", RegexOptions.None);
@@ -61,7 +64,7 @@ namespace Combot.IRCServices.Messaging
                     {
                         senderNick = senderMatch.Groups["Nick"].Value;
                         senderRealname = senderMatch.Groups["Realname"].Value;
-                        senderHost = senderMatch.Groups["Nick"].Value;
+                        senderHost = senderMatch.Groups["Host"].Value;
                     }
 
                     int replyCode;
@@ -72,14 +75,14 @@ namespace Combot.IRCServices.Messaging
                         {
                             if (ServerReplyEvent != null)
                             {
-                                ServerReplyEvent(this, new ServerReplyMessage() { TimeStamp = messageTime, ReplyCode = (IRCReplyCode)replyCode, Message = args.Remove(0, 1) });
+                                ServerReplyEvent(this, new ServerReplyMessage() { TimeStamp = messageTime, ReplyCode = (IRCReplyCode)replyCode, Message = args });
                             }
                         }
                         else if (Enum.IsDefined(typeof(IRCErrorCode), replyCode))
                         {
                             if (ServerReplyEvent != null)
                             {
-                                ServerReplyEvent(this, new ServerErrorMessage() { TimeStamp = messageTime, ErrorCode = (IRCErrorCode)replyCode, Message = args.Remove(0, 1) });
+                                ServerReplyEvent(this, new ServerErrorMessage() { TimeStamp = messageTime, ErrorCode = (IRCErrorCode)replyCode, Message = args });
                             }
                         }
                     }
@@ -91,15 +94,8 @@ namespace Combot.IRCServices.Messaging
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
                                     ChannelMessage msg = new ChannelMessage();
-                                    msg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
-                                    if (msg.Channel != null && msg.Channel.Modes != null && msg.Channel.Modes.Contains(ChannelMode.n))
-                                    {
-                                        msg.Sender = msg.Channel.Nicks.Find(nick => nick.Nickname == senderNick);
-                                    }
-                                    else
-                                    {
-                                        msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    }
+                                    msg.Channel = recipient;
+                                    msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                     msg.Message = args.Remove(0, 1);
 
                                     if (ChannelMessageReceivedEvent != null)
@@ -123,15 +119,8 @@ namespace Combot.IRCServices.Messaging
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
                                     ChannelNotice msg = new ChannelNotice();
-                                    msg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
-                                    if (msg.Channel != null && msg.Channel.Modes != null && msg.Channel.Modes.Contains(ChannelMode.n))
-                                    {
-                                        msg.Sender = msg.Channel.Nicks.Find(nick => nick.Nickname == senderNick);
-                                    }
-                                    else
-                                    {
-                                        msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    }
+                                    msg.Channel = recipient;
+                                    msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                     msg.Message = args.Remove(0, 1);
 
                                     if (ChannelNoticeReceivedEvent != null)
@@ -156,15 +145,8 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     ChannelModeChangeInfo modeMsg = new ChannelModeChangeInfo();
                                     modeMsg.Modes = new List<ChannelModeInfo>();
-                                    modeMsg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
-                                    if (modeMsg.Channel != null && modeMsg.Channel.Nicks != null && modeMsg.Channel.Nicks.Exists(nick => nick.Nickname == senderNick))
-                                    {
-                                        modeMsg.Nick = modeMsg.Channel.Nicks.Find(nick => nick.Nickname == senderNick);
-                                    }
-                                    else
-                                    {
-                                        modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    }
+                                    modeMsg.Channel = recipient;
+                                    modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
                                     string[] modeArgs = args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                                     char[] modeInfo = modeArgs[0].TrimStart(':').ToCharArray();
@@ -185,7 +167,7 @@ namespace Combot.IRCServices.Messaging
                                             ChannelModeInfo newMode = new ChannelModeInfo();
                                             newMode.Set = set;
                                             newMode.Mode = (ChannelMode)Enum.Parse(typeof(ChannelMode), mode.ToString());
-                                            if (modeArgs.GetUpperBound(0) > argIndex)
+                                            if (modeArgs.GetUpperBound(0) >= argIndex)
                                             {
                                                 switch (newMode.Mode)
                                                 {
@@ -255,15 +237,8 @@ namespace Combot.IRCServices.Messaging
                                 break;
                             case "TOPIC":
                                 TopicChangeInfo topicMsg = new TopicChangeInfo();
-                                topicMsg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
-                                if (topicMsg.Channel != null && topicMsg.Channel.Nicks != null && topicMsg.Channel.Nicks.Exists(nick => nick.Nickname == senderNick))
-                                {
-                                    topicMsg.Nick = topicMsg.Channel.Nicks.Find(nick => nick.Nickname == senderNick);
-                                }
-                                else
-                                {
-                                    topicMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                }
+                                topicMsg.Channel = recipient;
+                                topicMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 topicMsg.Topic = args.Remove(0, 1);
 
                                 if (TopicChangeEvent != null)
@@ -271,9 +246,30 @@ namespace Combot.IRCServices.Messaging
                                     TopicChangeEvent(this, topicMsg);
                                 }
                                 break;
+                            case "NICK":
+                                NickChangeInfo nickMsg = new NickChangeInfo();
+                                nickMsg.OldNick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
+                                nickMsg.NewNick = new Nick() { Nickname = recipient.Remove(0, 1) };
+
+                                if (NickChangeEvent != null)
+                                {
+                                    NickChangeEvent(this, nickMsg);
+                                }
+                                break;
+                            case "INVITE":
+                                InviteChannelInfo inviteMsg = new InviteChannelInfo();
+                                inviteMsg.Requester = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
+                                inviteMsg.Recipient = new Nick() { Nickname = recipient };
+                                inviteMsg.Channel = args.Remove(0, 1);
+
+                                if (InviteChannelEvent != null)
+                                {
+                                    InviteChannelEvent(this, inviteMsg);
+                                }
+                                break;
                             case "JOIN":
                                 JoinChannelInfo joinMsg = new JoinChannelInfo();
-                                joinMsg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient.TrimStart(':'));
+                                joinMsg.Channel = recipient.TrimStart(':');
                                 joinMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
                                 if (JoinChannelEvent != null)
@@ -283,7 +279,7 @@ namespace Combot.IRCServices.Messaging
                                 break;
                             case "PART":
                                 PartChannelInfo partMsg = new PartChannelInfo();
-                                partMsg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
+                                partMsg.Channel = recipient;
                                 partMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
                                 if (PartChannelEvent != null)
@@ -293,10 +289,12 @@ namespace Combot.IRCServices.Messaging
                                 break;
                             case "KICK":
                                 KickInfo kickMsg = new KickInfo();
-                                kickMsg.Channel = _IRC.Channels.Find(channel => channel.Name == recipient);
+                                kickMsg.Channel = recipient;
                                 kickMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 string[] argSplit = args.Split(new char[] { ' ' }, StringSplitOptions.None);
-                                kickMsg.KickedNick = kickMsg.Channel.Nicks.Find(nick => nick.Nickname == argSplit[0]);
+
+                                kickMsg.KickedNick = new Nick() { Nickname = argSplit[0], Realname = argSplit[0], Host = argSplit[0] };
+
                                 List<string> reasonArgs = argSplit.ToList<string>();
                                 reasonArgs.RemoveAt(0);
                                 kickMsg.Reason = string.Join(" ", reasonArgs.ToArray()).Remove(0, 1);
@@ -353,6 +351,11 @@ namespace Combot.IRCServices.Messaging
                     {
                         ErrorMessageEvent(this, error);
                     }
+                }
+
+                if (RawMessageEvent != null)
+                {
+                    RawMessageEvent(this, message);
                 }
             }
         }

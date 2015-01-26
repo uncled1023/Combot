@@ -25,6 +25,7 @@ namespace Interface.ViewModels
         public string ToggleConnectionText { get { return _ToggleConnectionText; } set { _ToggleConnectionText = value; OnPropertyChanged("ToggleConnectionText"); } }
 
         public DelegateCommand ToggleConnection { get; private set; }
+        public DelegateCommand JoinChannel { get; private set; }
 
         public MainViewModel()
         {
@@ -50,8 +51,15 @@ namespace Interface.ViewModels
             Combot.IRC.Message.PrivateNoticeReceivedEvent += PrivateNoticeReceivedHandler;
 
             Combot.IRC.DisconnectEvent += DisconnectHandler;
+            Combot.IRC.TCPErrorEvent += TCPErrorHandler;
 
             ToggleConnection = new DelegateCommand(ExecuteToggleConnection, CanToggleConnection);
+            JoinChannel = new DelegateCommand(ExecuteJoinChannel, CanJoinChannel);
+        }
+
+        private void TCPErrorHandler(Combot.IRCServices.TCP.TCPError error)
+        {
+            CurrentBuffer += string.Format("[{0}] {1}", error.Code.ToString(), error.Message) + Environment.NewLine;
         }
 
         private void ServerReplyHandler(object sender, IReply reply)
@@ -109,15 +117,21 @@ namespace Interface.ViewModels
         private void Connect()
         {
             Connected = Combot.Connect();
-            if (Connected)
-            {
-                Combot.Login();
-            }
         }
 
         private void Disconnect()
         {
             Connected = Combot.Disconnect();
         }
+
+        private void ExecuteJoinChannel()
+        {
+            if (_Connected)
+            {
+                Combot.IRC.IRCSendJoin("#testing");
+            }
+        }
+
+        private bool CanJoinChannel() { return true; }
     }
 }
