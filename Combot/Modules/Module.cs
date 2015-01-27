@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Combot.Modules
 {
-    public class Module
+    abstract internal class Module
     {
-        internal virtual void Initialize() { }
+        abstract public List<Command> Commands { get; set; }
+
+        abstract internal void Initialize() { }
     }
 }
