@@ -7,6 +7,8 @@ using System.Net;
 using Combot;
 using Combot.IRCServices.Messaging;
 using Combot.Configurations;
+using Combot.Modules;
+using Combot.Modules.ModuleClasses;
 
 namespace Interface.ViewModels
 {
@@ -35,16 +37,25 @@ namespace Interface.ViewModels
             /*
             ServerConfig serverConfig = new ServerConfig();
             serverConfig.AutoConnect = true;
-            serverConfig.Channels = new List<ChannelConfig>() { new ChannelConfig() { Name = "#testing", Key = string.Empty } };
+            serverConfig.Channels = new List<ChannelConfig> { new ChannelConfig() { Name = "#testing", Key = string.Empty } };
             serverConfig.Name = "Rizon";
             serverConfig.Nickname = "Combot_V3";
             serverConfig.Realname = "Combot_Realname";
             serverConfig.Username = "Combot_Username";
-            serverConfig.Hosts = new List<HostConfig>() { new HostConfig() { Host = "irc.rizon.net", Port = 6667 } };
+            serverConfig.Hosts = new List<HostConfig> { new HostConfig() { Host = "irc.rizon.net", Port = 6667 } };
+            serverConfig.Modules = new List<Module>
+            {
+                new Module
+                {
+                    Name = "Ping Me",
+                    ClassName = "PingMe",
+                    Enabled = true,
+                    Commands = new List<Command> { new Command { Name = "Ping Me", Triggers = new List<string>() {"pingme"} } }
+                }
+            };
             Config.Servers.Add(serverConfig);
             Config.SaveServers();
             */
-
             foreach (ServerConfig server in Config.Servers)
             {
                 Bot Combot = new Bot(server);

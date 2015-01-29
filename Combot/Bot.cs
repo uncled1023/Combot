@@ -3,27 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Combot.IRCServices;
 using Combot.Configurations;
 using Combot.IRCServices.Messaging;
+using Combot.Modules;
+using Module = Combot.Modules.Module;
 
 namespace Combot
 {
     public class Bot
     {
+        public event Action<CommandMessage> CommandReceivedEvent;
         public event Action<BotError> ErrorEvent;
         public ServerConfig ServerConfig;
         public IRC IRC;
         public bool Connected = false;
 
+        private List<Module> _Modules;
+
         public Bot(ServerConfig serverConfig)
         {
             IRC = new IRC();
+            _Modules = new List<Module>();
             ServerConfig = serverConfig;
             IRC.ConnectEvent += HandleConnectEvent;
             IRC.DisconnectEvent += HandleDisconnectEvent;
             IRC.Message.ServerReplyEvent += HandleReplyEvent;
+            IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessageReceivedEvent;
+
+            LoadModules();
         }
 
         /// <summary>
@@ -70,6 +80,21 @@ namespace Combot
             Connected = false;
         }
 
+        public void LoadModules()
+        {
+            foreach (Module module in ServerConfig.Modules)
+            {
+                if (module.Enabled && !_Modules.Exists(mod => mod.ClassName == module.ClassName))
+                {
+                    Module loadedModule = module.CreateInstance(this);
+                    if (loadedModule.Loaded)
+                    {
+                        _Modules.Add(loadedModule);
+                    }
+                }
+            }
+        }
+
         private void HandleConnectEvent()
         {
             Connected = true;
@@ -91,6 +116,39 @@ namespace Combot
                     foreach (ChannelConfig channel in ServerConfig.Channels)
                     {
                         IRC.IRCSendJoin(channel.Name, channel.Key);
+                    }
+                }
+            }
+        }
+
+        private void HandleChannelMessageReceivedEvent(object sender, ChannelMessage e)
+        {
+            // The message was a command
+            if (e.Message.StartsWith(ServerConfig.CommandPrefix))
+            {
+                string[] msgArgs = e.Message.Split(new char[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries);
+                string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
+                List<string> argsOnly = msgArgs.ToList();
+                argsOnly.RemoveAt(0);
+                if (_Modules.Exists(module => module.Commands.Exists(cmd => cmd.Triggers.Contains(command)) && module.Loaded))
+                {
+                    CommandMessage newCommand = new CommandMessage();
+                    newCommand.Nick.Copy(e.Sender);
+                    IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
+                    {
+                        if (nick.Nickname == newCommand.Nick.Nickname)
+                        {
+                            newCommand.Nick.AddPrivileges(nick.Privileges);
+                        }
+                    }));
+                    newCommand.TimeStamp = e.TimeStamp;
+                    newCommand.ModuleName =_Modules.Find(module => module.Commands.Exists(cmd => cmd.Triggers.Contains(command)) && module.Loaded).Name;
+                    newCommand.Command = command;
+                    newCommand.Arguments.AddRange(argsOnly);
+
+                    if (CommandReceivedEvent != null)
+                    {
+                        CommandReceivedEvent(newCommand);
                     }
                 }
             }

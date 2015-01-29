@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Combot.IRCServices.Messaging
 {
@@ -60,6 +57,13 @@ namespace Combot.IRCServices.Messaging
     {
         public Nick Sender { get; set; }
         public string Message { get; set; }
+    }
+
+    public class CTCPMessage : IMessage
+    {
+        public Nick Target { get; set; }
+        public string Command { get; set; }
+        public string Arguments { get; set; }
     }
 
     public class TopicChangeInfo : IMessage

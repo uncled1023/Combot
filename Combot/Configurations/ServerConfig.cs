@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Threading.Tasks;
+using Combot.Modules;
 
 namespace Combot.Configurations
 {
@@ -13,8 +14,15 @@ namespace Combot.Configurations
 
         public ServerConfig()
         {
+            SetDefaults();
+        }
+
+        public void SetDefaults()
+        {
             AutoConnect = false;
+            CommandPrefix = string.Empty;
             Channels = new List<ChannelConfig>();
+            Modules = new List<Module>();
             Hosts = new List<HostConfig>();
             Nickname = string.Empty;
             Realname = string.Empty;
@@ -97,6 +105,40 @@ namespace Combot.Configurations
             }
         }
 
+        private string _CommandPrefix;
+        public string CommandPrefix
+        {
+            get
+            {
+                return _CommandPrefix;
+            }
+
+            set
+            {
+                if (_CommandPrefix != value)
+                {
+                    _CommandPrefix = value;
+                }
+            }
+        }
+
+        private bool _AutoConnect;
+        public bool AutoConnect
+        {
+            get
+            {
+                return _AutoConnect;
+            }
+
+            set
+            {
+                if (_AutoConnect != value)
+                {
+                    _AutoConnect = value;
+                }
+            }
+        }
+
         private List<HostConfig> _Hosts;
         public List<HostConfig> Hosts
         {
@@ -131,19 +173,19 @@ namespace Combot.Configurations
             }
         }
 
-        private bool _AutoConnect;
-        public bool AutoConnect
+        private List<Module> _Modules;
+        public List<Module> Modules
         {
             get
             {
-                return _AutoConnect;
+                return _Modules;
             }
 
             set
             {
-                if (_AutoConnect != value)
+                if (_Modules != value)
                 {
-                    _AutoConnect = value;
+                    _Modules = value;
                 }
             }
         }

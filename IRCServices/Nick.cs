@@ -31,6 +31,21 @@ namespace Combot.IRCServices
             Privileges = new List<PrivilegeMode>();
         }
 
+        public void Copy(Nick nick)
+        {
+            Username = nick.Username;
+            Realname = nick.Realname;
+            Host = nick.Host;
+            Nickname = nick.Nickname;
+            Password = nick.Password;
+            Identified = nick.Identified;
+            Registered = nick.Registered;
+            Modes = new List<UserMode>();
+            Modes.AddRange(nick.Modes);
+            Privileges = new List<PrivilegeMode>();
+            Privileges.AddRange(nick.Privileges);
+        }
+
         public void AddMode(UserMode mode)
         {
             if (!Modes.Contains(mode))

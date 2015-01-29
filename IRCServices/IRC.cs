@@ -20,10 +20,10 @@ namespace Combot.IRCServices
         public string Nickname { get; set; }
         public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q } };
 
-        private TCPInterface _TCP;
         private Thread TCPReader;
         private event Action<string> TCPMessageEvent;
-        private ReaderWriterLockSlim ChannelRWLock;
+        private readonly TCPInterface _TCP;
+        private readonly ReaderWriterLockSlim ChannelRWLock;
 
         public IRC()
         {

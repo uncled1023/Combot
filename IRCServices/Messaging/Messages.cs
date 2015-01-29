@@ -17,6 +17,7 @@ namespace Combot.IRCServices.Messaging
         public event EventHandler<ServerNotice> ServerNoticeReceivedEvent;
         public event EventHandler<ChannelNotice> ChannelNoticeReceivedEvent;
         public event EventHandler<PrivateNotice> PrivateNoticeReceivedEvent;
+        public event EventHandler<CTCPMessage> CTCPMessageRecievedEvent; 
         public event EventHandler<TopicChangeInfo> TopicChangeEvent;
         public event EventHandler<ChannelModeChangeInfo> ChannelModeChangeEvent;
         public event EventHandler<UserModeChangeInfo> UserModeChangeEvent;
@@ -48,6 +49,7 @@ namespace Combot.IRCServices.Messaging
             Regex pingRegex = new Regex(@"^PING :(?<Message>.+)", RegexOptions.None);
             Regex pongRegex = new Regex(@"^PONG :(?<Message>.+)", RegexOptions.None);
             Regex errorRegex = new Regex(@"^ERROR :(?<Message>.+)", RegexOptions.None);
+            Regex CTCPRegex = new Regex(@"^\u0001(?<Command>[^\s]+)\s?(?<Args>.*)\u0001", RegexOptions.None);
 
             string[] messages = tcpMessage.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -96,27 +98,58 @@ namespace Combot.IRCServices.Messaging
                         {
                             // The message was a private message to a channel or nick
                             case "PRIVMSG":
-                                if (recipient.StartsWith("&") || recipient.StartsWith("#"))
+                                if (CTCPRegex.IsMatch(args))
                                 {
-                                    ChannelMessage msg = new ChannelMessage();
-                                    msg.Channel = recipient;
-                                    msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args;
-
-                                    if (ChannelMessageReceivedEvent != null)
+                                    Match ctcpMatch = CTCPRegex.Match(args);
+                                    CTCPMessage ctcpMessage = new CTCPMessage();
+                                    ctcpMessage.Target = new Nick()
                                     {
-                                        ChannelMessageReceivedEvent(this, msg);
+                                        Nickname = senderNick,
+                                        Realname = senderRealname,
+                                        Host = senderHost
+                                    };
+                                    ctcpMessage.Command = ctcpMatch.Groups["Command"].Value;
+                                    ctcpMessage.Arguments = ctcpMatch.Groups["Args"].Value;
+
+                                    if (CTCPMessageRecievedEvent != null)
+                                    {
+                                        CTCPMessageRecievedEvent(this, ctcpMessage);
                                     }
                                 }
                                 else
                                 {
-                                    PrivateMessage msg = new PrivateMessage();
-                                    msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                    msg.Message = args;
-
-                                    if (PrivateMessageReceivedEvent != null)
+                                    if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                     {
-                                        PrivateMessageReceivedEvent(this, msg);
+                                        ChannelMessage msg = new ChannelMessage();
+                                        msg.Channel = recipient;
+                                        msg.Sender = new Nick()
+                                        {
+                                            Nickname = senderNick,
+                                            Realname = senderRealname,
+                                            Host = senderHost
+                                        };
+                                        msg.Message = args;
+
+                                        if (ChannelMessageReceivedEvent != null)
+                                        {
+                                            ChannelMessageReceivedEvent(this, msg);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        PrivateMessage msg = new PrivateMessage();
+                                        msg.Sender = new Nick()
+                                        {
+                                            Nickname = senderNick,
+                                            Realname = senderRealname,
+                                            Host = senderHost
+                                        };
+                                        msg.Message = args;
+
+                                        if (PrivateMessageReceivedEvent != null)
+                                        {
+                                            PrivateMessageReceivedEvent(this, msg);
+                                        }
                                     }
                                 }
                                 break;

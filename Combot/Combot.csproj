@@ -59,13 +59,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.cs" />
-    <Compile Include="Command.cs" />
+    <Compile Include="Modules\Command.cs" />
     <Compile Include="Configurations\ChannelConfig.cs" />
     <Compile Include="Configurations\Config.cs" />
     <Compile Include="Configurations\HostConfig.cs" />
     <Compile Include="Configurations\JsonHelper.cs" />
     <Compile Include="Configurations\ServerConfig.cs" />
     <Compile Include="Help.cs" />
+    <Compile Include="Modules\CommandArgument.cs" />
+    <Compile Include="Modules\CommandMessage.cs" />
+    <Compile Include="Modules\ModuleClasses\PingMe.cs" />
+    <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />
     <Compile Include="Modules\Module.cs" />
@@ -101,6 +105,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
