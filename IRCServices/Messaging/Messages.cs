@@ -17,7 +17,8 @@ namespace Combot.IRCServices.Messaging
         public event EventHandler<ServerNotice> ServerNoticeReceivedEvent;
         public event EventHandler<ChannelNotice> ChannelNoticeReceivedEvent;
         public event EventHandler<PrivateNotice> PrivateNoticeReceivedEvent;
-        public event EventHandler<CTCPMessage> CTCPMessageRecievedEvent; 
+        public event EventHandler<CTCPMessage> CTCPMessageRecievedEvent;
+        public event EventHandler<CTCPMessage> CTCPNoticeRecievedEvent; 
         public event EventHandler<TopicChangeInfo> TopicChangeEvent;
         public event EventHandler<ChannelModeChangeInfo> ChannelModeChangeEvent;
         public event EventHandler<UserModeChangeInfo> UserModeChangeEvent;
@@ -102,7 +103,7 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     Match ctcpMatch = CTCPRegex.Match(args);
                                     CTCPMessage ctcpMessage = new CTCPMessage();
-                                    ctcpMessage.Target = new Nick()
+                                    ctcpMessage.Sender = new Nick()
                                     {
                                         Nickname = senderNick,
                                         Realname = senderRealname,
@@ -155,6 +156,24 @@ namespace Combot.IRCServices.Messaging
                                 break;
                             // The message was a notice to a channel or nick
                             case "NOTICE":
+                                if (CTCPRegex.IsMatch(args))
+                                {
+                                    Match ctcpMatch = CTCPRegex.Match(args);
+                                    CTCPMessage ctcpMessage = new CTCPMessage();
+                                    ctcpMessage.Sender = new Nick()
+                                    {
+                                        Nickname = senderNick,
+                                        Realname = senderRealname,
+                                        Host = senderHost
+                                    };
+                                    ctcpMessage.Command = ctcpMatch.Groups["Command"].Value;
+                                    ctcpMessage.Arguments = ctcpMatch.Groups["Args"].Value;
+
+                                    if (CTCPNoticeRecievedEvent != null)
+                                    {
+                                        CTCPNoticeRecievedEvent(this, ctcpMessage);
+                                    }
+                                }
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
                                     ChannelNotice msg = new ChannelNotice();

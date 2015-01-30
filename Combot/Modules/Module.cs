@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using Combot.IRCServices;
 
 namespace Combot.Modules
 {
@@ -12,6 +13,8 @@ namespace Combot.Modules
         public string Name { get; set; }
         public string ClassName { get; set; }
         public bool Enabled { get; set; }
+        public List<string> ChannelBlacklist { get; set; }
+        public List<string> NickBlacklist { get; set; }
         public List<Command> Commands { get; set; }
         public List<Option> Options { get; set; }
 
@@ -28,15 +31,48 @@ namespace Combot.Modules
             SetDefaults();
         }
 
+        public void HandleCommandEvent(CommandMessage command)
+        {
+            // Check to make sure the command exists, the nick or channel isn't on a blacklist, and the module is loaded.
+            if (Loaded
+                && !ChannelBlacklist.Contains(command.Location)
+                && !NickBlacklist.Contains(command.Nick.Nickname)
+                && Commands.Exists(c => c.Triggers.Contains(command.Command)
+                                        && !c.ChannelBlacklist.Contains(command.Location)
+                                        && !c.NickBlacklist.Contains(command.Nick.Nickname)
+                                    )
+                )
+            {
+                // Figure out access of the nick
+                Command cmd = Commands.Find(c => c.Triggers.Contains(command.Command));
+                List<AccessType> nickAccessTypes = new List<AccessType>() { AccessType.User };
+                foreach (PrivilegeMode privilege in command.Nick.Privileges)
+                {
+                    nickAccessTypes.Add(Bot.AccessTypeMapping[privilege]);
+                }
+                if (Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Identified)
+                {
+                    nickAccessTypes.Add(AccessType.Owner);
+                }
+                // If they have the correct access for the command, send it
+                if (cmd.AllowedAccess.Exists(access => nickAccessTypes.Contains(access)))
+                {
+                    ParseCommand(command);
+                }
+            }
+        }
+
         virtual public void Initialize() { }
 
-        virtual public void HandleCommandEvent(CommandMessage command) { }
+        virtual public void ParseCommand(CommandMessage command) { }
 
         public void SetDefaults()
         {
             Name = string.Empty;
             ClassName = string.Empty;
             Enabled = false;
+            ChannelBlacklist = new List<string>();
+            NickBlacklist = new List<string>();
             Loaded = false;
             Commands = new List<Command>();
             Options = new List<Option>();
@@ -47,6 +83,16 @@ namespace Combot.Modules
             Name = module.Name;
             ClassName = module.ClassName;
             Enabled = module.Enabled;
+            ChannelBlacklist = new List<string>();
+            foreach (string channel in module.ChannelBlacklist)
+            {
+                ChannelBlacklist.Add(channel);
+            }
+            NickBlacklist = new List<string>();
+            foreach (string nick in module.NickBlacklist)
+            {
+                NickBlacklist.Add(nick);
+            }
             Commands = new List<Command>();
             foreach (Command command in module.Commands)
             {

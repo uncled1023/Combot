@@ -110,8 +110,8 @@ namespace Combot.IRCServices
         public void Login(string serverName, Nick nick)
         {
             Nickname = nick.Nickname;
-            IRCSendNick(nick.Nickname);
-            IRCSendUser(nick.Username, nick.Host, serverName, nick.Realname);
+            SendNick(nick.Nickname);
+            SendUser(nick.Username, nick.Host, serverName, nick.Realname);
         }
 
         private void ReadTCPMessages()
@@ -173,7 +173,7 @@ namespace Combot.IRCServices
         /// <param name="e"></param>
         private void HandlePing(object sender, PingInfo e)
         {
-            IRCSendPong(e.Message);
+            SendPong(e.Message);
         }
 
         private void HandleReply(object sender, IReply e)
@@ -399,7 +399,7 @@ namespace Combot.IRCServices
                 }
                 newChannel.Nicks.Add(e.Nick);
                 Channels.Add(newChannel);
-                IRCSendWho(newChannel.Name);
+                SendWho(newChannel.Name);
             }
             ChannelRWLock.ExitWriteLock();
         }

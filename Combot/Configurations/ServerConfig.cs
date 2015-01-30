@@ -11,6 +11,18 @@ namespace Combot.Configurations
     public class ServerConfig
     {
         public event Action ModifyEvent;
+        public string Name { get; set; }
+        public bool AutoConnect { get; set; }
+        public string CommandPrefix { get; set; }
+        public string Nickname { get; set; }
+        public string Realname { get; set; }
+        public string Username { get; set; }
+        public List<string> Owners { get; set; } 
+        public List<string> ChannelBlacklist { get; set; }
+        public List<string> NickBlacklist { get; set; }
+        public List<HostConfig> Hosts { get; set; }
+        public List<ChannelConfig> Channels { get; set; }
+        public List<Module> Modules { get; set; }
 
         public ServerConfig()
         {
@@ -19,8 +31,12 @@ namespace Combot.Configurations
 
         public void SetDefaults()
         {
+            Name = string.Empty;
             AutoConnect = false;
             CommandPrefix = string.Empty;
+            Owners = new List<string>();
+            ChannelBlacklist = new List<string>();
+            NickBlacklist = new List<string>();
             Channels = new List<ChannelConfig>();
             Modules = new List<Module>();
             Hosts = new List<HostConfig>();
@@ -34,159 +50,6 @@ namespace Combot.Configurations
             if (ModifyEvent != null)
             {
                 ModifyEvent();
-            }
-        }
-
-        private string _Name;
-        public string Name
-        {
-            get
-            {
-                return _Name;
-            }
-
-            set
-            {
-                if (_Name != value)
-                {
-                    _Name = value;
-                }
-            }
-        }
-
-        private string _Nickname;
-        public string Nickname 
-        { 
-            get
-            {
-                return _Nickname;
-            }
-
-            set
-            {
-                if (_Nickname != value)
-                {
-                    _Nickname = value;
-                }
-            }
-        }
-
-        private string _Username;
-        public string Username
-        {
-            get
-            {
-                return _Username;
-            }
-
-            set
-            {
-                if (_Username != value)
-                {
-                    _Username = value;
-                }
-            }
-        }
-
-        private string _Realname;
-        public string Realname
-        {
-            get
-            {
-                return _Realname;
-            }
-
-            set
-            {
-                if (_Realname != value)
-                {
-                    _Realname = value;
-                }
-            }
-        }
-
-        private string _CommandPrefix;
-        public string CommandPrefix
-        {
-            get
-            {
-                return _CommandPrefix;
-            }
-
-            set
-            {
-                if (_CommandPrefix != value)
-                {
-                    _CommandPrefix = value;
-                }
-            }
-        }
-
-        private bool _AutoConnect;
-        public bool AutoConnect
-        {
-            get
-            {
-                return _AutoConnect;
-            }
-
-            set
-            {
-                if (_AutoConnect != value)
-                {
-                    _AutoConnect = value;
-                }
-            }
-        }
-
-        private List<HostConfig> _Hosts;
-        public List<HostConfig> Hosts
-        {
-            get
-            {
-                return _Hosts;
-            }
-
-            set
-            {
-                if (_Hosts != value)
-                {
-                    _Hosts = value;
-                }
-            }
-        }
-
-        private List<ChannelConfig> _Channels;
-        public List<ChannelConfig> Channels
-        {
-            get
-            {
-                return _Channels;
-            }
-
-            set
-            {
-                if (_Channels != value)
-                {
-                    _Channels = value;
-                }
-            }
-        }
-
-        private List<Module> _Modules;
-        public List<Module> Modules
-        {
-            get
-            {
-                return _Modules;
-            }
-
-            set
-            {
-                if (_Modules != value)
-                {
-                    _Modules = value;
-                }
             }
         }
     }

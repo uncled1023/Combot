@@ -6,10 +6,11 @@ namespace Combot.Modules
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public List<string> Triggers { get; set; }
         public List<string> ChannelBlacklist { get; set; }
         public List<string> NickBlacklist { get; set; }
+        public List<string> Triggers { get; set; }
         public List<CommandArgument> Arguments { get; set; }
+        public List<AccessType> AllowedAccess { get; set; }
         public bool ShowHelp { get; set; }
         public bool SpamCheck { get; set; }
 
@@ -31,6 +32,7 @@ namespace Combot.Modules
             ChannelBlacklist = new List<string>();
             NickBlacklist = new List<string>();
             Arguments = new List<CommandArgument>();
+            AllowedAccess = new List<AccessType>();
             ShowHelp = true;
             SpamCheck = true;
         }
@@ -60,6 +62,11 @@ namespace Combot.Modules
                 CommandArgument newArg = new CommandArgument();
                 newArg.Copy(arg);
                 Arguments.Add(newArg);
+            }
+            AllowedAccess = new List<AccessType>();
+            foreach (AccessType accessType in command.AllowedAccess)
+            {
+                AllowedAccess.Add(accessType);
             }
             ShowHelp = command.ShowHelp;
             SpamCheck = command.SpamCheck;

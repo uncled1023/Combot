@@ -33,15 +33,28 @@ namespace Interface.ViewModels
         public MainViewModel()
         {
             ApplicationTitle = "Combot";
-            Config.LoadServers();
-            /*
+            //Config.LoadServers();
+
             ServerConfig serverConfig = new ServerConfig();
             serverConfig.AutoConnect = true;
-            serverConfig.Channels = new List<ChannelConfig> { new ChannelConfig() { Name = "#testing", Key = string.Empty } };
+            serverConfig.Channels = new List<ChannelConfig>
+            {
+                new ChannelConfig()
+                {
+                    Name = "#testing", 
+                    Key = string.Empty
+                },
+                new ChannelConfig()
+                {
+                    Name = "#/g/technology",
+                    Key = string.Empty
+                }
+            };
             serverConfig.Name = "Rizon";
             serverConfig.Nickname = "Combot_V3";
             serverConfig.Realname = "Combot_Realname";
             serverConfig.Username = "Combot_Username";
+            serverConfig.CommandPrefix = ".";
             serverConfig.Hosts = new List<HostConfig> { new HostConfig() { Host = "irc.rizon.net", Port = 6667 } };
             serverConfig.Modules = new List<Module>
             {
@@ -50,12 +63,33 @@ namespace Interface.ViewModels
                     Name = "Ping Me",
                     ClassName = "PingMe",
                     Enabled = true,
-                    Commands = new List<Command> { new Command { Name = "Ping Me", Triggers = new List<string>() {"pingme"} } }
+                    Commands = new List<Command>
+                    {
+                        new Command
+                        {
+                            Name = "Ping Me", 
+                            Description = "Checks the time it takes for a PING to be returned from a nick.",
+                            AllowedAccess = new List<AccessType>()
+                            {
+                                AccessType.User, 
+                                AccessType.Voice, 
+                                AccessType.HalfOperator, 
+                                AccessType.Operator, 
+                                AccessType.SuperOperator, 
+                                AccessType.Founder, 
+                                AccessType.Owner
+                            },
+                            Triggers = new List<string>()
+                            {
+                                "pingme"
+                            }
+                        }
+                    }
                 }
             };
             Config.Servers.Add(serverConfig);
             Config.SaveServers();
-            */
+
             foreach (ServerConfig server in Config.Servers)
             {
                 Bot Combot = new Bot(server);

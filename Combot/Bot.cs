@@ -20,6 +20,7 @@ namespace Combot
         public ServerConfig ServerConfig;
         public IRC IRC;
         public bool Connected = false;
+        public static Dictionary<PrivilegeMode, AccessType> AccessTypeMapping = new Dictionary<PrivilegeMode, AccessType>() { { PrivilegeMode.v, AccessType.Voice }, { PrivilegeMode.h, AccessType.HalfOperator }, { PrivilegeMode.o, AccessType.Operator }, { PrivilegeMode.a, AccessType.SuperOperator }, { PrivilegeMode.q, AccessType.Founder } };
 
         private List<Module> _Modules;
 
@@ -115,7 +116,7 @@ namespace Combot
                 {
                     foreach (ChannelConfig channel in ServerConfig.Channels)
                     {
-                        IRC.IRCSendJoin(channel.Name, channel.Key);
+                        IRC.SendJoin(channel.Name, channel.Key);
                     }
                 }
             }
@@ -126,14 +127,31 @@ namespace Combot
             // The message was a command
             if (e.Message.StartsWith(ServerConfig.CommandPrefix))
             {
-                string[] msgArgs = e.Message.Split(new char[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries);
-                string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
-                List<string> argsOnly = msgArgs.ToList();
-                argsOnly.RemoveAt(0);
-                if (_Modules.Exists(module => module.Commands.Exists(cmd => cmd.Triggers.Contains(command)) && module.Loaded))
+                if (!ServerConfig.ChannelBlacklist.Contains(e.Channel)
+                    && !ServerConfig.NickBlacklist.Contains(e.Sender.Nickname)
+                    )
+                {
+                    ParseCommandMessage(e.TimeStamp, e.Message, e.Sender, e.Channel, LocationType.Channel);
+                }
+            }
+        }
+
+        private void ParseCommandMessage(DateTime timestamp, string message, Nick sender, string location, LocationType locationType)
+        {
+            // Extract command and arguments
+            string[] msgArgs = message.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
+            List<string> argsOnly = msgArgs.ToList();
+            argsOnly.RemoveAt(0);
+
+            Module module = _Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded);
+            if (module != null)
+            {
+                Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
+                if (cmd != null)
                 {
                     CommandMessage newCommand = new CommandMessage();
-                    newCommand.Nick.Copy(e.Sender);
+                    newCommand.Nick.Copy(sender);
                     IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
                     {
                         if (nick.Nickname == newCommand.Nick.Nickname)
@@ -141,10 +159,19 @@ namespace Combot
                             newCommand.Nick.AddPrivileges(nick.Privileges);
                         }
                     }));
-                    newCommand.TimeStamp = e.TimeStamp;
-                    newCommand.ModuleName =_Modules.Find(module => module.Commands.Exists(cmd => cmd.Triggers.Contains(command)) && module.Loaded).Name;
+                    newCommand.TimeStamp = timestamp;
+                    newCommand.Location = location;
+                    newCommand.LocationType = locationType;
                     newCommand.Command = command;
-                    newCommand.Arguments.AddRange(argsOnly);
+                    if (argsOnly.Count > 0)
+                    {
+                        string[] argSplit = argsOnly.First()
+                            .Split(new[] {' '}, cmd.Arguments.Count + 1, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 0; i < cmd.Arguments.Count; i++)
+                        {
+                            newCommand.Arguments.Add(argSplit[i]);
+                        }
+                    }
 
                     if (CommandReceivedEvent != null)
                     {
