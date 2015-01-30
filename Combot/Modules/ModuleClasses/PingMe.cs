@@ -37,7 +37,7 @@ namespace Combot.Modules.ModuleClasses
                 }
                 pingList.Add(tmpItem);
                 listLock.ExitWriteLock();
-                Bot.IRC.SendCTCP(command.Nick.Nickname, "PING", epoch.ToString());
+                Bot.IRC.SendCTCPMessage(command.Nick.Nickname, "PING", epoch.ToString());
             }
         }
 

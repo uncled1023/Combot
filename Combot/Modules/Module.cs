@@ -38,6 +38,7 @@ namespace Combot.Modules
                 && !ChannelBlacklist.Contains(command.Location)
                 && !NickBlacklist.Contains(command.Nick.Nickname)
                 && Commands.Exists(c => c.Triggers.Contains(command.Command)
+                                        && c.Enabled
                                         && !c.ChannelBlacklist.Contains(command.Location)
                                         && !c.NickBlacklist.Contains(command.Nick.Nickname)
                                     )
@@ -131,6 +132,21 @@ namespace Combot.Modules
             }
 
             return newModule;
+        }
+
+        public dynamic GetOptionValue(string name)
+        {
+            dynamic foundValue = null;
+            Option foundOption = Options.Find(opt => opt.Name == name);
+            if (foundOption != null)
+            {
+                foundValue = foundOption.Value;
+                if (foundValue == null)
+                {
+                    foundValue = string.Empty;
+                }
+            }
+            return foundValue;
         }
     }
 }

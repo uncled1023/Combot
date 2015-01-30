@@ -43,18 +43,20 @@ namespace Interface.ViewModels
                 {
                     Name = "#testing", 
                     Key = string.Empty
-                },
+                }/*,
                 new ChannelConfig()
                 {
-                    Name = "#/g/technology",
+                    Name = "#rice", 
                     Key = string.Empty
-                }
+                }*/
             };
             serverConfig.Name = "Rizon";
             serverConfig.Nickname = "Combot_V3";
             serverConfig.Realname = "Combot_Realname";
             serverConfig.Username = "Combot_Username";
+            serverConfig.Password = "24121exe";
             serverConfig.CommandPrefix = ".";
+            serverConfig.JoinDelay = 1000;
             serverConfig.Hosts = new List<HostConfig> { new HostConfig() { Host = "irc.rizon.net", Port = 6667 } };
             serverConfig.Modules = new List<Module>
             {
@@ -69,7 +71,7 @@ namespace Interface.ViewModels
                         {
                             Name = "Ping Me", 
                             Description = "Checks the time it takes for a PING to be returned from a nick.",
-                            AllowedAccess = new List<AccessType>()
+                            AllowedAccess = new List<AccessType>
                             {
                                 AccessType.User, 
                                 AccessType.Voice, 
@@ -79,9 +81,53 @@ namespace Interface.ViewModels
                                 AccessType.Founder, 
                                 AccessType.Owner
                             },
-                            Triggers = new List<string>()
+                            Triggers = new List<string>
                             {
                                 "pingme"
+                            }
+                        }
+                    }
+                },
+                new Module
+                {
+                    Name = "Invite",
+                    ClassName = "Invite",
+                    Enabled = true
+                },
+                new Module
+                {
+                    Name = "Version",
+                    ClassName = "Version",
+                    Enabled = true,
+                    Commands = new List<Command>
+                    {
+                        new Command
+                        {
+                            Name = "Version Check",
+                            Description = "Sends a version CTCP request and displays the response.",
+                            AllowedAccess = new List<AccessType>
+                            {
+                                AccessType.User, 
+                                AccessType.Voice, 
+                                AccessType.HalfOperator, 
+                                AccessType.Operator, 
+                                AccessType.SuperOperator, 
+                                AccessType.Founder, 
+                                AccessType.Owner
+                            },
+                            Triggers = new List<string>
+                            {
+                                "version",
+                                "ver"
+                            },
+                            Arguments = new List<CommandArgument>
+                            {
+                                new CommandArgument
+                                {
+                                    Name = "Nickname",
+                                    Description = "The nickname you want to query for version information.",
+                                    Required = true
+                                }
                             }
                         }
                     }
@@ -89,17 +135,20 @@ namespace Interface.ViewModels
             };
             Config.Servers.Add(serverConfig);
             Config.SaveServers();
+            Config.LoadServers();
 
             foreach (ServerConfig server in Config.Servers)
             {
                 Bot Combot = new Bot(server);
-
+                /*
                 Combot.IRC.Message.ErrorMessageEvent += ErrorMessageHandler;
                 Combot.IRC.Message.ServerReplyEvent += ServerReplyHandler;
                 Combot.IRC.Message.ChannelMessageReceivedEvent += ChannelMessageReceivedHandler;
                 Combot.IRC.Message.ChannelNoticeReceivedEvent += ChannelNoticeReceivedHandler;
                 Combot.IRC.Message.PrivateMessageReceivedEvent += PrivateMessageReceivedHandler;
                 Combot.IRC.Message.PrivateNoticeReceivedEvent += PrivateNoticeReceivedHandler;
+                 */
+                Combot.IRC.Message.RawMessageEvent += RawMessageHandler;
 
                 Combot.IRC.ConnectEvent += ConnectHandler;
                 Combot.IRC.DisconnectEvent += DisconnectHandler;
@@ -109,6 +158,11 @@ namespace Interface.ViewModels
             }
 
             ToggleConnection = new DelegateCommand(ExecuteToggleConnection, CanToggleConnection);
+        }
+
+        private void RawMessageHandler(object sender, string message)
+        {
+            CurrentBuffer += message + Environment.NewLine;
         }
 
         private void TCPErrorHandler(Combot.IRCServices.TCP.TCPError error)

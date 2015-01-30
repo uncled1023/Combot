@@ -6,6 +6,7 @@ namespace Combot.Modules
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public bool Enabled { get; set; }
         public List<string> ChannelBlacklist { get; set; }
         public List<string> NickBlacklist { get; set; }
         public List<string> Triggers { get; set; }
@@ -28,6 +29,7 @@ namespace Combot.Modules
         {
             Name = string.Empty;
             Description = string.Empty;
+            Enabled = true;
             Triggers = new List<string>();
             ChannelBlacklist = new List<string>();
             NickBlacklist = new List<string>();
@@ -41,6 +43,7 @@ namespace Combot.Modules
         {
             Name = command.Name;
             Description = command.Description;
+            Enabled = command.Enabled;
             Triggers = new List<string>();
             foreach (string trigger in command.Triggers)
             {

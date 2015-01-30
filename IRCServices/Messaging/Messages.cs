@@ -42,7 +42,7 @@ namespace Combot.IRCServices.Messaging
         /// Parses the raw messages coming from the server and triggers an event based on the type of message.
         /// </summary>
         /// <param name="tcpMessage">The raw string read from the TCP stream.</param>
-        internal void ParseTCPMessage(string tcpMessage)
+        internal async void ParseTCPMessage(string tcpMessage)
         {
             DateTime messageTime = DateTime.Now;
             Regex messageRegex = new Regex(@"^:(?<Sender>[^\s]+)\s(?<Type>[^\s]+)\s(?<Recipient>[^\s]+)\s?:?(?<Args>.*)", RegexOptions.None);
@@ -80,17 +80,35 @@ namespace Combot.IRCServices.Messaging
                         // The message was a reply to a command sent
                         if (Enum.IsDefined(typeof(IRCReplyCode), replyCode))
                         {
-                            if (ServerReplyEvent != null)
+                            await Task.Run(() =>
                             {
-                                ServerReplyEvent(this, new ServerReplyMessage() { TimeStamp = messageTime, ReplyCode = (IRCReplyCode)replyCode, Message = args });
-                            }
+                                if (ServerReplyEvent != null)
+                                {
+                                    ServerReplyEvent(this,
+                                        new ServerReplyMessage()
+                                        {
+                                            TimeStamp = messageTime,
+                                            ReplyCode = (IRCReplyCode) replyCode,
+                                            Message = args
+                                        });
+                                }
+                            });
                         }
                         else if (Enum.IsDefined(typeof(IRCErrorCode), replyCode))
                         {
-                            if (ServerReplyEvent != null)
+                            await Task.Run(() =>
                             {
-                                ServerReplyEvent(this, new ServerErrorMessage() { TimeStamp = messageTime, ErrorCode = (IRCErrorCode)replyCode, Message = args });
-                            }
+                                if (ServerReplyEvent != null)
+                                {
+                                    ServerReplyEvent(this,
+                                        new ServerErrorMessage()
+                                        {
+                                            TimeStamp = messageTime,
+                                            ErrorCode = (IRCErrorCode) replyCode,
+                                            Message = args
+                                        });
+                                }
+                            });
                         }
                     }
                     else
@@ -112,10 +130,13 @@ namespace Combot.IRCServices.Messaging
                                     ctcpMessage.Command = ctcpMatch.Groups["Command"].Value;
                                     ctcpMessage.Arguments = ctcpMatch.Groups["Args"].Value;
 
-                                    if (CTCPMessageRecievedEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        CTCPMessageRecievedEvent(this, ctcpMessage);
-                                    }
+                                        if (CTCPMessageRecievedEvent != null)
+                                        {
+                                            CTCPMessageRecievedEvent(this, ctcpMessage);
+                                        }
+                                    });
                                 }
                                 else
                                 {
@@ -131,10 +152,13 @@ namespace Combot.IRCServices.Messaging
                                         };
                                         msg.Message = args;
 
-                                        if (ChannelMessageReceivedEvent != null)
+                                        await Task.Run(() =>
                                         {
-                                            ChannelMessageReceivedEvent(this, msg);
-                                        }
+                                            if (ChannelMessageReceivedEvent != null)
+                                            {
+                                                ChannelMessageReceivedEvent(this, msg);
+                                            }
+                                        });
                                     }
                                     else
                                     {
@@ -147,10 +171,13 @@ namespace Combot.IRCServices.Messaging
                                         };
                                         msg.Message = args;
 
-                                        if (PrivateMessageReceivedEvent != null)
+                                        await Task.Run(() =>
                                         {
-                                            PrivateMessageReceivedEvent(this, msg);
-                                        }
+                                            if (PrivateMessageReceivedEvent != null)
+                                            {
+                                                PrivateMessageReceivedEvent(this, msg);
+                                            }
+                                        });
                                     }
                                 }
                                 break;
@@ -169,10 +196,13 @@ namespace Combot.IRCServices.Messaging
                                     ctcpMessage.Command = ctcpMatch.Groups["Command"].Value;
                                     ctcpMessage.Arguments = ctcpMatch.Groups["Args"].Value;
 
-                                    if (CTCPNoticeRecievedEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        CTCPNoticeRecievedEvent(this, ctcpMessage);
-                                    }
+                                        if (CTCPNoticeRecievedEvent != null)
+                                        {
+                                            CTCPNoticeRecievedEvent(this, ctcpMessage);
+                                        }
+                                    });
                                 }
                                 if (recipient.StartsWith("&") || recipient.StartsWith("#"))
                                 {
@@ -181,10 +211,13 @@ namespace Combot.IRCServices.Messaging
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                     msg.Message = args;
 
-                                    if (ChannelNoticeReceivedEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        ChannelNoticeReceivedEvent(this, msg);
-                                    }
+                                        if (ChannelNoticeReceivedEvent != null)
+                                        {
+                                            ChannelNoticeReceivedEvent(this, msg);
+                                        }
+                                    });
                                 }
                                 else
                                 {
@@ -192,10 +225,13 @@ namespace Combot.IRCServices.Messaging
                                     msg.Sender = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                     msg.Message = args;
 
-                                    if (PrivateNoticeReceivedEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        PrivateNoticeReceivedEvent(this, msg);
-                                    }
+                                        if (PrivateNoticeReceivedEvent != null)
+                                        {
+                                            PrivateNoticeReceivedEvent(this, msg);
+                                        }
+                                    });
                                 }
                                 break;
                             // The message was a mode change message for a channel or nick
@@ -256,10 +292,13 @@ namespace Combot.IRCServices.Messaging
                                         }
                                     }
 
-                                    if (ChannelModeChangeEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        ChannelModeChangeEvent(this, modeMsg);
-                                    }
+                                        if (ChannelModeChangeEvent != null)
+                                        {
+                                            ChannelModeChangeEvent(this, modeMsg);
+                                        }
+                                    });
                                 }
                                 else
                                 {
@@ -289,10 +328,13 @@ namespace Combot.IRCServices.Messaging
                                         }
                                     }
 
-                                    if (UserModeChangeEvent != null)
+                                    await Task.Run(() =>
                                     {
-                                        UserModeChangeEvent(this, modeMsg);
-                                    }
+                                        if (UserModeChangeEvent != null)
+                                        {
+                                            UserModeChangeEvent(this, modeMsg);
+                                        }
+                                    });
                                 }
                                 break;
                             // The message was a topic change for a channel
@@ -302,10 +344,13 @@ namespace Combot.IRCServices.Messaging
                                 topicMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 topicMsg.Topic = args;
 
-                                if (TopicChangeEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    TopicChangeEvent(this, topicMsg);
-                                }
+                                    if (TopicChangeEvent != null)
+                                    {
+                                        TopicChangeEvent(this, topicMsg);
+                                    }
+                                });
                                 break;
                             // The message was a nick change
                             case "NICK":
@@ -313,10 +358,13 @@ namespace Combot.IRCServices.Messaging
                                 nickMsg.OldNick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 nickMsg.NewNick = new Nick() { Nickname = recipient.Remove(0, 1) };
 
-                                if (NickChangeEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    NickChangeEvent(this, nickMsg);
-                                }
+                                    if (NickChangeEvent != null)
+                                    {
+                                        NickChangeEvent(this, nickMsg);
+                                    }
+                                });
                                 break;
                             // The message was an invite to a channel
                             case "INVITE":
@@ -325,10 +373,13 @@ namespace Combot.IRCServices.Messaging
                                 inviteMsg.Recipient = new Nick() { Nickname = recipient };
                                 inviteMsg.Channel = args;
 
-                                if (InviteChannelEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    InviteChannelEvent(this, inviteMsg);
-                                }
+                                    if (InviteChannelEvent != null)
+                                    {
+                                        InviteChannelEvent(this, inviteMsg);
+                                    }
+                                });
                                 break;
                             // The message was a nick joining a channel
                             case "JOIN":
@@ -336,10 +387,13 @@ namespace Combot.IRCServices.Messaging
                                 joinMsg.Channel = recipient.TrimStart(':');
                                 joinMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
-                                if (JoinChannelEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    JoinChannelEvent(this, joinMsg);
-                                }
+                                    if (JoinChannelEvent != null)
+                                    {
+                                        JoinChannelEvent(this, joinMsg);
+                                    }
+                                });
                                 break;
                             // The message was a nick parting a channel
                             case "PART":
@@ -347,10 +401,13 @@ namespace Combot.IRCServices.Messaging
                                 partMsg.Channel = recipient;
                                 partMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
-                                if (PartChannelEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    PartChannelEvent(this, partMsg);
-                                }
+                                    if (PartChannelEvent != null)
+                                    {
+                                        PartChannelEvent(this, partMsg);
+                                    }
+                                });
                                 break;
                             // The message was a nick being kicked from a channel
                             case "KICK":
@@ -365,10 +422,13 @@ namespace Combot.IRCServices.Messaging
                                 reasonArgs.RemoveAt(0);
                                 kickMsg.Reason = string.Join(" ", reasonArgs.ToArray()).Remove(0, 1);
 
-                                if (KickEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    KickEvent(this, kickMsg);
-                                }
+                                    if (KickEvent != null)
+                                    {
+                                        KickEvent(this, kickMsg);
+                                    }
+                                });
                                 break;
                             // The message was a nick quiting the irc network
                             case "QUIT":
@@ -376,10 +436,13 @@ namespace Combot.IRCServices.Messaging
                                 quitMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 quitMsg.Message = recipient.Remove(0, 1);
 
-                                if (QuitEvent != null)
+                                await Task.Run(() =>
                                 {
-                                    QuitEvent(this, quitMsg);
-                                }
+                                    if (QuitEvent != null)
+                                    {
+                                        QuitEvent(this, quitMsg);
+                                    }
+                                });
                                 break;
                             default:
                                 break;
@@ -392,10 +455,13 @@ namespace Combot.IRCServices.Messaging
                     PingInfo ping = new PingInfo();
                     ping.Message = match.Groups["Message"].Value;
 
-                    if (PingEvent != null)
+                    await Task.Run(() =>
                     {
-                        PingEvent(this, ping);
-                    }
+                        if (PingEvent != null)
+                        {
+                            PingEvent(this, ping);
+                        }
+                    });
                 }
                 else if (pongRegex.IsMatch(message)) // The message was a PONG
                 {
@@ -403,10 +469,13 @@ namespace Combot.IRCServices.Messaging
                     PongInfo pong = new PongInfo();
                     pong.Message = match.Groups["Message"].Value;
 
-                    if (PongEvent != null)
+                    await Task.Run(() =>
                     {
-                        PongEvent(this, pong);
-                    }
+                        if (PongEvent != null)
+                        {
+                            PongEvent(this, pong);
+                        }
+                    });
                 }
                 else if (errorRegex.IsMatch(message)) // The message was a server error
                 {
@@ -420,14 +489,17 @@ namespace Combot.IRCServices.Messaging
                     }
                 }
 
-                if (RawMessageEvent != null)
+                await Task.Run(() =>
                 {
-                    RawMessageEvent(this, message);
-                }
+                    if (RawMessageEvent != null)
+                    {
+                        RawMessageEvent(this, message);
+                    }
+                });
             }
         }
 
-        internal bool GetReply(List<IRCReplyCode> ReplyCodes, List<IRCErrorCode> ErrorCodes)
+        public bool GetReply(List<IRCReplyCode> ReplyCodes, List<IRCErrorCode> ErrorCodes)
         {
             GetReply reply = new GetReply();
             reply.Replies = ReplyCodes;

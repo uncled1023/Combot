@@ -57,7 +57,7 @@ namespace Combot.IRCServices
         /// <param name="recipient"></param>
         /// <param name="command"></param>
         /// <param name="message"></param>
-        public void SendCTCP(string recipient, string command, string message = "")
+        public void SendCTCPMessage(string recipient, string command, string message = "")
         {
             if (message != string.Empty)
             {
@@ -66,7 +66,7 @@ namespace Combot.IRCServices
             SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient, command, message));
         }
 
-        public void SendCTCP(List<string> recipients, string command, string message)
+        public void SendCTCPMessage(List<string> recipients, string command, string message)
         {
             string recipient_list = string.Empty;
             foreach (string recipient in recipients)
@@ -78,6 +78,35 @@ namespace Combot.IRCServices
                 message = " " + message;
             }
             SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient_list.TrimEnd(','), command, message));
+        }
+
+        /// <summary>
+        /// Sends a CTCP command and optional message to a nick or channel
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="command"></param>
+        /// <param name="message"></param>
+        public void SendCTCPNotice(string recipient, string command, string message = "")
+        {
+            if (message != string.Empty)
+            {
+                message = " " + message;
+            }
+            SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient, command, message));
+        }
+
+        public void SendCTCPNotice(List<string> recipients, string command, string message)
+        {
+            string recipient_list = string.Empty;
+            foreach (string recipient in recipients)
+            {
+                recipient_list += recipient + ",";
+            }
+            if (message != string.Empty)
+            {
+                message = " " + message;
+            }
+            SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient_list.TrimEnd(','), command, message));
         }
 
         /// <summary>

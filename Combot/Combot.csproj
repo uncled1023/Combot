@@ -69,7 +69,9 @@
     <Compile Include="Help.cs" />
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
+    <Compile Include="Modules\ModuleClasses\Invite.cs" />
     <Compile Include="Modules\ModuleClasses\PingMe.cs" />
+    <Compile Include="Modules\ModuleClasses\Version.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />

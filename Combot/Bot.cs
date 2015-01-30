@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Net;
-using System.Reflection;
-using System.Threading.Tasks;
+using System.Threading;
 using Combot.IRCServices;
 using Combot.Configurations;
 using Combot.IRCServices.Messaging;
 using Combot.Modules;
-using Module = Combot.Modules.Module;
 
 namespace Combot
 {
@@ -19,20 +16,25 @@ namespace Combot
         public event Action<BotError> ErrorEvent;
         public ServerConfig ServerConfig;
         public IRC IRC;
+        public List<Module> Modules;
         public bool Connected = false;
+        public bool LoggedIn = false;
         public static Dictionary<PrivilegeMode, AccessType> AccessTypeMapping = new Dictionary<PrivilegeMode, AccessType>() { { PrivilegeMode.v, AccessType.Voice }, { PrivilegeMode.h, AccessType.HalfOperator }, { PrivilegeMode.o, AccessType.Operator }, { PrivilegeMode.a, AccessType.SuperOperator }, { PrivilegeMode.q, AccessType.Founder } };
 
-        private List<Module> _Modules;
+        private bool GhostSent;
 
         public Bot(ServerConfig serverConfig)
         {
             IRC = new IRC();
-            _Modules = new List<Module>();
+            Modules = new List<Module>();
+            GhostSent = false;
             ServerConfig = serverConfig;
             IRC.ConnectEvent += HandleConnectEvent;
             IRC.DisconnectEvent += HandleDisconnectEvent;
             IRC.Message.ServerReplyEvent += HandleReplyEvent;
             IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessageReceivedEvent;
+            IRC.Message.JoinChannelEvent += HandleJoinEvent;
+            IRC.Message.KickEvent += HandleKickEvent;
 
             LoadModules();
         }
@@ -42,6 +44,7 @@ namespace Combot
         /// </summary>
         public void Connect()
         {
+            GhostSent = false;
             bool serverConnected = false;
             int i = 0;
             do
@@ -68,7 +71,13 @@ namespace Combot
 
             if (serverConnected)
             {
-                IRC.Login(ServerConfig.Name, new Nick() { Nickname = ServerConfig.Nickname, Host = Dns.GetHostName(), Realname = ServerConfig.Realname, Username = ServerConfig.Username });
+                IRC.Login(ServerConfig.Name, new Nick()
+                {
+                    Nickname = ServerConfig.Nickname, 
+                    Host = Dns.GetHostName(), 
+                    Realname = ServerConfig.Realname, 
+                    Username = ServerConfig.Username
+                });
             }
         }
 
@@ -79,18 +88,19 @@ namespace Combot
         {
             IRC.Disconnect();
             Connected = false;
+            LoggedIn = false;
         }
 
         public void LoadModules()
         {
             foreach (Module module in ServerConfig.Modules)
             {
-                if (module.Enabled && !_Modules.Exists(mod => mod.ClassName == module.ClassName))
+                if (module.Enabled && !Modules.Exists(mod => mod.ClassName == module.ClassName))
                 {
                     Module loadedModule = module.CreateInstance(this);
                     if (loadedModule.Loaded)
                     {
-                        _Modules.Add(loadedModule);
+                        Modules.Add(loadedModule);
                     }
                 }
             }
@@ -106,18 +116,92 @@ namespace Combot
             Connected = false;
         }
 
-        private void HandleReplyEvent(object sender, IReply e)
+        private void HandleJoinEvent(object sender, JoinChannelInfo info)
+        {
+            if (info.Nick.Nickname == IRC.Nickname)
+            {
+                if (!ServerConfig.Channels.Exists(chan => chan.Name == info.Channel))
+                {
+                    ChannelConfig chanConfig = new ChannelConfig();
+                    chanConfig.Name = info.Channel;
+                    ServerConfig.Channels.Add(chanConfig);
+                    ServerConfig.Save();
+                }
+            }
+        }
+
+        private void HandleKickEvent(object sender, KickInfo info)
+        {
+            if (info.KickedNick.Nickname == IRC.Nickname)
+            {
+                ServerConfig.Channels.RemoveAll(chan => chan.Name == info.Channel);
+                ServerConfig.Save();
+            }
+        }
+
+        private async void HandleReplyEvent(object sender, IReply e)
         {
             if (e.GetType() == typeof(ServerReplyMessage))
             {
                 ServerReplyMessage reply = (ServerReplyMessage)e;
-                // If the reply is Welcome, that means we are fully connected to the server and can now join the auto-join channels.
-                if (reply.ReplyCode == IRCReplyCode.RPL_WELCOME && Connected)
+                switch (reply.ReplyCode)
                 {
-                    foreach (ChannelConfig channel in ServerConfig.Channels)
-                    {
-                        IRC.SendJoin(channel.Name, channel.Key);
-                    }
+                    case IRCReplyCode.RPL_WELCOME:
+                        // If the reply is Welcome, that means we are fully connected to the server.
+                        LoggedIn = true;
+                        if (!GhostSent && IRC.Nickname != ServerConfig.Nickname)
+                        {
+                            IRC.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nickname, ServerConfig.Password));
+                            Thread.Sleep(1000);
+                            IRC.SendNick(ServerConfig.Nickname);
+                            GhostSent = true;
+                        }
+                        // Identify to NickServ if need be
+                        IRC.SendPrivateMessage("NickServ", string.Format("IDENTIFY {0}", ServerConfig.Password));
+
+                        // Join all required channels
+                        // Delay joining channels for configured time
+                        Thread.Sleep(ServerConfig.JoinDelay);
+                        foreach (ChannelConfig channel in ServerConfig.Channels)
+                        {
+                            IRC.SendJoin(channel.Name, channel.Key);
+                        }
+                        break;
+                }
+            }
+            else if (e.GetType() == typeof(ServerErrorMessage))
+            {
+                ServerErrorMessage error = (ServerErrorMessage) e;
+                switch (error.ErrorCode)
+                {
+                    case IRCErrorCode.ERR_NOTREGISTERED:
+                        if (ServerConfig.Password != string.Empty && ServerConfig.Email != string.Empty)
+                        {
+                            IRC.SendPrivateMessage("NickServ", string.Format("REGISTER {0} {1}", ServerConfig.Password, ServerConfig.Email));
+                        }
+                        break;
+                    case IRCErrorCode.ERR_NICKNAMEINUSE:
+                        if (LoggedIn == false)
+                        {
+                            string nick = string.Empty;
+                            if (IRC.Nickname == ServerConfig.Nickname && ServerConfig.SecondaryNickname != string.Empty)
+                            {
+                                nick = ServerConfig.SecondaryNickname;
+                            }
+                            else
+                            {
+                                Random rand = new Random();
+                                nick = string.Format("{0}_{1}", ServerConfig.Nickname, rand.Next(100000).ToString());
+                            }
+                            IRC.Login(ServerConfig.Name, new Nick()
+                            {
+                                Nickname = nick,
+                                Host = Dns.GetHostName(),
+                                Realname = ServerConfig.Realname,
+                                Username = ServerConfig.Username
+                            });
+                        }
+                        break;
                 }
             }
         }
@@ -144,7 +228,7 @@ namespace Combot
             List<string> argsOnly = msgArgs.ToList();
             argsOnly.RemoveAt(0);
 
-            Module module = _Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded);
+            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded);
             if (module != null)
             {
                 Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
@@ -165,17 +249,18 @@ namespace Combot
                     newCommand.Command = command;
                     if (argsOnly.Count > 0)
                     {
-                        string[] argSplit = argsOnly.First()
-                            .Split(new[] {' '}, cmd.Arguments.Count + 1, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < cmd.Arguments.Count; i++)
+                        string[] argSplit = argsOnly.First().Split(new[] {' '}, cmd.Arguments.Count + 1, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 0; i < cmd.Arguments.Count && i <= argSplit.GetUpperBound(0); i++)
                         {
-                            newCommand.Arguments.Add(argSplit[i]);
+                            newCommand.Arguments.Add(cmd.Arguments[i].Name, argSplit[i]);
                         }
                     }
-
-                    if (CommandReceivedEvent != null)
+                    if (cmd.Arguments.FindAll(arg => arg.Required).Count <= newCommand.Arguments.Count)
                     {
-                        CommandReceivedEvent(newCommand);
+                        if (CommandReceivedEvent != null)
+                        {
+                            CommandReceivedEvent(newCommand);
+                        }
                     }
                 }
             }

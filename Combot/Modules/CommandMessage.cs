@@ -11,7 +11,7 @@ namespace Combot.Modules
         public Nick Nick { get; set; }
         public DateTime TimeStamp { get; set; }
         public string Command { get; set; }
-        public List<string> Arguments { get; set; }
+        public Dictionary<string, dynamic> Arguments { get; set; }
 
         public CommandMessage()
         {
@@ -20,7 +20,7 @@ namespace Combot.Modules
             Nick = new Nick();
             TimeStamp = DateTime.Now;
             Command = string.Empty;
-            Arguments = new List<string>();
+            Arguments = new Dictionary<string, dynamic>();
         }
     }
 
