@@ -22,11 +22,13 @@ namespace Combot.Modules.ModuleClasses
 
         public override void ParseCommand(CommandMessage command)
         {
-            if (Commands.Find(cmd => cmd.Name == "Version Check").Triggers.Contains(command.Command))
+            Command foundCommand = Commands.Find(c => c.Triggers.Contains(command.Command));
+
+            if (foundCommand.Name == "Version Check")
             {
                 VersionItem tmpItem = new VersionItem();
                 tmpItem.Location = command.Location;
-                tmpItem.LocationType = command.LocationType;
+                tmpItem.MessageType = command.MessageType;
                 tmpItem.Nick = command.Arguments["Nickname"];
                 listLock.EnterWriteLock();
                 if (versionList.Exists(item => item.Nick == command.Arguments["Nickname"]))
@@ -52,20 +54,20 @@ namespace Combot.Modules.ModuleClasses
             if (message.Command == "VERSION")
             {
                 listLock.EnterReadLock();
-                VersionItem versionItem = versionList.Find(item => item.Nick == message.Sender.Nickname);
+                VersionItem versionItem = versionList.Find(item => item.Nick.ToLower() == message.Sender.Nickname.ToLower());
                 listLock.ExitReadLock();
                 if (versionItem != null)
                 {
-                    switch (versionItem.LocationType)
+                    switch (versionItem.MessageType)
                     {
-                        case LocationType.Channel:
+                        case MessageType.Channel:
                             Bot.IRC.SendPrivateMessage(versionItem.Location, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
                             break;
-                        case LocationType.Query:
-                            Bot.IRC.SendPrivateMessage(versionItem.Nick, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
+                        case MessageType.Query:
+                            Bot.IRC.SendPrivateMessage(message.Sender.Nickname, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
                             break;
-                        case LocationType.Notice:
-                            Bot.IRC.SendNotice(versionItem.Nick, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
+                        case MessageType.Notice:
+                            Bot.IRC.SendNotice(message.Sender.Nickname, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
                             break;
                     }
                     listLock.EnterWriteLock();
@@ -74,19 +76,19 @@ namespace Combot.Modules.ModuleClasses
                 }
             }
         }
-    }
 
-    public class VersionItem
-    {
-        public string Nick { get; set; }
-        public string Location { get; set; }
-        public LocationType LocationType { get; set; }
-
-        public VersionItem()
+        private class VersionItem
         {
-            Nick = string.Empty;
-            Location = string.Empty;
-            LocationType = LocationType.Channel;
+            public string Nick { get; set; }
+            public string Location { get; set; }
+            public MessageType MessageType { get; set; }
+
+            public VersionItem()
+            {
+                Nick = string.Empty;
+                Location = string.Empty;
+                MessageType = MessageType.Channel;
+            }
         }
     }
 }

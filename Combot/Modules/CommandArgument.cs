@@ -6,6 +6,8 @@ namespace Combot.Modules
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public List<string> AllowedValues { get; set; }
+        public List<MessageType> MessageTypes { get; set; } 
         public bool Required { get; set; }
 
         public CommandArgument()
@@ -17,6 +19,8 @@ namespace Combot.Modules
         {
             Name = string.Empty;
             Description = string.Empty;
+            AllowedValues = new List<string>();
+            MessageTypes = new List<MessageType>();
             Required = false;
         }
 
@@ -24,6 +28,16 @@ namespace Combot.Modules
         {
             Name = argument.Name;
             Description = argument.Description;
+            AllowedValues = new List<string>();
+            foreach (string value in argument.AllowedValues)
+            {
+                AllowedValues.Add(value);
+            }
+            MessageTypes = new List<MessageType>();
+            foreach (MessageType value in argument.MessageTypes)
+            {
+                MessageTypes.Add(value);
+            }
             Required = argument.Required;
         }
     }

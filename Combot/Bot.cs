@@ -19,22 +19,29 @@ namespace Combot
         public List<Module> Modules;
         public bool Connected = false;
         public bool LoggedIn = false;
-        public static Dictionary<PrivilegeMode, AccessType> AccessTypeMapping = new Dictionary<PrivilegeMode, AccessType>() { { PrivilegeMode.v, AccessType.Voice }, { PrivilegeMode.h, AccessType.HalfOperator }, { PrivilegeMode.o, AccessType.Operator }, { PrivilegeMode.a, AccessType.SuperOperator }, { PrivilegeMode.q, AccessType.Founder } };
+        public Dictionary<PrivilegeMode, AccessType> PrivilegeModeMapping = new Dictionary<PrivilegeMode, AccessType>() { { PrivilegeMode.v, AccessType.Voice }, { PrivilegeMode.h, AccessType.HalfOperator }, { PrivilegeMode.o, AccessType.Operator }, { PrivilegeMode.a, AccessType.SuperOperator }, { PrivilegeMode.q, AccessType.Founder } };
+        public Dictionary<ChannelMode, AccessType> ChannelModeMapping = new Dictionary<ChannelMode, AccessType>() { { ChannelMode.v, AccessType.Voice }, { ChannelMode.h, AccessType.HalfOperator }, { ChannelMode.o, AccessType.Operator }, { ChannelMode.a, AccessType.SuperOperator }, { ChannelMode.q, AccessType.Founder } };
 
         private bool GhostSent;
+        private int CurNickChoice;
 
         public Bot(ServerConfig serverConfig)
         {
-            IRC = new IRC();
             Modules = new List<Module>();
             GhostSent = false;
+            CurNickChoice = 0;
             ServerConfig = serverConfig;
+
+            IRC = new IRC(serverConfig.MaxMessageLength, serverConfig.MessageSendDelay);
             IRC.ConnectEvent += HandleConnectEvent;
             IRC.DisconnectEvent += HandleDisconnectEvent;
             IRC.Message.ServerReplyEvent += HandleReplyEvent;
             IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessageReceivedEvent;
+            IRC.Message.PrivateMessageReceivedEvent += HandlePrivateMessageReceivedEvent;
+            IRC.Message.PrivateNoticeReceivedEvent += HandlePrivateNoticeReceivedEvent;
             IRC.Message.JoinChannelEvent += HandleJoinEvent;
             IRC.Message.KickEvent += HandleKickEvent;
+            IRC.Message.ChannelModeChangeEvent += HandleChannelModeChangeEvent;
 
             LoadModules();
         }
@@ -45,6 +52,7 @@ namespace Combot
         public void Connect()
         {
             GhostSent = false;
+            CurNickChoice = 0;
             bool serverConnected = false;
             int i = 0;
             do
@@ -54,7 +62,7 @@ namespace Combot
                     IPAddress[] ipList = Dns.GetHostAddresses(ServerConfig.Hosts[i].Host);
                     foreach (IPAddress ip in ipList)
                     {
-                        serverConnected = IRC.Connect(ip, ServerConfig.Hosts[i].Port, 5000);
+                        serverConnected = IRC.Connect(ip, ServerConfig.Hosts[i].Port);
                         if (serverConnected)
                         {
                             break;
@@ -73,7 +81,7 @@ namespace Combot
             {
                 IRC.Login(ServerConfig.Name, new Nick()
                 {
-                    Nickname = ServerConfig.Nickname, 
+                    Nickname = ServerConfig.Nicknames[CurNickChoice], 
                     Host = Dns.GetHostName(), 
                     Realname = ServerConfig.Realname, 
                     Username = ServerConfig.Username
@@ -104,6 +112,80 @@ namespace Combot
                     }
                 }
             }
+        }
+
+        public bool CheckChannelAccess(string channel, string nickname, AccessType access)
+        {
+            Channel foundChannel = IRC.Channels.Find(chan => chan.Name == channel);
+            if (foundChannel != null)
+            {
+                Nick foundNick = foundChannel.Nicks.Find(nick => nick.Nickname == nickname);
+                if (foundNick != null)
+                {
+                    for (int i = 0; i < foundNick.Privileges.Count; i++)
+                    {
+                        switch (PrivilegeModeMapping[foundNick.Privileges[i]])
+                        {
+                            case AccessType.User:
+                                if (access == AccessType.User)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.Voice:
+                                if (access == AccessType.User || access == AccessType.Voice)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.HalfOperator:
+                                if (access == AccessType.User || access == AccessType.Voice || access == AccessType.HalfOperator)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.Operator:
+                                if (access == AccessType.User || access == AccessType.Voice || access == AccessType.HalfOperator || access == AccessType.Operator)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.SuperOperator:
+                                if (access == AccessType.User || access == AccessType.Voice || access == AccessType.HalfOperator || access == AccessType.Operator || access == AccessType.SuperOperator)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.Founder:
+                                if (access == AccessType.User || access == AccessType.Voice || access == AccessType.HalfOperator || access == AccessType.Operator || access == AccessType.SuperOperator || access == AccessType.Founder)
+                                {
+                                    return true;
+                                }
+                                break;
+                            case AccessType.Owner:
+                                return true;
+                                break;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        public bool CheckChannelAccess(string channel, string nickname, List<AccessType> access)
+        {
+            bool hasAccess = false;
+
+            for (int i = 0; i < access.Count; i++)
+            {
+                hasAccess = CheckChannelAccess(channel, nickname, access[i]);
+                if (hasAccess)
+                {
+                    break;
+                }
+            }
+
+            return hasAccess;
         }
 
         private void HandleConnectEvent()
@@ -139,7 +221,32 @@ namespace Combot
             }
         }
 
-        private async void HandleReplyEvent(object sender, IReply e)
+        private void HandleChannelModeChangeEvent(object sender, ChannelModeChangeInfo e)
+        {
+            ChannelConfig channel = ServerConfig.Channels.Find(chan => chan.Name == e.Channel);
+            if (channel != null)
+            {
+                foreach (ChannelModeInfo mode in e.Modes)
+                {
+                    switch (mode.Mode)
+                    {
+                        case ChannelMode.k:
+                            if (mode.Set)
+                            {
+                                channel.Key = mode.Parameter;
+                            }
+                            else
+                            {
+                                channel.Key = string.Empty;
+                            }
+                            ServerConfig.Save();
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void HandleReplyEvent(object sender, IReply e)
         {
             if (e.GetType() == typeof(ServerReplyMessage))
             {
@@ -149,11 +256,11 @@ namespace Combot
                     case IRCReplyCode.RPL_WELCOME:
                         // If the reply is Welcome, that means we are fully connected to the server.
                         LoggedIn = true;
-                        if (!GhostSent && IRC.Nickname != ServerConfig.Nickname)
+                        if (!GhostSent && IRC.Nickname != ServerConfig.Nicknames[CurNickChoice])
                         {
-                            IRC.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nickname, ServerConfig.Password));
+                            IRC.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nicknames[CurNickChoice], ServerConfig.Password));
                             Thread.Sleep(1000);
-                            IRC.SendNick(ServerConfig.Nickname);
+                            IRC.SendNick(ServerConfig.Nicknames[CurNickChoice]);
                             GhostSent = true;
                         }
                         // Identify to NickServ if need be
@@ -175,7 +282,7 @@ namespace Combot
                 switch (error.ErrorCode)
                 {
                     case IRCErrorCode.ERR_NOTREGISTERED:
-                        if (ServerConfig.Password != string.Empty && ServerConfig.Email != string.Empty)
+                        if (ServerConfig.AutoRegister && ServerConfig.Password != string.Empty && ServerConfig.Email != string.Empty)
                         {
                             IRC.SendPrivateMessage("NickServ", string.Format("REGISTER {0} {1}", ServerConfig.Password, ServerConfig.Email));
                         }
@@ -184,14 +291,15 @@ namespace Combot
                         if (LoggedIn == false)
                         {
                             string nick = string.Empty;
-                            if (IRC.Nickname == ServerConfig.Nickname && ServerConfig.SecondaryNickname != string.Empty)
+                            if (IRC.Nickname == ServerConfig.Nicknames[CurNickChoice] && ServerConfig.Nicknames.Count > CurNickChoice + 1)
                             {
-                                nick = ServerConfig.SecondaryNickname;
+                                CurNickChoice++;
+                                nick = ServerConfig.Nicknames[CurNickChoice];
                             }
                             else
                             {
                                 Random rand = new Random();
-                                nick = string.Format("{0}_{1}", ServerConfig.Nickname, rand.Next(100000).ToString());
+                                nick = string.Format("{0}_{1}", ServerConfig.Nicknames.First(), rand.Next(100000).ToString());
                             }
                             IRC.Login(ServerConfig.Name, new Nick()
                             {
@@ -215,12 +323,36 @@ namespace Combot
                     && !ServerConfig.NickBlacklist.Contains(e.Sender.Nickname)
                     )
                 {
-                    ParseCommandMessage(e.TimeStamp, e.Message, e.Sender, e.Channel, LocationType.Channel);
+                    ParseCommandMessage(e.TimeStamp, e.Message, e.Sender, e.Channel, MessageType.Channel);
                 }
             }
         }
 
-        private void ParseCommandMessage(DateTime timestamp, string message, Nick sender, string location, LocationType locationType)
+        private void HandlePrivateMessageReceivedEvent(object sender, PrivateMessage e)
+        {
+            // The message was a command
+            if (e.Message.StartsWith(ServerConfig.CommandPrefix))
+            {
+                if (!ServerConfig.NickBlacklist.Contains(e.Sender.Nickname))
+                {
+                    ParseCommandMessage(e.TimeStamp, e.Message, e.Sender, e.Sender.Nickname, MessageType.Query);
+                }
+            }
+        }
+
+        private void HandlePrivateNoticeReceivedEvent(object sender, PrivateNotice e)
+        {
+            // The notice was a command
+            if (e.Message.StartsWith(ServerConfig.CommandPrefix))
+            {
+                if (!ServerConfig.NickBlacklist.Contains(e.Sender.Nickname))
+                {
+                    ParseCommandMessage(e.TimeStamp, e.Message, e.Sender, e.Sender.Nickname, MessageType.Notice);
+                }
+            }
+        }
+
+        private void ParseCommandMessage(DateTime timestamp, string message, Nick sender, string location, MessageType messageType)
         {
             // Extract command and arguments
             string[] msgArgs = message.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
@@ -228,13 +360,16 @@ namespace Combot
             List<string> argsOnly = msgArgs.ToList();
             argsOnly.RemoveAt(0);
 
+            // Find the module that contains the command
             Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded);
             if (module != null)
             {
+                // Find the command
                 Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
                 if (cmd != null)
                 {
                     CommandMessage newCommand = new CommandMessage();
+                    List<CommandArgument> validArguments = cmd.Arguments.FindAll(arg => arg.MessageTypes.Contains(messageType));
                     newCommand.Nick.Copy(sender);
                     IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
                     {
@@ -245,21 +380,61 @@ namespace Combot
                     }));
                     newCommand.TimeStamp = timestamp;
                     newCommand.Location = location;
-                    newCommand.LocationType = locationType;
+                    newCommand.MessageType = messageType;
                     newCommand.Command = command;
                     if (argsOnly.Count > 0)
                     {
-                        string[] argSplit = argsOnly.First().Split(new[] {' '}, cmd.Arguments.Count + 1, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < cmd.Arguments.Count && i <= argSplit.GetUpperBound(0); i++)
+                        string[] argSplit = argsOnly.First().Split(new[] { ' ' }, validArguments.Count, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 0; i < validArguments.Count && i <= argSplit.GetUpperBound(0); i++)
                         {
-                            newCommand.Arguments.Add(cmd.Arguments[i].Name, argSplit[i]);
+                            newCommand.Arguments.Add(validArguments[i].Name, argSplit[i]);
                         }
                     }
-                    if (cmd.Arguments.FindAll(arg => arg.Required).Count <= newCommand.Arguments.Count)
+                    bool invalidArgs = false;
+                    for (int i = 0; i < newCommand.Arguments.Count; i++)
                     {
-                        if (CommandReceivedEvent != null)
+                        if (validArguments[i].AllowedValues.Count > 0)
                         {
-                            CommandReceivedEvent(newCommand);
+                            // Check to see if any of the arguments are invalid
+                            string argVal = newCommand.Arguments[validArguments[i].Name];
+                            if (!validArguments[i].AllowedValues.Exists(val => val.ToLower() == argVal.ToLower()))
+                            {
+                                invalidArgs = true;
+                                string invalidMessage = string.Format("Invalid value for \u0002{0}\u000F in \u0002{1}{2} {3}\u000F.  Valid options are \u0002{4}\u000F.", validArguments[i].Name, ServerConfig.CommandPrefix, command, string.Join(" ", validArguments.Select(arg => { if (arg.Required) { return "\u001F" + arg.Name + "\u000F\u0002"; } return "[\u001F" + arg.Name + "\u000F\u0002]"; })), string.Join(", ", validArguments[i].AllowedValues));
+                                switch (messageType)
+                                {
+                                    case MessageType.Channel:
+                                    case MessageType.Query:
+                                        IRC.SendPrivateMessage(location, invalidMessage);
+                                        break;
+                                    case MessageType.Notice:
+                                        IRC.SendNotice(location, invalidMessage);
+                                        break;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    if (validArguments.FindAll(arg => arg.Required).Count <= newCommand.Arguments.Count)
+                    {
+                        if (!invalidArgs)
+                        {
+                            if (CommandReceivedEvent != null)
+                            {
+                                CommandReceivedEvent(newCommand);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string missingArgument = string.Format("Missing a required argument for \u0002{0}{1} {2}\u000F.  The required arguments are \u0002{3}\u000F.", ServerConfig.CommandPrefix, command, string.Join(" ", validArguments.Select(arg => { if (arg.Required) { return "\u001F" + arg.Name + "\u000F\u0002"; } return "[\u001F" + arg.Name + "\u000F\u0002]"; })), string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
+                        if (messageType == MessageType.Channel || messageType == MessageType.Query)
+                        {
+                            IRC.SendPrivateMessage(location, missingArgument);
+                        }
+                        else if (messageType == MessageType.Notice)
+                        {
+                            IRC.SendNotice(location, missingArgument);
                         }
                     }
                 }

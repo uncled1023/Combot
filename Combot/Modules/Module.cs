@@ -49,16 +49,33 @@ namespace Combot.Modules
                 List<AccessType> nickAccessTypes = new List<AccessType>() { AccessType.User };
                 foreach (PrivilegeMode privilege in command.Nick.Privileges)
                 {
-                    nickAccessTypes.Add(Bot.AccessTypeMapping[privilege]);
+                    nickAccessTypes.Add(Bot.PrivilegeModeMapping[privilege]);
                 }
-                if (Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Identified)
+                if (Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Contains(UserMode.r))
                 {
                     nickAccessTypes.Add(AccessType.Owner);
                 }
+                command.Access.AddRange(nickAccessTypes);
                 // If they have the correct access for the command, send it
                 if (cmd.AllowedAccess.Exists(access => nickAccessTypes.Contains(access)))
                 {
                     ParseCommand(command);
+                }
+                else
+                {
+                    string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F.", command.Command);
+                    switch (command.MessageType)
+                    {
+                        case MessageType.Channel:
+                            Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                            break;
+                        case MessageType.Query:
+                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                            break;
+                        case MessageType.Notice:
+                            Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                            break;
+                    }
                 }
             }
         }

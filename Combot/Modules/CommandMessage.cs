@@ -7,27 +7,22 @@ namespace Combot.Modules
     public class CommandMessage
     {
         public string Location { get; set; }
-        public LocationType LocationType { get; set; }
+        public MessageType MessageType { get; set; }
         public Nick Nick { get; set; }
         public DateTime TimeStamp { get; set; }
         public string Command { get; set; }
         public Dictionary<string, dynamic> Arguments { get; set; }
+        public List<AccessType> Access { get; set; }
 
         public CommandMessage()
         {
             Location = string.Empty;
-            LocationType = LocationType.Channel;
+            MessageType = MessageType.Channel;
             Nick = new Nick();
             TimeStamp = DateTime.Now;
             Command = string.Empty;
             Arguments = new Dictionary<string, dynamic>();
+            Access = new List<AccessType>();
         }
-    }
-
-    public enum LocationType
-    {
-        Channel,
-        Query,
-        Notice
     }
 }

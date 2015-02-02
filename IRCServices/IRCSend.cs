@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net;
+using System.Threading;
 
 namespace Combot.IRCServices
 {
@@ -16,7 +17,27 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendPrivateMessage(string recipient, string message)
         {
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
+            TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
+            if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
+            {
+                Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
+                SendPrivateMessage(recipient, message);
+            }
+            else
+            {
+                LastMessageSend = DateTime.Now;
+                if (message.Length > MaxMessageLength)
+                {
+                    string subMessage = message.Substring(0, MaxMessageLength);
+                    string nextMessage = message.Remove(0, MaxMessageLength);
+                    SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage));
+                    SendPrivateMessage(recipient, nextMessage);
+                }
+                else
+                {
+                    SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
+                }
+            }
         }
 
         public void SendPrivateMessage(List<string> recipients, string message)
@@ -26,8 +47,7 @@ namespace Combot.IRCServices
             {
                 recipient_list += recipient + ",";
             }
-
-            SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient_list.TrimEnd(','), message));
+            SendPrivateMessage(recipient_list.TrimEnd(','), message);
         }
 
         /// <summary>
@@ -37,7 +57,17 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendNotice(string recipient, string message)
         {
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+            if (message.Length > MaxMessageLength)
+            {
+                string subMessage = message.Substring(0, MaxMessageLength);
+                string nextMessage = message.Remove(0, MaxMessageLength);
+                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                SendNotice(recipient, nextMessage);
+            }
+            else
+            {
+                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+            }
         }
 
         public void SendNotice(List<string> recipients, string message)
@@ -48,7 +78,7 @@ namespace Combot.IRCServices
                 recipient_list += recipient + ",";
             }
 
-            SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient_list.TrimEnd(','), message));
+            SendNotice(recipient_list.TrimEnd(','), message);
         }
 
         /// <summary>
@@ -77,7 +107,7 @@ namespace Combot.IRCServices
             {
                 message = " " + message;
             }
-            SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient_list.TrimEnd(','), command, message));
+            SendCTCPMessage(recipient_list.TrimEnd(','), command, message);
         }
 
         /// <summary>
@@ -106,7 +136,7 @@ namespace Combot.IRCServices
             {
                 message = " " + message;
             }
-            SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient_list.TrimEnd(','), command, message));
+            SendCTCPNotice(recipient_list.TrimEnd(','), command, message);
         }
 
         /// <summary>
@@ -167,7 +197,7 @@ namespace Combot.IRCServices
         public void SendJoin(string channel, string key = "")
         {
             string message = string.Empty;
-            message = (key != string.Empty) ? string.Format("{0}; {1}", channel, key) : channel;
+            message = (key != string.Empty) ? string.Format("{0} {1}", channel, key) : channel;
             SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
@@ -191,7 +221,7 @@ namespace Combot.IRCServices
             channel_string = channel_string.TrimEnd(',');
             key_string = key_string.TrimEnd(',');
 
-            message = (key_string != string.Empty) ? string.Format("{0}; {1}", channel_string, key_string) : channel_string;
+            message = (key_string != string.Empty) ? string.Format("{0} {1}", channel_string, key_string) : channel_string;
             SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
@@ -212,7 +242,7 @@ namespace Combot.IRCServices
                 channel_list += channel + ",";
             }
 
-            SendTCPMessage(string.Format("PART {0}", channel_list.TrimEnd(',')));
+            SendPart(channel_list.TrimEnd(','));
         }
 
 
@@ -234,6 +264,7 @@ namespace Combot.IRCServices
                 SendMode(channel, modeInfo);
             }
         }
+
         public void SendMode(string nick, UserModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
@@ -282,7 +313,7 @@ namespace Combot.IRCServices
             {
                 channel_list += channel + ",";
             }
-            SendTCPMessage(string.Format("NAMES {0}", channel_list.TrimEnd(',')));
+            SendNames(channel_list.TrimEnd(','));
         }
 
         /// <summary>
@@ -305,7 +336,7 @@ namespace Combot.IRCServices
             {
                 channel_list += channel + ",";
             }
-            SendTCPMessage(string.Format("LIST {0}", channel_list.TrimEnd(',')));
+            SendList(channel_list.TrimEnd(','));
         }
 
         /// <summary>

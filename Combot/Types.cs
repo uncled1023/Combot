@@ -17,15 +17,6 @@ namespace Combot
         Framework = 3
     }
 
-    public enum MessageType
-    {
-        Service = 0,
-        Channel = 1,
-        Query = 2,
-        Notice = 3,
-        CTCP = 4
-    }
-
     public class BotError
     {
         public ErrorType Type { get; set; }

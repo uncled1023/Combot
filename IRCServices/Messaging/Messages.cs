@@ -244,53 +244,9 @@ namespace Combot.IRCServices.Messaging
                                     modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
                                     string[] modeArgs = args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                    char[] modeInfo = modeArgs[0].TrimStart(':').ToCharArray();
-                                    bool set = true;
-                                    int argIndex = 1;
-                                    foreach (char mode in modeInfo)
-                                    {
-                                        if (mode.Equals('-'))
-                                        {
-                                            set = false;
-                                        }
-                                        else if (mode.Equals('+'))
-                                        {
-                                            set = true;
-                                        }
-                                        else
-                                        {
-                                            ChannelModeInfo newMode = new ChannelModeInfo();
-                                            newMode.Set = set;
-                                            newMode.Mode = (ChannelMode)Enum.Parse(typeof(ChannelMode), mode.ToString());
-                                            if (modeArgs.GetUpperBound(0) >= argIndex)
-                                            {
-                                                switch (newMode.Mode)
-                                                {
-                                                    case ChannelMode.k:
-                                                    case ChannelMode.l:
-                                                    case ChannelMode.v:
-                                                    case ChannelMode.h:
-                                                    case ChannelMode.o:
-                                                    case ChannelMode.a:
-                                                    case ChannelMode.q:
-                                                    case ChannelMode.b:
-                                                    case ChannelMode.e:
-                                                    case ChannelMode.I:
-                                                        newMode.Parameter = modeArgs[argIndex];
-                                                        argIndex++;
-                                                        break;
-                                                    default:
-                                                        newMode.Parameter = string.Empty;
-                                                        break;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                newMode.Parameter = string.Empty;
-                                            }
-                                            modeMsg.Modes.Add(newMode);
-                                        }
-                                    }
+                                    List<string> argList = modeArgs.ToList();
+                                    argList.RemoveAt(0);
+                                    modeMsg.Modes.AddRange(_IRC.ParseChannelModeString(modeArgs[0].TrimStart(':'), string.Join(" ", argList)));
 
                                     await Task.Run(() =>
                                     {

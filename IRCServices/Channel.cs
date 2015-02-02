@@ -11,8 +11,6 @@ namespace Combot.IRCServices
         public string Name { get; set; }
         public string Topic { get; set; }
         public string Key { get; set; }
-        public bool AutoJoin { get; set; }
-        public bool Joined { get; set; }
         public DateTime Registration { get; set; }
         public List<string> Bans { get; set; }
         public List<ChannelMode> Modes { get; set; }
@@ -23,8 +21,6 @@ namespace Combot.IRCServices
             Name = string.Empty;
             Topic = string.Empty;
             Key = string.Empty;
-            AutoJoin = false;
-            Joined = false;
             Registration = DateTime.Now;
             Bans = new List<string>();
             Modes = new List<ChannelMode>();

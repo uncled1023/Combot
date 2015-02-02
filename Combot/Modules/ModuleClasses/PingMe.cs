@@ -22,13 +22,15 @@ namespace Combot.Modules.ModuleClasses
 
         public override void ParseCommand(CommandMessage command)
         {
-            if (Commands.Find(cmd => cmd.Name == "Ping Me").Triggers.Contains(command.Command))
+            Command foundCommand = Commands.Find(c => c.Triggers.Contains(command.Command));
+
+            if (foundCommand.Name == "Ping Me")
             {
                 int epoch = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
                 PingItem tmpItem = new PingItem();
                 tmpItem.Nick = command.Nick.Nickname;
                 tmpItem.Location = command.Location;
-                tmpItem.LocationType = command.LocationType;
+                tmpItem.MessageType = command.MessageType;
                 tmpItem.Timestamp = DateTime.Now;
                 listLock.EnterWriteLock();
                 if (pingList.Exists(item => item.Nick == command.Nick.Nickname))
@@ -74,15 +76,15 @@ namespace Combot.Modules.ModuleClasses
                     {
                         timeString += difTime.Milliseconds.ToString() + " Milliseconds";
                     }
-                    switch (pingItem.LocationType)
+                    switch (pingItem.MessageType)
                     {
-                        case LocationType.Channel:
+                        case MessageType.Channel:
                             Bot.IRC.SendPrivateMessage(pingItem.Location, string.Format("{0}, your ping is {1}", pingItem.Nick, timeString));
                             break;
-                        case LocationType.Notice:
+                        case MessageType.Notice:
                             Bot.IRC.SendNotice(pingItem.Nick, string.Format("Your ping is {0}", timeString));
                             break;
-                        case LocationType.Query:
+                        case MessageType.Query:
                             Bot.IRC.SendPrivateMessage(pingItem.Nick, string.Format("Your ping is {0}", timeString));
                             break;
                     }
@@ -97,14 +99,14 @@ namespace Combot.Modules.ModuleClasses
         {
             public string Nick { get; set; }
             public string Location { get; set; }
-            public LocationType LocationType { get; set; }
+            public MessageType MessageType { get; set; }
             public DateTime Timestamp { get; set; }
 
             public PingItem()
             {
                 Nick = string.Empty;
                 Location = string.Empty;
-                LocationType = LocationType.Channel;
+                MessageType = MessageType.Channel;
                 Timestamp = DateTime.Now;
             }
         }

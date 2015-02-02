@@ -13,8 +13,6 @@ namespace Combot.IRCServices
         public string Host { get; set; }
         public string Nickname { get; set; }
         public string Password { get; set; }
-        public bool Identified { get; set; }
-        public bool Registered { get; set; }
         public List<UserMode> Modes { get; set; }
         public List<PrivilegeMode> Privileges { get; set; }
 
@@ -25,8 +23,6 @@ namespace Combot.IRCServices
             Host = string.Empty;
             Nickname = string.Empty;
             Password = string.Empty;
-            Identified = false;
-            Registered = false;
             Modes = new List<UserMode>();
             Privileges = new List<PrivilegeMode>();
         }
@@ -38,8 +34,6 @@ namespace Combot.IRCServices
             Host = nick.Host;
             Nickname = nick.Nickname;
             Password = nick.Password;
-            Identified = nick.Identified;
-            Registered = nick.Registered;
             Modes = new List<UserMode>();
             Modes.AddRange(nick.Modes);
             Privileges = new List<PrivilegeMode>();

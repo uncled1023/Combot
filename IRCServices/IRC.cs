@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +18,30 @@ namespace Combot.IRCServices
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
-        public string Nickname { get; set; }
+        public string Nickname;
         public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q } };
 
+        private int MaxMessageLength;
+        private int MessageSendDelay;
+        private DateTime LastMessageSend;
+        private int ReadTimeout;
+        private int AllowedFailedReads;
         private Thread TCPReader;
         private event Action<string> TCPMessageEvent;
         private readonly TCPInterface _TCP;
         private readonly ReaderWriterLockSlim ChannelRWLock;
 
-        public IRC()
+        public IRC(int maxMessageLength, int messageSendDelay = 0, int readTimeout = 5000, int allowedFailedReads = 0)
         {
             _TCP = new TCPInterface();
             Message = new Messages(this);
             Nickname = string.Empty;
             ChannelRWLock = new ReaderWriterLockSlim();
+            LastMessageSend = DateTime.Now;
+            MaxMessageLength = maxMessageLength;
+            MessageSendDelay = messageSendDelay;
+            ReadTimeout = readTimeout;
+            AllowedFailedReads = allowedFailedReads;
 
             TCPMessageEvent += Message.ParseTCPMessage;
             _TCP.TCPConnectionEvent += HandleTCPConnection;
@@ -55,12 +66,12 @@ namespace Combot.IRCServices
         /// <param name="readTimeout">The timeout for read operations in milliseconds.</param>
         /// <param name="allowedFailedCount">Number of times a read can fail before disconnecting.</param>
         /// <returns></returns>
-        public bool Connect(IPAddress IP, int port, int readTimeout = 5000, int allowedFailedCount = 0)
+        public bool Connect(IPAddress IP, int port)
         {
             bool result = false;
             if (!_TCP.Connected)
             {
-                result = _TCP.Connect(IP, port, readTimeout, allowedFailedCount);
+                result = _TCP.Connect(IP, port, ReadTimeout, AllowedFailedReads);
                 if (result)
                 {
                     TCPReader = new Thread(ReadTCPMessages);
@@ -112,6 +123,71 @@ namespace Combot.IRCServices
             Nickname = nick.Nickname;
             SendNick(nick.Nickname);
             SendUser(nick.Username, nick.Host, serverName, nick.Realname);
+        }
+
+        /// <summary>
+        /// Parses a given mode and parameter string to generate a channel mode list.
+        /// </summary>
+        /// <param name="modeString">The mode string that contains the mode info.</param>
+        /// <param name="parameterString">The parameter string that is associated with the mode info.</param>
+        /// <returns></returns>
+        public List<ChannelModeInfo> ParseChannelModeString(string modeString, string parameterString)
+        {
+            string[] modeArgs = parameterString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            char[] modeInfo = modeString.ToCharArray();
+            bool set = true;
+            int argIndex = 0;
+            List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
+            foreach (char mode in modeInfo)
+            {
+                if (mode.Equals('-'))
+                {
+                    set = false;
+                }
+                else if (mode.Equals('+'))
+                {
+                    set = true;
+                }
+                else
+                {
+                    ChannelModeInfo newMode = new ChannelModeInfo();
+                    newMode.Set = set;
+                    ChannelMode foundMode;
+                    bool validMode = Enum.TryParse(mode.ToString(), false, out foundMode);
+                    if (validMode)
+                    {
+                        newMode.Mode = foundMode;
+                        if (modeArgs.GetUpperBound(0) >= argIndex)
+                        {
+                            switch (newMode.Mode)
+                            {
+                                case ChannelMode.k:
+                                case ChannelMode.l:
+                                case ChannelMode.b:
+                                case ChannelMode.e:
+                                case ChannelMode.I:
+                                case ChannelMode.v:
+                                case ChannelMode.h:
+                                case ChannelMode.o:
+                                case ChannelMode.a:
+                                case ChannelMode.q:
+                                    newMode.Parameter = modeArgs[argIndex];
+                                    argIndex++;
+                                    break;
+                                default:
+                                    newMode.Parameter = string.Empty;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            newMode.Parameter = string.Empty;
+                        }
+                        modeInfos.Add(newMode);
+                    }
+                }
+            }
+            return modeInfos;
         }
 
         private void ReadTCPMessages()
@@ -324,6 +400,7 @@ namespace Combot.IRCServices
                             break;
                     }
                 }
+                SendWho(channel.Name);
             }
             ChannelRWLock.ExitWriteLock();
         }
@@ -393,10 +470,6 @@ namespace Combot.IRCServices
             {
                 Channel newChannel = new Channel();
                 newChannel.Name = e.Channel;
-                if (e.Nick.Nickname == Nickname)
-                {
-                    newChannel.Joined = true;
-                }
                 newChannel.Nicks.Add(e.Nick);
                 Channels.Add(newChannel);
                 SendWho(newChannel.Name);
@@ -415,7 +488,14 @@ namespace Combot.IRCServices
             Channel channel = Channels.Find(chan => chan.Name == e.Channel);
             if (channel != null)
             {
-                channel.RemoveNick(e.Nick.Nickname);
+                if (e.Nick.Nickname == Nickname)
+                {
+                    Channels.Remove(channel);
+                }
+                else
+                {
+                    channel.RemoveNick(e.Nick.Nickname);
+                }
             }
             ChannelRWLock.ExitWriteLock();
         }
@@ -431,7 +511,14 @@ namespace Combot.IRCServices
             Channel channel = Channels.Find(chan => chan.Name == e.Channel);
             if (channel != null)
             {
-                channel.RemoveNick(e.Nick.Nickname);
+                if (e.KickedNick.Nickname == Nickname)
+                {
+                    Channels.Remove(channel);
+                }
+                else
+                {
+                    channel.RemoveNick(e.KickedNick.Nickname);
+                }
             }
             ChannelRWLock.ExitWriteLock();
         }

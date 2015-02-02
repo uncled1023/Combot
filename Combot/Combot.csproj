@@ -60,16 +60,18 @@
   <ItemGroup>
     <Compile Include="AccessType.cs" />
     <Compile Include="Bot.cs" />
+    <Compile Include="MessageType.cs" />
     <Compile Include="Modules\Command.cs" />
     <Compile Include="Configurations\ChannelConfig.cs" />
     <Compile Include="Configurations\Config.cs" />
     <Compile Include="Configurations\HostConfig.cs" />
     <Compile Include="Configurations\JsonHelper.cs" />
     <Compile Include="Configurations\ServerConfig.cs" />
-    <Compile Include="Help.cs" />
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
+    <Compile Include="Modules\ModuleClasses\Help.cs" />
     <Compile Include="Modules\ModuleClasses\Invite.cs" />
+    <Compile Include="Modules\ModuleClasses\Moderation.cs" />
     <Compile Include="Modules\ModuleClasses\PingMe.cs" />
     <Compile Include="Modules\ModuleClasses\Version.cs" />
     <Compile Include="Modules\Option.cs" />

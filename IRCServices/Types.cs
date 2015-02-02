@@ -66,7 +66,7 @@ namespace Combot.IRCServices
         O,
         [Description("Private")]
         p,
-        [Description("Owner")]
+        [Description("Founder")]
         q,
         [Description("No Kicks Allowed")]
         Q,
