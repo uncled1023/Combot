@@ -64,28 +64,39 @@ namespace Combot.Modules.ModuleClasses
                     ModifyAutoUserPrivilege("VOP", command, ChannelMode.v);
                     break;
                 case "Mode":
-                    ModifyChannelModes(command);
+                    ModifyChannelModes(foundCommand, command);
                     break;
                 case "Topic":
-                    ModifyChannelTopic(command);
+                    ModifyChannelTopic(foundCommand, command);
                     break;
                 case "Invite":
+                    InviteNick(foundCommand, command);
                     break;
                 case "Ban":
+                    BanNick(true, foundCommand, command);
                     break;
                 case "UnBan":
-                    break;
-                case "Clear Ban":
+                    BanNick(false, foundCommand, command);
                     break;
                 case "Kick Ban":
+                    BanNick(true, foundCommand, command);
+                    KickNick(foundCommand, command);
                     break;
                 case "Timed Ban":
+                    TimedBan(foundCommand, command);
                     break;
                 case "Timed Kick Ban":
+                    TimedBan(foundCommand, command);
+                    KickNick(foundCommand, command);
                     break;
                 case "Kick":
+                    KickNick(foundCommand, command);
                     break;
-                case "Kick Me":
+                case "Kick Self":
+                    KickSelf(command);
+                    break;
+                case "Clear":
+                    ClearChannel(foundCommand, command);
                     break;
             }
         }
@@ -146,44 +157,65 @@ namespace Combot.Modules.ModuleClasses
             }
         }
 
-        private void ModifyChannelModes(CommandMessage command)
+        private void ModifyChannelModes(Command curCommand, CommandMessage command)
         {
-            List<ChannelModeInfo> modeList = new List<ChannelModeInfo>();
-            if (command.Arguments.ContainsKey("Parameters"))
-            {
-                modeList = Bot.IRC.ParseChannelModeString(command.Arguments["Modes"], command.Arguments["Parameters"]);
-            }
-            else
-            {
-                modeList = Bot.IRC.ParseChannelModeString(command.Arguments["Modes"], string.Empty);
-            }
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             bool allowedMode = true;
-            ChannelMode mode = ChannelMode.q;
-            for (int i = 0; i < modeList.Count; i++)
+            bool allowedCommand = Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess);
+            if (allowedCommand)
             {
-                switch (modeList[i].Mode)
+                List<ChannelModeInfo> modeList = new List<ChannelModeInfo>();
+                if (command.Arguments.ContainsKey("Parameters"))
                 {
-                    case ChannelMode.v:
-                    case ChannelMode.h:
-                    case ChannelMode.o:
-                    case ChannelMode.a:
-                    case ChannelMode.q:
-                        allowedMode = Bot.CheckChannelAccess(channel, command.Nick.Nickname, Bot.ChannelModeMapping[modeList[i].Mode]);
-                        if (!allowedMode)
-                        {
-                            mode = modeList[i].Mode;
-                        }
-                        break;
+                    modeList = Bot.IRC.ParseChannelModeString(command.Arguments["Modes"],
+                        command.Arguments["Parameters"]);
                 }
-            }
-            if (allowedMode)
-            {
-                Bot.IRC.SendMode(channel, modeList);
+                else
+                {
+                    modeList = Bot.IRC.ParseChannelModeString(command.Arguments["Modes"], string.Empty);
+                }
+                ChannelMode mode = ChannelMode.q;
+                for (int i = 0; i < modeList.Count; i++)
+                {
+                    switch (modeList[i].Mode)
+                    {
+                        case ChannelMode.v:
+                        case ChannelMode.h:
+                        case ChannelMode.o:
+                        case ChannelMode.a:
+                        case ChannelMode.q:
+                            allowedMode = Bot.CheckChannelAccess(channel, command.Nick.Nickname, Bot.ChannelModeMapping[modeList[i].Mode]);
+                            if (!allowedMode)
+                            {
+                                mode = modeList[i].Mode;
+                            }
+                            break;
+                    }
+                }
+                if (allowedMode)
+                {
+                    Bot.IRC.SendMode(channel, modeList);
+                }
+                else
+                {
+                    string noAccessMessage = string.Format("You do not have access to set mode \u0002+{0}\u000F on \u0002{1}\u000F.", mode, channel);
+                    switch (command.MessageType)
+                    {
+                        case MessageType.Channel:
+                            Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                            break;
+                        case MessageType.Query:
+                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                            break;
+                        case MessageType.Notice:
+                            Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                            break;
+                    }
+                }
             }
             else
             {
-                string noAccessMessage = string.Format("You do not have access to set mode \u0002+{0}\u000F on \u0002{1}\u000F.", mode, channel);
+                string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F on \u0002{1}\u000F.", command.Command, channel);
                 switch (command.MessageType)
                 {
                     case MessageType.Channel:
@@ -208,16 +240,161 @@ namespace Combot.Modules.ModuleClasses
             Bot.IRC.SendMode(channel, modeInfo);
         }
 
-        private void ModifyChannelTopic(CommandMessage command)
+        private void ModifyChannelTopic(Command curCommand, CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, command.Access))
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
                 Bot.IRC.SendTopic(channel, command.Arguments["Message"]);
             }
             else
             {
                 string noAccessMessage = string.Format("You do not have access to change the topic on \u0002{0}\u000F.", channel);
+                switch (command.MessageType)
+                {
+                    case MessageType.Channel:
+                        Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                        break;
+                    case MessageType.Query:
+                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                        break;
+                    case MessageType.Notice:
+                        Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                        break;
+                }
+            }
+        }
+
+        private void InviteNick(Command curCommand, CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location; 
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            {
+                Bot.IRC.SendInvite(channel, command.Arguments["Nickname"]);
+            }
+            else
+            {
+                string noAccessMessage = string.Format("You do not have access to invite someone to \u0002{0}\u000F.", channel);
+                switch (command.MessageType)
+                {
+                    case MessageType.Channel:
+                        Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                        break;
+                    case MessageType.Query:
+                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                        break;
+                    case MessageType.Notice:
+                        Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                        break;
+                }
+            }
+        }
+
+        private void BanNick(bool set, Command curCommand, CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            {
+                string banMask = command.Arguments["Nickname"];
+                Channel foundChannel = Bot.IRC.Channels.Find(chan => chan.Nicks.Exists(nick => nick.Nickname == banMask));
+                if (foundChannel != null)
+                {
+                    Nick foundNick = foundChannel.Nicks.Find(nick => nick.Nickname == banMask);
+                    if (foundNick.Host != string.Empty && foundNick.Username != null)
+                    {
+                        banMask = string.Format("{0}!*{1}@{2}", foundNick.Nickname, foundNick.Username, foundNick.Host);
+                    }
+                    else if (foundNick.Host != string.Empty)
+                    {
+                        banMask = string.Format("{0}!*@{1}", foundNick.Nickname, foundNick.Host);
+                    }
+                    else if (foundNick.Username != string.Empty)
+                    {
+                        banMask = string.Format("{0}!*{1}@*", foundNick.Nickname, foundNick.Username);
+                    }
+                    else
+                    {
+                        banMask = string.Format("{0}!*@*", foundNick.Nickname);
+                    }
+                }
+                else
+                {
+                    if (!banMask.Contains("@") || !banMask.Contains("!"))
+                    {
+                        banMask = string.Format("{0}!*@*", banMask);
+                    }
+                }
+                SetMode(set, channel, ChannelMode.b, banMask);
+            }
+            else
+            {
+                string banMessage = "ban";
+                if (!set)
+                {
+                    banMessage = "unban";
+                }
+                string noAccessMessage = string.Format("You do not have access to {0} \u0002{1}\u000F on \u0002{2}\u000F.", banMessage, command.Arguments["Nickname"], channel);
+                switch (command.MessageType)
+                {
+                    case MessageType.Channel:
+                        Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                        break;
+                    case MessageType.Query:
+                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                        break;
+                    case MessageType.Notice:
+                        Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                        break;
+                }
+            }
+        }
+
+        private void TimedBan(Command curCommand, CommandMessage command)
+        {
+
+        }
+
+        private void KickNick(Command curCommand, CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            {
+                Bot.IRC.SendKick(channel, command.Arguments["Nickname"]);
+            }
+            else
+            {
+                string noAccessMessage = string.Format("You do not have access to kick \u0002{0}\u000F from \u0002{1}\u000F.", command.Arguments["Nickname"], channel);
+                switch (command.MessageType)
+                {
+                    case MessageType.Channel:
+                        Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                        break;
+                    case MessageType.Query:
+                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                        break;
+                    case MessageType.Notice:
+                        Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                        break;
+                }
+            }
+        }
+
+        private void KickSelf(CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            Bot.IRC.SendKick(channel, command.Nick.Nickname);
+        }
+
+        private void ClearChannel(Command curCommand, CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            {
+                Bot.IRC.SendPrivateMessage("ChanServ", string.Format("CLEAR {0} {1}", channel, command.Arguments["Target"]));
+            }
+            else
+            {
+                string noAccessMessage = string.Format("You do not have access to clear \u0002{0}\u000F on \u0002{1}\u000F.", command.Arguments["Target"], channel);
                 switch (command.MessageType)
                 {
                     case MessageType.Channel:

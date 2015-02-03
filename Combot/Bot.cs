@@ -79,13 +79,20 @@ namespace Combot
 
             if (serverConnected)
             {
-                IRC.Login(ServerConfig.Name, new Nick()
+                if (CurNickChoice < ServerConfig.Nicknames.Count)
                 {
-                    Nickname = ServerConfig.Nicknames[CurNickChoice], 
-                    Host = Dns.GetHostName(), 
-                    Realname = ServerConfig.Realname, 
-                    Username = ServerConfig.Username
-                });
+                    IRC.Login(ServerConfig.Name, new Nick()
+                    {
+                        Nickname = ServerConfig.Nicknames[CurNickChoice],
+                        Host = Dns.GetHostName(),
+                        Realname = ServerConfig.Realname,
+                        Username = ServerConfig.Username
+                    });
+                }
+                else
+                {
+                    Disconnect();
+                }
             }
         }
 
