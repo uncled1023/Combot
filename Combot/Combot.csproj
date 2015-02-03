@@ -74,6 +74,7 @@
     <Compile Include="Modules\ModuleClasses\Moderation.cs" />
     <Compile Include="Modules\ModuleClasses\PingMe.cs" />
     <Compile Include="Modules\ModuleClasses\Version.cs" />
+    <Compile Include="Modules\ModuleClasses\Weather.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />

@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
+using Timer = System.Timers.Timer;
 
 namespace Combot.Modules.ModuleClasses
 {
     public class Moderation : Module
     {
+        private List<Timer> unbanTimers;
+        private ReaderWriterLockSlim listLock;
+
         public override void Initialize()
         {
+            unbanTimers = new List<Timer>();
+            listLock = new ReaderWriterLockSlim();
             Bot.CommandReceivedEvent += HandleCommandEvent;
         }
 
@@ -351,7 +358,45 @@ namespace Combot.Modules.ModuleClasses
 
         private void TimedBan(Command curCommand, CommandMessage command)
         {
+            double timeout;
+            if (double.TryParse(command.Arguments["Time"], out timeout))
+            {
+                BanNick(true, curCommand, command);
+                Timer unban_trigger = new Timer();
+                unban_trigger.Interval = (timeout * 1000.0);
+                unban_trigger.Enabled = true;
+                unban_trigger.AutoReset = false;
+                unban_trigger.Elapsed += (sender, e) => TimedUnBan(sender, e, curCommand, command);
+                listLock.EnterWriteLock();
+                unbanTimers.Add(unban_trigger);
+                listLock.ExitWriteLock();
+            }
+            else
+            {
+                string noAccessMessage = "Please enter a valid time.";
+                switch (command.MessageType)
+                {
+                    case MessageType.Channel:
+                        Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
+                        break;
+                    case MessageType.Query:
+                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
+                        break;
+                    case MessageType.Notice:
+                        Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
+                        break;
+                }
+            }
+        }
 
+        private void TimedUnBan(object sender, EventArgs e, Command curCommand, CommandMessage command)
+        {
+            Timer unbanTimer = (Timer)sender;
+            unbanTimer.Enabled = false;
+            BanNick(false, curCommand, command);
+            listLock.EnterWriteLock();
+            unbanTimers.Remove(unbanTimer);
+            listLock.ExitWriteLock();
         }
 
         private void KickNick(Command curCommand, CommandMessage command)
