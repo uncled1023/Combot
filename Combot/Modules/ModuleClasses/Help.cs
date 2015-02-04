@@ -23,7 +23,7 @@ namespace Combot.Modules.ModuleClasses
                 }
                 else if (command.Arguments.ContainsKey("Command"))
                 {
-                    SendCommandHelp(command.Nick.Nickname, command.Access, command.Arguments["Command"].ToString());
+                    SendCommandHelp(command);
                 }
             }
         }
@@ -31,50 +31,47 @@ namespace Combot.Modules.ModuleClasses
         private void SendFullHelp(string recipient, List<AccessType> access)
         {
             Bot.IRC.SendNotice(recipient, string.Format("You have the following commands available to use.  " +
-                                                        "To use them either type \u0002{1}\u001Fcommand\u000F into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand\u000F, or send a notice by typing \u0002/notice {0} \u001Fcommand\u000F.  " +
-                                                        "For more information on a specific command, type \u0002{1}help \u001Fcommand\u000F.",
+                                                        "To use them either type \u0002{1}\u001Fcommand trigger\u000F into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand trigger\u000F, or send a notice by typing \u0002/notice {0} \u001Fcommand trigger\u000F.  ",
                                                         Bot.IRC.Nickname, Bot.ServerConfig.CommandPrefix));
             Bot.IRC.SendNotice(recipient, "\u200B");
+            List<string> commandList = new List<string>();
             foreach (Module module in Bot.Modules)
             {
-                if (module.Commands.Exists(command => command.AllowedAccess.Exists(allowed => access.Contains(allowed)) && command.ShowHelp))
-                {
-                    Bot.IRC.SendNotice(recipient, string.Format("\u0002\u001F{0} Module\u000F\u0002\u000F", module.Name));
-                }
                 module.Commands.ForEach(command =>
                 {
                     if (command.AllowedAccess.Exists(allowed => access.Contains(allowed)) && command.ShowHelp)
                     {
-                        string commandDesc = string.Empty;
-                        if (command.Description != string.Empty)
-                        {
-                            commandDesc = string.Format(" - {0}", command.Description);
-                        }
-                        Bot.IRC.SendNotice(recipient, string.Format("\t\t\u0002{0}\u000F{1}", command.Name, commandDesc));
+                        commandList.Add(command.Name);
                     }
                 });
             }
+            Bot.IRC.SendNotice(recipient, string.Format("\u0002{0}\u000F", string.Join(", ", commandList)));
+            Bot.IRC.SendNotice(recipient, "\u200B");
+            Bot.IRC.SendNotice(recipient, string.Format("For more information on a specific command, including viewing the triggers, type \u0002{0}help \u001Fcommand\u000F.", Bot.ServerConfig.CommandPrefix));
         }
 
-        private void SendCommandHelp(string recipient, List<AccessType> access, string command)
+        private void SendCommandHelp(CommandMessage command)
         {
-            Module foundModule = Bot.Modules.Find(mod => mod.Commands.Exists(cmd => (cmd.Name == command || cmd.Triggers.Contains(command)) && cmd.ShowHelp));
+            string helpCommand = command.Arguments["Command"].ToString();
+            Module foundModule = Bot.Modules.Find(mod => mod.Commands.Exists(cmd => (cmd.Name.ToLower() == helpCommand.ToLower() || cmd.Triggers.Contains(helpCommand)) && cmd.ShowHelp));
             if (foundModule != null)
             {
-                Command foundCommand = foundModule.Commands.Find(cmd => (cmd.Name == command || cmd.Triggers.Contains(command)));
+                Command foundCommand = foundModule.Commands.Find(cmd => (cmd.Name.ToLower() == helpCommand.ToLower() || cmd.Triggers.Contains(helpCommand)));
                 if (foundCommand != null)
                 {
-                    if (foundCommand.AllowedAccess.Exists(allowed => access.Contains(allowed)))
+                    if (foundCommand.AllowedAccess.Exists(allowed => command.Access.Contains(allowed)))
                     {
-                        Bot.IRC.SendNotice(recipient, string.Format("Help information for \u0002{0}\u000F", foundCommand.Name));
+                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Help information for \u0002{0}\u000F", foundCommand.Name));
                         if (foundCommand.Description != string.Empty)
                         {
-                            Bot.IRC.SendNotice(recipient, string.Format("{0}", foundCommand.Description));
+                            Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("{0}", foundCommand.Description));
                         }
-                        Bot.IRC.SendNotice(recipient, "\u200B");
+                        Bot.IRC.SendNotice(command.Nick.Nickname, "\u200B");
                         for (int i = 0; i < foundCommand.AllowedMessageTypes.Count; i++)
                         {
                             MessageType messageType = foundCommand.AllowedMessageTypes[i];
+
+                            // Generate Message Syntax
                             string messageSyntax = string.Empty;
                             switch (messageType)
                             {
@@ -90,10 +87,9 @@ namespace Combot.Modules.ModuleClasses
                             }
                             List<CommandArgument> validArguments = foundCommand.Arguments.FindAll(arg => arg.MessageTypes.Contains(messageType));
                             string argHelp = string.Empty;
-                            Bot.IRC.SendNotice(recipient, string.Format("Message Type: \u0002{0}\u000F", messageType.ToString()));
                             if (validArguments.Count > 0)
                             {
-                                argHelp = string.Format(" \u0002\u001F{0}\u000F", string.Join("\u000F \u0002", validArguments.Select(arg =>
+                                argHelp = string.Format(" \u0002{0}\u000F", string.Join(" ", validArguments.Select(arg =>
                                 {
                                     if (arg.Required)
                                     {
@@ -102,14 +98,15 @@ namespace Combot.Modules.ModuleClasses
                                     return "[\u001F" + arg.Name + "\u000F\u0002]";
                                 })));
                             }
-                            foundCommand.Triggers.ForEach(trigger =>
+                            if (foundCommand.Triggers.Any())
                             {
-                                Bot.IRC.SendNotice(recipient, string.Format("\t\tSyntax: {0} {1}\u0002{2}\u000F{3}", messageSyntax, Bot.ServerConfig.CommandPrefix, trigger, argHelp));
-                            });
+                                string triggerString = (foundCommand.Triggers.Count > 1) ? string.Format("({0})", string.Join("|", foundCommand.Triggers)) : foundCommand.Triggers.First();
+                                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Syntax: {0} {1}\u0002{2}\u000F{3}", messageSyntax, Bot.ServerConfig.CommandPrefix, triggerString, argHelp));
+                            }
 
+                            // Display argument help
                             if (validArguments.Count > 0)
                             {
-                                Bot.IRC.SendNotice(recipient, "\u200B");
                                 validArguments.ForEach(arg =>
                                 {
                                     string commandDesc = string.Empty;
@@ -117,34 +114,28 @@ namespace Combot.Modules.ModuleClasses
                                     {
                                         commandDesc = string.Format(" - {0}", arg.Description);
                                     }
-                                    string required = string.Empty;
-                                    if (arg.Required)
-                                    {
-                                        required = " - Required";
-                                    }
-                                    Bot.IRC.SendNotice(recipient, string.Format("\t\t\u0002{0}{1}\u000F{2}", arg.Name, required, commandDesc));
+                                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\u0002{0}\u000F{1}", arg.Name, commandDesc));
                                     if (arg.AllowedValues.Count > 0)
                                     {
-                                        Bot.IRC.SendNotice(recipient, string.Format("\t\t\t\t- Allowed Values: \u0002{0}\u000F", string.Join(", ", arg.AllowedValues)));
+                                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\tAllowed Values: \u0002{0}\u000F", string.Join(", ", arg.AllowedValues)));
                                     }
                                 });
                             }
-                            Bot.IRC.SendNotice(recipient, "\u200B");
                         }
                     }
                     else
                     {
-                        Bot.IRC.SendNotice(recipient, string.Format("You do not have access to view help on \u0002{0}\u000F.", command));
+                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("You do not have access to view help on \u0002{0}\u000F.", helpCommand));
                     }
                 }
                 else
                 {
-                    Bot.IRC.SendNotice(recipient, string.Format("The command \u0002{0}\u000F does not exist.", command));
+                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u000F does not exist.", helpCommand));
                 }
             }
             else
             {
-                Bot.IRC.SendNotice(recipient, string.Format("The command \u0002{0}\u000F does not exist.", command));
+                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u000F does not exist.", helpCommand));
             }
         }
     }

@@ -217,7 +217,9 @@ namespace Combot.IRCServices
         {
             if (_TCP.Connected)
             {
-                _TCP.Write(message);
+                string replaceWith = string.Empty;
+                string parsedMessage = message.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
+                _TCP.Write(parsedMessage);
             }
         }
 

@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using Combot.IRCServices.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -12,6 +14,7 @@ namespace Combot.Modules.ModuleClasses
         public override void Initialize()
         {
             Bot.CommandReceivedEvent += HandleCommandEvent;
+            Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessage;
         }
 
         public override void ParseCommand(CommandMessage command)
@@ -23,6 +26,17 @@ namespace Combot.Modules.ModuleClasses
                 case "YouTube Search":
                     YoutubeSearch(command);
                     break;
+            }
+        }
+
+        private void HandleChannelMessage(object sender, ChannelMessage message)
+        {
+            Regex urlRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+            if (urlRegex.IsMatch(message.Message))
+            {
+                Match urlMatch = urlRegex.Match(message.Message);
+                string youtubeMessage = GetYoutubeDescription(urlMatch.Groups["ID"].Value);
+                Bot.IRC.SendPrivateMessage(message.Channel, youtubeMessage);
             }
         }
 
@@ -39,7 +53,7 @@ namespace Combot.Modules.ModuleClasses
             {
                 string videoID = parsed["data"]["items"].First().Value<string>("id");
                 string vidDescription = GetYoutubeDescription(videoID);
-                string youtubeMessage = string.Format("{0} - {1}.", vidDescription, string.Format("http://youtu.be/{0}", videoID));
+                string youtubeMessage = string.Format("{0} - {1}", vidDescription, string.Format("http://youtu.be/{0}", videoID));
                 switch (command.MessageType)
                 {
                     case MessageType.Channel:

@@ -57,16 +57,26 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendNotice(string recipient, string message)
         {
-            if (message.Length > MaxMessageLength)
+            TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
+            if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
-                string subMessage = message.Substring(0, MaxMessageLength);
-                string nextMessage = message.Remove(0, MaxMessageLength);
-                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
-                SendNotice(recipient, nextMessage);
+                Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
+                SendNotice(recipient, message);
             }
             else
             {
-                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                LastMessageSend = DateTime.Now;
+                if (message.Length > MaxMessageLength)
+                {
+                    string subMessage = message.Substring(0, MaxMessageLength);
+                    string nextMessage = message.Remove(0, MaxMessageLength);
+                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                    SendNotice(recipient, nextMessage);
+                }
+                else
+                {
+                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                }
             }
         }
 

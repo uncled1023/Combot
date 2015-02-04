@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Text;
-using Google.GData.Client;
+using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -126,6 +126,5 @@ namespace Combot.Modules.ModuleClasses
             }
             return new string(array, 0, arrayIndex);
         }
-
     }
 }
