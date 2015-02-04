@@ -7,15 +7,18 @@
     {&#xD;
         public override void Initialize()&#xD;
         {&#xD;
+            Bot.CommandReceivedEvent += HandleCommandEvent;&#xD;
         }		&#xD;
 &#xD;
         public override void ParseCommand(CommandMessage command)&#xD;
         {&#xD;
+            Command foundCommand = Commands.Find(c =&gt; c.Triggers.Contains(command.Command));&#xD;
 		}&#xD;
     }&#xD;
 }</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Reformat/@EntryValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/ShortenQualifiedReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Categories/=Imported_00201_002F29_002F2015/@EntryIndexedValue">Imported 1/29/2015</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/CustomProperties/=FileName/@EntryIndexedValue">NewModule</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/CustomProperties/=Extension/@EntryIndexedValue">cs</s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/CustomProperties/=ValidateFileName/@EntryIndexedValue">False</s:String>
@@ -23,10 +26,10 @@
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Scope/=E8F0594528C33E45BBFEC6CFE851095D/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Scope/=E8F0594528C33E45BBFEC6CFE851095D/Type/@EntryValue">InCSharpProjectFile</s:String>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=namespace/@KeyIndexDefined">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=namespace/Expression/@EntryValue">getCurrentNamespace()</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=namespace/Expression/@EntryValue">fileDefaultNamespace()</s:String>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=namespace/InitialRange/@EntryValue">-1</s:Int64>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=namespace/Order/@EntryValue">0</s:Int64>
 	<s:Boolean x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=filename/@KeyIndexDefined">True</s:Boolean>
-	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=filename/Expression/@EntryValue">fileDefaultNamespace()</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=filename/Expression/@EntryValue">getFileNameWithoutExtension()</s:String>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=filename/InitialRange/@EntryValue">-1</s:Int64>
 	<s:Int64 x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=25F1155BB4B75B4898E0DB901452883B/Field/=filename/Order/@EntryValue">1</s:Int64></wpf:ResourceDictionary>

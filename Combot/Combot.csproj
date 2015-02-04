@@ -45,6 +45,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Google.GData.Client">
+      <HintPath>..\packages\Google.GData.Client.2.2.0.0\lib\Google.GData.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.GData.Extensions">
+      <HintPath>..\packages\Google.GData.Extensions.2.2.0.0\lib\Google.GData.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.GData.YouTube">
+      <HintPath>..\packages\Google.GData.YouTube.2.2.0.0\lib\Google.GData.YouTube.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -73,8 +82,10 @@
     <Compile Include="Modules\ModuleClasses\Invite.cs" />
     <Compile Include="Modules\ModuleClasses\Moderation.cs" />
     <Compile Include="Modules\ModuleClasses\PingMe.cs" />
+    <Compile Include="Modules\ModuleClasses\Search.cs" />
     <Compile Include="Modules\ModuleClasses\Version.cs" />
     <Compile Include="Modules\ModuleClasses\Weather.cs" />
+    <Compile Include="Modules\ModuleClasses\YouTube.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />
@@ -86,6 +97,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
