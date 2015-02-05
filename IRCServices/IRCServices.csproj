@@ -42,6 +42,7 @@
     <Compile Include="AccessControl\Access.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="IRC.cs" />
+    <Compile Include="Messaging\GetError.cs" />
     <Compile Include="Messaging\GetReply.cs" />
     <Compile Include="Messaging\Messages.cs" />
     <Compile Include="Messaging\MessageTypes.cs" />

@@ -70,6 +70,7 @@
     <Compile Include="Configurations\ServerConfig.cs" />
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
+    <Compile Include="Modules\ModuleClasses\Owner.cs" />
     <Compile Include="Modules\ModuleClasses\Help.cs" />
     <Compile Include="Modules\ModuleClasses\Invite.cs" />
     <Compile Include="Modules\ModuleClasses\Moderation.cs" />

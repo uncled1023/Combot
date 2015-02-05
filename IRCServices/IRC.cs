@@ -190,6 +190,44 @@ namespace Combot.IRCServices
             return modeInfos;
         }
 
+        public List<UserModeInfo> ParseUserModeString(string modeString)
+        {
+            List<UserModeInfo> userModes = new List<UserModeInfo>();
+
+            bool set = true;
+            char[] modeArr = modeString.ToCharArray();
+            for (int i = 1; i <= modeArr.GetUpperBound(0); i++)
+            {
+                UserModeInfo newMode = new UserModeInfo();
+                if (modeArr[i].Equals('-'))
+                {
+                    set = false;
+                }
+                else if (modeArr[i].Equals('+'))
+                {
+                    set = true;
+                }
+                else if (modeArr[i].Equals('*'))
+                {
+                    newMode.Mode = UserMode.o;
+                    newMode.Set = set;
+                    userModes.Add(newMode);
+                }
+                else
+                {
+                    UserMode foundMode;
+                    bool validMode = Enum.TryParse(modeArr[i].ToString(), false, out foundMode);
+                    if (validMode)
+                    {
+                        newMode.Mode = foundMode;
+                        newMode.Set = set;
+                        userModes.Add(newMode);
+                    }
+                }
+            }
+            return userModes;
+        }
+
         private void ReadTCPMessages()
         {
             while (_TCP.Connected)
@@ -449,6 +487,10 @@ namespace Combot.IRCServices
                 Nick newNick = Channels[i].GetNick(e.OldNick.Nickname);
                 if (newNick != null)
                 {
+                    if (e.OldNick.Nickname == Nickname)
+                    {
+                        Nickname = e.NewNick.Nickname;
+                    }
                     newNick.Nickname = e.NewNick.Nickname;
                 }
             }

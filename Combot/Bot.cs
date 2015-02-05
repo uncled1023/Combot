@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Combot.IRCServices;
 using Combot.Configurations;
@@ -378,13 +379,37 @@ namespace Combot
                     CommandMessage newCommand = new CommandMessage();
                     List<CommandArgument> validArguments = cmd.Arguments.FindAll(arg => arg.MessageTypes.Contains(messageType));
                     newCommand.Nick.Copy(sender);
+                    bool nickFound = false;
                     IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
                     {
                         if (nick.Nickname == newCommand.Nick.Nickname)
                         {
+                            nickFound = true;
+                            newCommand.Nick.AddModes(nick.Modes);
                             newCommand.Nick.AddPrivileges(nick.Privileges);
                         }
                     }));
+                    // Nickname has not been found, so need to run a query for nick's modes
+                    if (!nickFound)
+                    {
+                        string whoStyle = string.Format(@"[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s({0})\s(?<Modes>[^\s]+)\s:[\d]\s(.+)", newCommand.Nick.Nickname);
+                        Regex whoRegex = new Regex(whoStyle);
+                        IRC.SendWho(newCommand.Nick.Nickname);
+                        ServerReplyMessage whoReply = IRC.Message.GetServerReply(IRCReplyCode.RPL_WHOREPLY, whoStyle);
+                        if (whoReply.ReplyCode != 0)
+                        {
+                            Match whoMatch = whoRegex.Match(whoReply.Message);
+
+                            List<UserModeInfo> modeInfoList = IRC.ParseUserModeString(whoMatch.Groups["Modes"].ToString());
+                            modeInfoList.ForEach(info =>
+                            {
+                                if (info.Set)
+                                {
+                                    newCommand.Nick.AddMode(info.Mode);
+                                }
+                            });
+                        }
+                    }
                     newCommand.TimeStamp = timestamp;
                     newCommand.Location = location;
                     newCommand.MessageType = messageType;

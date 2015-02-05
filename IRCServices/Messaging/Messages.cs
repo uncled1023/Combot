@@ -455,40 +455,58 @@ namespace Combot.IRCServices.Messaging
             }
         }
 
-        public bool GetReply(List<IRCReplyCode> ReplyCodes, List<IRCErrorCode> ErrorCodes)
+        public ServerReplyMessage GetServerReply(IRCReplyCode replyCode, string match)
         {
             GetReply reply = new GetReply();
-            reply.Replies = ReplyCodes;
-            reply.Errors = ErrorCodes;
+            reply.Reply = replyCode;
+            reply.Match = match;
             ServerReplyEvent += (sender, e) => HandleReply(sender, e, reply);
             reply.Ready.Wait(TimeSpan.FromMilliseconds(5000));
-            reply.Reattach = false;
+            ServerReplyEvent -= (obj, e) => HandleReply(obj, e, reply);
             return reply.Result;
+        }
+
+        public ServerErrorMessage GetServerError(IRCErrorCode errorCode, string match)
+        {
+            GetError error = new GetError();
+            error.Error = errorCode;
+            error.Match = match;
+            ServerReplyEvent += (sender, e) => HandleError(sender, e, error);
+            error.Ready.Wait(TimeSpan.FromMilliseconds(5000));
+            ServerReplyEvent -= (sender, e) => HandleError(sender, e, error);
+            return error.Result;
         }
 
         private void HandleReply(object sender, IReply message, GetReply reply)
         {
             bool replyFound = false;
+            Regex replyRegex = new Regex(reply.Match);
             if (message.GetType() == typeof(ServerReplyMessage))
             {
                 ServerReplyMessage msg = (ServerReplyMessage)message;
-                replyFound = reply.Replies.Contains(msg.ReplyCode);
+                replyFound = reply.Reply.Equals(msg.ReplyCode);
+
+                if (replyFound && replyRegex.IsMatch(msg.Message))
+                {
+                    reply.Result = msg;
+                    reply.Ready.Set();
+                }
             }
-            else
+        }
+
+        private void HandleError(object sender, IReply message, GetError error)
+        {
+            bool errorFound = false;
+            Regex errorRegex = new Regex(error.Match);
+            if (message.GetType() == typeof(ServerErrorMessage))
             {
                 ServerErrorMessage msg = (ServerErrorMessage)message;
-                replyFound = reply.Errors.Contains(msg.ErrorCode);
-            }
-            if (replyFound)
-            {
-                reply.Result = replyFound;
-                reply.Ready.Set();
-            }
-            else
-            {
-                if (reply.Reattach)
+                errorFound = error.Error.Equals(msg.ErrorCode);
+
+                if (errorFound && errorRegex.IsMatch(msg.Message))
                 {
-                    ServerReplyEvent += (obj, e) => HandleReply(obj, e, reply);
+                    error.Result = msg;
+                    error.Ready.Set();
                 }
             }
         }

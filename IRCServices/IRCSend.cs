@@ -8,6 +8,7 @@ using System.Threading;
 
 namespace Combot.IRCServices
 {
+    // TODO Make long message splits based on words
     public partial class IRC
     {
         /// <summary>
