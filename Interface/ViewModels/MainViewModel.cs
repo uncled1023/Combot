@@ -8,7 +8,6 @@ using Combot;
 using Combot.IRCServices.Messaging;
 using Combot.Configurations;
 using Combot.Modules;
-using Combot.Modules.ModuleClasses;
 
 namespace Interface.ViewModels
 {

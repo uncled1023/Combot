@@ -70,7 +70,6 @@
     <Compile Include="Configurations\ServerConfig.cs" />
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
-    <Compile Include="Modules\ModuleClasses\WolframAlpha.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />
