@@ -72,9 +72,7 @@
     <Compile Include="Modules\CommandMessage.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
-    <Compile Include="Methods.cs" />
     <Compile Include="Modules\Module.cs" />
-    <Compile Include="Properties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

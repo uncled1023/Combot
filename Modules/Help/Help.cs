@@ -116,7 +116,14 @@ namespace Combot.Modules.Plugins
                                     Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\u0002{0}\u000F{1}", arg.Name, commandDesc));
                                     if (arg.AllowedValues.Count > 0)
                                     {
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\tAllowed Values: \u0002{0}\u000F", string.Join(", ", arg.AllowedValues)));
+                                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tAllowed Values: \u0002{0}\u000F", string.Join(", ", arg.AllowedValues)));
+                                    }
+                                    if (arg.DependentArguments.Count > 0)
+                                    {
+                                        foreach (CommandArgument.DependentArgumentInfo dependentArgument in arg.DependentArguments)
+                                        {
+                                            Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tOnly used when \u0002{0}\u000F is \u0002{1}\u000F.", dependentArgument.Name, string.Join(", or ", dependentArgument.Values)));
+                                        }
                                     }
                                 });
                             }

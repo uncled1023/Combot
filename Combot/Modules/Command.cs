@@ -81,5 +81,47 @@ namespace Combot.Modules
             ShowHelp = command.ShowHelp;
             SpamCheck = command.SpamCheck;
         }
+
+        public List<CommandArgument> GetValidArguments(List<string> passedArgs, MessageType messageType)
+        {
+            List<CommandArgument> validArguments = new List<CommandArgument>();
+            for (int i = 0; i < Arguments.Count; i++)
+            {
+                if (Arguments[i].MessageTypes.Contains(messageType))
+                {
+                    if (Arguments[i].DependentArguments.Count > 0)
+                    {
+                        if (Arguments[i].DependentArguments.Exists(arg => Arguments.Exists(val => val.Name == arg.Name)))
+                        {
+                            CommandArgument.DependentArgumentInfo checkedArgument = Arguments[i].DependentArguments.Find(dep => Arguments.Exists(val => val.Name == dep.Name));
+                            int argIndex = Arguments.FindIndex(arg => arg.Name == checkedArgument.Name);
+                            if (passedArgs.Count > argIndex)
+                            {
+                                if (checkedArgument.Values.Exists(check => check.ToLower() == passedArgs[argIndex].ToLower()))
+                                {
+                                    CommandArgument newArgument = new CommandArgument();
+                                    newArgument.Copy(Arguments[i]);
+                                    validArguments.Add(newArgument);
+                                }
+                            }
+                            else
+                            {
+                                CommandArgument newArgument = new CommandArgument();
+                                newArgument.Copy(Arguments[i]);
+                                newArgument.Required = true;
+                                validArguments.Add(newArgument);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        CommandArgument newArgument = new CommandArgument();
+                        newArgument.Copy(Arguments[i]);
+                        validArguments.Add(newArgument);
+                    }
+                }
+            }
+            return validArguments;
+        }
     }
 }

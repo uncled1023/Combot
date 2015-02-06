@@ -428,46 +428,20 @@ namespace Combot
                     newCommand.Location = location;
                     newCommand.MessageType = messageType;
                     newCommand.Command = command;
-                    
+
                     // Check arguments against required arguments
-                    List<CommandArgument> typeArguments = cmd.Arguments.FindAll(arg => arg.MessageTypes.Contains(messageType));
-                    List<CommandArgument> validArguments = new List<CommandArgument>();
+                    List<string> usedArgs = new List<string>();
+                    if (argsOnly.Any())
+                    {
+                        usedArgs.AddRange(argsOnly.First().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList());
+                    }
+                    List<CommandArgument> validArguments = cmd.GetValidArguments(usedArgs, messageType);
                     if (argsOnly.Count > 0)
                     {
-                        string[] argSplit = argsOnly.First().Split(new[] { ' ' }, typeArguments.Count, StringSplitOptions.RemoveEmptyEntries);
-
-                        for (int i = 0; i < typeArguments.Count; i++)
+                        string[] argSplit = argsOnly.First().Split(new[] { ' ' }, validArguments.Count, StringSplitOptions.RemoveEmptyEntries);
+                        for (int i = 0; i < validArguments.Count && i <= argSplit.GetUpperBound(0); i++)
                         {
-                            if (argsOnly.Count > i)
-                            {
-                                
-                            }
-                        }
-                        
-                        int argIndex = 0;
-                        for (int i = 0; i < typeArguments.Count && argIndex <= argSplit.GetUpperBound(0); i++)
-                        {
-                            bool allowedArg = true;
-                            if (typeArguments[i].DependentArguments.Count > 0)
-                            {
-                                allowedArg = typeArguments[i].DependentArguments.Exists(arg =>
-                                {
-                                    if (newCommand.Arguments.ContainsKey(arg.Name))
-                                    {
-                                        string argValue = newCommand.Arguments[arg.Name];
-                                        return arg.Values.Exists(val => val.ToLower() == argValue.ToLower());
-                                    }
-                                    return false;
-                                });
-                            }
-                            if (allowedArg)
-                            {
-                                newCommand.Arguments.Add(typeArguments[i].Name, argSplit[i]);
-                                CommandArgument newArgument = new CommandArgument();
-                                newArgument.Copy(typeArguments[i]);
-                                validArguments.Add(newArgument);
-                                argIndex++;
-                            }
+                            newCommand.Arguments.Add(validArguments[i].Name, argSplit[i]);
                         }
                     }
                     bool invalidArgs = false;
@@ -517,6 +491,7 @@ namespace Combot
                             IRC.SendNotice(location, missingArgument);
                         }
                     }
+
                 }
             }
         }
