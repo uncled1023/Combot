@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Xml;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
-    public class Weather : Module
+    public class Weather_Information : Module
     {
         public override void Initialize()
         {

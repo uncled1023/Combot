@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -109,11 +110,25 @@ namespace Combot
 
         public void LoadModules()
         {
-            foreach (Module module in ServerConfig.Modules)
+            // Get all config files from Module directory
+            string[] moduleLocations = Directory.GetDirectories(ServerConfig.ModuleLocation);
+            foreach (string location in moduleLocations)
             {
-                if (module.Enabled && !Modules.Exists(mod => mod.ClassName == module.ClassName))
+                LoadModule(location);
+            }
+        }
+
+        public void LoadModule(string location)
+        {
+            Module newModule = new Module();
+            newModule.ConfigPath = location;
+            newModule.LoadConfig();
+
+            if (newModule.Enabled && !Modules.Exists(mod => mod.ClassName == newModule.ClassName))
+            {
+                if (File.Exists(string.Format(@"{0}\{1}.dll", location, newModule.Name)))
                 {
-                    Module loadedModule = module.CreateInstance(this);
+                    Module loadedModule = newModule.CreateInstance(this);
                     if (loadedModule.Loaded)
                     {
                         Modules.Add(loadedModule);

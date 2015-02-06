@@ -7,7 +7,7 @@ using Combot.IRCServices.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
     public class YouTube : Module
     {

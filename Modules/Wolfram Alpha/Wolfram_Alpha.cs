@@ -1,10 +1,11 @@
 ﻿using System.Net;
 using System.Text;
+using System.Web;
 using System.Xml;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
-    public class WolframAlpha : Module
+    public class Wolfram_Alpha : Module
     {
         public override void Initialize()
         {
@@ -24,7 +25,7 @@ namespace Combot.Modules.ModuleClasses
 
         private void GetResults(CommandMessage command)
         {
-            string URL = "http://api.wolframalpha.com/v2/query?input=" + System.Web.HttpUtility.UrlEncode(command.Arguments["Query"]) + "&appid=" + GetOptionValue("API") + "&format=plaintext";
+            string URL = "http://api.wolframalpha.com/v2/query?input=" + HttpUtility.UrlEncode(command.Arguments["Query"]) + "&appid=" + GetOptionValue("API") + "&format=plaintext";
             XmlNodeList xnList = null;
             try
             {

@@ -31,7 +31,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Bin\Combot\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,7 +39,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Bin\Combot\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -70,17 +70,7 @@
     <Compile Include="Configurations\ServerConfig.cs" />
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
-    <Compile Include="Modules\ModuleClasses\Owner.cs" />
-    <Compile Include="Modules\ModuleClasses\Help.cs" />
-    <Compile Include="Modules\ModuleClasses\Invite.cs" />
-    <Compile Include="Modules\ModuleClasses\Moderation.cs" />
-    <Compile Include="Modules\ModuleClasses\PingMe.cs" />
-    <Compile Include="Modules\ModuleClasses\Search.cs" />
-    <Compile Include="Modules\ModuleClasses\UrlParsing.cs" />
-    <Compile Include="Modules\ModuleClasses\Version.cs" />
-    <Compile Include="Modules\ModuleClasses\Weather.cs" />
     <Compile Include="Modules\ModuleClasses\WolframAlpha.cs" />
-    <Compile Include="Modules\ModuleClasses\YouTube.cs" />
     <Compile Include="Modules\Option.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Methods.cs" />

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Combot.IRCServices.Messaging;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
     public class Version : Module
     {

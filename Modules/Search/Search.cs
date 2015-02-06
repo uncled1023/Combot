@@ -6,7 +6,7 @@ using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
     public class Search : Module
     {
@@ -37,7 +37,7 @@ namespace Combot.Modules.ModuleClasses
             web.Encoding = Encoding.UTF8;
             string page = web.DownloadString(searchUrl);
 
-            JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
+            JObject parsed = (JObject)JsonConvert.DeserializeObject(page);
             int responseCode = parsed.Value<int>("responseStatus");
             if (responseCode < 300 && responseCode >= 200)
             {

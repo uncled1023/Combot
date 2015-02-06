@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Threading;
+using Combot.Configurations;
 using Combot.IRCServices;
+using Newtonsoft.Json;
 
 namespace Combot.Modules
 {
@@ -24,11 +28,27 @@ namespace Combot.Modules
             return false;
         }
 
+        public string ConfigPath { get; set; }
+        public bool ShouldSerializeConfigPath()
+        {
+            return false;
+        }
+
         protected Bot Bot;
+
+        private ReaderWriterLockSlim ConfigRWLock;
+        private ReaderWriterLockSlim ConfigFileRWLock;
+        private JsonSerializerSettings JsonSettings;
 
         public Module()
         {
             SetDefaults();
+            ConfigRWLock = new ReaderWriterLockSlim();
+            ConfigFileRWLock = new ReaderWriterLockSlim();
+            JsonSettings = new JsonSerializerSettings();
+            JsonSettings.Converters.Add(new IPAddressConverter());
+            JsonSettings.Converters.Add(new IPEndPointConverter());
+            JsonSettings.Formatting = Formatting.Indented;
         }
 
         public void HandleCommandEvent(CommandMessage command)
@@ -91,6 +111,7 @@ namespace Combot.Modules
             Enabled = false;
             ChannelBlacklist = new List<string>();
             NickBlacklist = new List<string>();
+            ConfigPath = Directory.GetCurrentDirectory();
             Loaded = false;
             Commands = new List<Command>();
             Options = new List<Option>();
@@ -133,9 +154,9 @@ namespace Combot.Modules
             if (!Loaded)
             {
                 //create the class base on string
-                //note : include the namespace and class name (namespace=Bot.Modules, class name=<class_name>)
-                Assembly a = Assembly.Load("Combot");
-                Type t = a.GetType("Combot.Modules.ModuleClasses." + ClassName);
+                //note : include the namespace and class name (namespace=Combot.Modules, class name=<class_name>)
+                Assembly a = Assembly.LoadFrom(Path.Combine(ConfigPath, string.Format("{0}.dll", Name)));
+                Type t = a.GetType("Combot.Modules.Plugins." + ClassName);
 
                 //check to see if the class is instantiated or not
                 if (t != null)
@@ -164,6 +185,46 @@ namespace Combot.Modules
                 }
             }
             return foundValue;
+        }
+
+        public void SaveConfig()
+        {
+            ConfigFileRWLock.EnterWriteLock();
+
+            // Serialize Config
+            ConfigRWLock.EnterReadLock();
+            string configContents = JsonConvert.SerializeObject(this, JsonSettings);
+            ConfigRWLock.ExitReadLock();
+
+            // Save config to file
+            string path = Path.Combine(ConfigPath, "Module.config");
+            using (StreamWriter streamWriter = new StreamWriter(path, false))
+            {
+                streamWriter.Write(configContents);
+            }
+
+            ConfigFileRWLock.ExitWriteLock();
+        }
+
+        public void LoadConfig()
+        {
+            ConfigFileRWLock.EnterReadLock();
+            string path = Path.Combine(ConfigPath, "Module.config");
+            if (File.Exists(path))
+            {
+                string configContents;
+                using (StreamReader streamReader = new StreamReader(path, Encoding.UTF8))
+                {
+                    configContents = streamReader.ReadToEnd();
+                }
+
+                // Load the deserialized file into the config
+                ConfigRWLock.EnterWriteLock();
+                Module newModule = JsonConvert.DeserializeObject<Module>(configContents, JsonSettings);
+                Copy(newModule);
+                ConfigRWLock.ExitWriteLock();
+            }
+            ConfigFileRWLock.ExitReadLock();
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Combot.IRCServices;
-using Combot.IRCServices.Messaging;
 using Timer = System.Timers.Timer;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
     public class Moderation : Module
     {
@@ -274,7 +272,7 @@ namespace Combot.Modules.ModuleClasses
 
         private void InviteNick(Command curCommand, CommandMessage command)
         {
-            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location; 
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
                 Bot.IRC.SendInvite(channel, command.Arguments["Nickname"]);

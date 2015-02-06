@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Net;
-using System.Web;
 using System.Text.RegularExpressions;
+using System.Web;
 using Combot.IRCServices.Messaging;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
-    public class UrlParsing : Module
+    public class Url_Parsing : Module
     {
         public override void Initialize()
         {

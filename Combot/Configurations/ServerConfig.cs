@@ -22,7 +22,7 @@ namespace Combot.Configurations
         public List<string> NickBlacklist { get; set; }
         public List<HostConfig> Hosts { get; set; }
         public List<ChannelConfig> Channels { get; set; }
-        public List<Module> Modules { get; set; }
+        public string ModuleLocation { get; set; }
         public bool AutoConnect { get; set; }
         public bool AutoRegister { get; set; }
         public string CommandPrefix { get; set; }
@@ -49,11 +49,11 @@ namespace Combot.Configurations
             JoinDelay = 0;
             MaxMessageLength = 400;
             MessageSendDelay = 0;
+            ModuleLocation = string.Empty;
             Owners = new List<string>();
             ChannelBlacklist = new List<string>();
             NickBlacklist = new List<string>();
             Channels = new List<ChannelConfig>();
-            Modules = new List<Module>();
             Hosts = new List<HostConfig>();
         }
 

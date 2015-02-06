@@ -5,13 +5,13 @@ using System.Threading;
 using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
-    public class PingMe : Module
+    public class Ping_Me : Module
     {
         private List<PingItem> pingList;
         private ReaderWriterLockSlim listLock;
- 
+
         public override void Initialize()
         {
             listLock = new ReaderWriterLockSlim();

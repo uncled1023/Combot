@@ -1,6 +1,6 @@
 ﻿using Combot.IRCServices.Messaging;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
     public class Invite : Module
     {

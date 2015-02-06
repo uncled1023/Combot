@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace Combot.Modules.ModuleClasses
+namespace Combot.Modules.Plugins
 {
-    public class Owner : Module
+    public class Owner_Control : Module
     {
         public override void Initialize()
         {
