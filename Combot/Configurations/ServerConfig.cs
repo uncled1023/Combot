@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.Threading.Tasks;
-using Combot.Modules;
 
 namespace Combot.Configurations
 {
@@ -22,6 +17,7 @@ namespace Combot.Configurations
         public List<string> NickBlacklist { get; set; }
         public List<HostConfig> Hosts { get; set; }
         public List<ChannelConfig> Channels { get; set; }
+        public DatabaseConfig Database { get; set; }
         public string ModuleLocation { get; set; }
         public bool AutoConnect { get; set; }
         public bool AutoRegister { get; set; }
@@ -55,6 +51,7 @@ namespace Combot.Configurations
             NickBlacklist = new List<string>();
             Channels = new List<ChannelConfig>();
             Hosts = new List<HostConfig>();
+            Database = new DatabaseConfig();
         }
 
         public void Save()

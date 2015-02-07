@@ -8,7 +8,6 @@ using System.Threading;
 
 namespace Combot.IRCServices
 {
-    // TODO Make long message splits based on words
     public partial class IRC
     {
         /// <summary>
@@ -29,8 +28,20 @@ namespace Combot.IRCServices
                 LastMessageSend = DateTime.Now;
                 if (message.Length > MaxMessageLength)
                 {
-                    string subMessage = message.Substring(0, MaxMessageLength);
-                    string nextMessage = message.Remove(0, MaxMessageLength);
+                    List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    string subMessage = string.Empty;
+                    string nextMessage = string.Empty;
+                    for (int i = 0; i < splitMessage.Count; i++)
+                    {
+                        int wordLength = splitMessage[i].Length + 1;
+                        int totalLength = subMessage.Length;
+                        if (totalLength + wordLength > MaxMessageLength)
+                        {
+                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                            break;
+                        }
+                        subMessage = string.Join(" ", subMessage, splitMessage[i]);
+                    }
                     SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage));
                     SendPrivateMessage(recipient, nextMessage);
                 }
@@ -69,9 +80,21 @@ namespace Combot.IRCServices
                 LastMessageSend = DateTime.Now;
                 if (message.Length > MaxMessageLength)
                 {
-                    string subMessage = message.Substring(0, MaxMessageLength);
-                    string nextMessage = message.Remove(0, MaxMessageLength);
-                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                    List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    string subMessage = string.Empty;
+                    string nextMessage = string.Empty;
+                    for (int i = 0; i < splitMessage.Count; i++)
+                    {
+                        int wordLength = splitMessage[i].Length + 1;
+                        int totalLength = subMessage.Length;
+                        if (totalLength + wordLength > MaxMessageLength)
+                        {
+                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                            break;
+                        }
+                        subMessage = string.Join(" ", subMessage, splitMessage[i]);
+                    }
+                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage));
                     SendNotice(recipient, nextMessage);
                 }
                 else

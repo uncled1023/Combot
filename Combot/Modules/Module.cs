@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Threading;
 using Combot.Configurations;
+using Combot.Databases;
 using Combot.IRCServices;
 using Newtonsoft.Json;
 
@@ -225,6 +226,53 @@ namespace Combot.Modules
                 ConfigRWLock.ExitWriteLock();
             }
             ConfigFileRWLock.ExitReadLock();
+        }
+
+        public void AddServer()
+        {
+            Database database = new Database(Bot.ServerConfig.Database);
+            string search = "SELECT * FROM `servers` WHERE " +
+                            "`name` = {0}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name });
+
+            if (!results.Any())
+            {
+                string query = "INSERT INTO `servers` SET " +
+                               "`name` = {0}";
+                database.Execute(query, new object[] { Bot.ServerConfig.Name });
+            }
+        }
+
+        public void AddChannel(string channel)
+        {
+            Database database = new Database(Bot.ServerConfig.Database);
+            string search = "SELECT * FROM `channels` WHERE " +
+                            "`name` = {0}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { channel });
+
+            if (!results.Any())
+            {
+                string query = "INSERT INTO `channels` SET " +
+                               "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
+                               "`name` = {1}";
+                database.Execute(query, new object[] { Bot.ServerConfig.Name, channel });
+            }
+        }
+
+        public void AddNick(string nickname)
+        {
+            Database database = new Database(Bot.ServerConfig.Database);
+            string search = "SELECT * FROM `nicks` WHERE " +
+                            "`nickname` = {0}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { nickname });
+
+            if (!results.Any())
+            {
+                string insert = "INSERT INTO `nicks` SET " +
+                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
+                                "`nickname` = {1}";
+                database.Execute(insert, new object[] { Bot.ServerConfig.Name, nickname });
+            }
         }
     }
 }

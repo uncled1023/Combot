@@ -13,6 +13,11 @@ namespace Combot.Configurations
 
         public ChannelConfig()
         {
+            SetDefaults();
+        }
+
+        public void SetDefaults()
+        {
             Name = string.Empty;
             Key = string.Empty;
         }

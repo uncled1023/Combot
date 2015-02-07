@@ -44,7 +44,7 @@ namespace Combot.Modules.Plugins
                     }
                 });
             }
-            Bot.IRC.SendNotice(recipient, string.Format("\u0002{0}\u000F", string.Join(", ", commandList)));
+            Bot.IRC.SendNotice(recipient, string.Format("\u0002{0}\u000F", string.Join("\u000F, \u0002", commandList)));
             Bot.IRC.SendNotice(recipient, "\u200B");
             Bot.IRC.SendNotice(recipient, string.Format("For more information on a specific command, including viewing the triggers, type \u0002{0}help \u001Fcommand\u000F.", Bot.ServerConfig.CommandPrefix));
         }
