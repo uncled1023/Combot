@@ -21,34 +21,30 @@ namespace Combot.IRCServices
             if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
                 Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
-                SendPrivateMessage(recipient, message);
+            }
+            LastMessageSend = DateTime.Now;
+            if (message.Length > MaxMessageLength)
+            {
+                List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+                string subMessage = string.Empty;
+                string nextMessage = string.Empty;
+                for (int i = 0; i < splitMessage.Count; i++)
+                {
+                    int wordLength = splitMessage[i].Length + 1;
+                    int totalLength = subMessage.Length;
+                    if (totalLength + wordLength > MaxMessageLength)
+                    {
+                        nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        break;
+                    }
+                    subMessage = string.Join(" ", subMessage, splitMessage[i]);
+                }
+                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage));
+                SendPrivateMessage(recipient, nextMessage);
             }
             else
             {
-                LastMessageSend = DateTime.Now;
-                if (message.Length > MaxMessageLength)
-                {
-                    List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    string subMessage = string.Empty;
-                    string nextMessage = string.Empty;
-                    for (int i = 0; i < splitMessage.Count; i++)
-                    {
-                        int wordLength = splitMessage[i].Length + 1;
-                        int totalLength = subMessage.Length;
-                        if (totalLength + wordLength > MaxMessageLength)
-                        {
-                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
-                            break;
-                        }
-                        subMessage = string.Join(" ", subMessage, splitMessage[i]);
-                    }
-                    SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage));
-                    SendPrivateMessage(recipient, nextMessage);
-                }
-                else
-                {
-                    SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
-                }
+                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
             }
         }
 
@@ -73,34 +69,30 @@ namespace Combot.IRCServices
             if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
                 Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
-                SendNotice(recipient, message);
+            }
+            LastMessageSend = DateTime.Now;
+            if (message.Length > MaxMessageLength)
+            {
+                List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+                string subMessage = string.Empty;
+                string nextMessage = string.Empty;
+                for (int i = 0; i < splitMessage.Count; i++)
+                {
+                    int wordLength = splitMessage[i].Length + 1;
+                    int totalLength = subMessage.Length;
+                    if (totalLength + wordLength > MaxMessageLength)
+                    {
+                        nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        break;
+                    }
+                    subMessage = string.Join(" ", subMessage, splitMessage[i]);
+                }
+                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage));
+                SendNotice(recipient, nextMessage);
             }
             else
             {
-                LastMessageSend = DateTime.Now;
-                if (message.Length > MaxMessageLength)
-                {
-                    List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    string subMessage = string.Empty;
-                    string nextMessage = string.Empty;
-                    for (int i = 0; i < splitMessage.Count; i++)
-                    {
-                        int wordLength = splitMessage[i].Length + 1;
-                        int totalLength = subMessage.Length;
-                        if (totalLength + wordLength > MaxMessageLength)
-                        {
-                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
-                            break;
-                        }
-                        subMessage = string.Join(" ", subMessage, splitMessage[i]);
-                    }
-                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage));
-                    SendNotice(recipient, nextMessage);
-                }
-                else
-                {
-                    SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
-                }
+                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
             }
         }
 

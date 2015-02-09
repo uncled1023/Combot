@@ -26,6 +26,7 @@ namespace Combot.Modules.Plugins
 
         private void LogChannelMessage(object sender, ChannelMessage message)
         {
+            AddChannel(message.Channel);
             AddNick(message.Sender.Nickname);
             Database database = new Database(Bot.ServerConfig.Database);
             string query = "INSERT INTO `channelmessages` SET " +
@@ -51,10 +52,7 @@ namespace Combot.Modules.Plugins
 
         private void LogChannelJoin(object sender, JoinChannelInfo info)
         {
-            if (info.Nick.Nickname == Bot.IRC.Nickname)
-            {
-                AddChannel(info.Channel);
-            }
+            AddChannel(info.Channel);
             AddNick(info.Nick.Nickname);
             Database database = new Database(Bot.ServerConfig.Database);
             string query = "INSERT INTO `channeljoins` SET " +
@@ -67,6 +65,7 @@ namespace Combot.Modules.Plugins
 
         private void LogChannelPart(object sender, PartChannelInfo info)
         {
+            AddChannel(info.Channel);
             AddNick(info.Nick.Nickname);
             Database database = new Database(Bot.ServerConfig.Database);
             string query = "INSERT INTO `channelparts` SET " +
@@ -79,6 +78,7 @@ namespace Combot.Modules.Plugins
 
         private void LogChannelKick(object sender, KickInfo info)
         {
+            AddChannel(info.Channel);
             AddNick(info.Nick.Nickname);
             AddNick(info.KickedNick.Nickname);
             Database database = new Database(Bot.ServerConfig.Database);

@@ -3,9 +3,26 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Interface"
         xmlns:prop="clr-namespace:Interface.Properties"
-        Title="{Binding ApplicationTitle, Mode=TwoWay}" Height="350" Width="525">
-    <Grid>
-        <Button x:Name="ToggleConnectionButton" Content="{Binding ToggleConnectionText}" HorizontalAlignment="Left" Margin="10,0,0,10" Width="156" Command="{Binding ToggleConnection}" Height="33" VerticalAlignment="Bottom"/>
-        <TextBox x:Name="BufferWindow" Margin="10,10,10,48" TextWrapping="Wrap" Text="{Binding CurrentBuffer, Mode=TwoWay}"/>
+        xmlns:view="clr-namespace:Interface.ViewModels"
+        Title="{Binding ApplicationTitle, Mode=TwoWay}" Height="372" Width="850" ResizeMode="CanResizeWithGrip">
+    <Grid Margin="0,0,0,2">
+        <Button x:Name="ToggleConnectionButton" Content="{Binding ToggleConnectionText}" Margin="10,0,0,10" Command="{Binding ToggleConnection}" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="100"/>
+
+        <ComboBox x:Name="ServerListBox" ItemsSource="{Binding ServerList, Mode=TwoWay}" SelectedItem="{Binding SelectedServer, Mode=TwoWay}" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="114"/>
+        <ListBox x:Name="LocationListBox" ItemsSource="{Binding LocationList, Mode=TwoWay}" SelectedItem="{Binding SelectedLocation, Mode=TwoWay}" HorizontalAlignment="Right" Margin="0,40,10,38" Width="114"/>
+        <TextBox x:Name="InputBox" Text="{Binding InputBoxText, UpdateSourceTrigger=PropertyChanged}" Margin="115,0,129,10" TextWrapping="Wrap" Height="23" VerticalAlignment="Bottom" AcceptsReturn="True">
+            <TextBox.InputBindings>
+                <KeyBinding Command="{Binding SubmitText}" Key="Enter"/>
+            </TextBox.InputBindings>
+        </TextBox>
+        <Button x:Name="SubmitButton" Content="Submit" Command="{Binding SubmitText}" Margin="0,0,10,10" HorizontalAlignment="Right" Width="114" Height="23" VerticalAlignment="Bottom"/>
+
+        <RichTextBox x:Name="BufferWindow" Margin="10,10,129,38" VerticalScrollBarVisibility="Auto" IsReadOnly="True">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text="{Binding CurrentBuffer, Mode=TwoWay}"/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
     </Grid>
 </Window>

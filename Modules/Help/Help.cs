@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace Combot.Modules.Plugins
 {
@@ -30,7 +31,7 @@ namespace Combot.Modules.Plugins
         private void SendFullHelp(string recipient, List<AccessType> access)
         {
             Bot.IRC.SendNotice(recipient, string.Format("You have the following commands available to use.  " +
-                                                        "To use them either type \u0002{1}\u001Fcommand trigger\u000F into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand trigger\u000F, or send a notice by typing \u0002/notice {0} \u001Fcommand trigger\u000F.  ",
+                                                        "To use them either type \u0002{1}\u001Fcommand trigger\u001F\u0002 into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand trigger\u001F\u0002, or send a notice by typing \u0002/notice {0} \u001Fcommand trigger\u001F\u0002.  ",
                                                         Bot.IRC.Nickname, Bot.ServerConfig.CommandPrefix));
             Bot.IRC.SendNotice(recipient, "\u200B");
             List<string> commandList = new List<string>();
@@ -44,9 +45,9 @@ namespace Combot.Modules.Plugins
                     }
                 });
             }
-            Bot.IRC.SendNotice(recipient, string.Format("\u0002{0}\u000F", string.Join("\u000F, \u0002", commandList)));
+            Bot.IRC.SendNotice(recipient, string.Format("\u0002{0}\u0002", string.Join("\u0002, \u0002", commandList)));
             Bot.IRC.SendNotice(recipient, "\u200B");
-            Bot.IRC.SendNotice(recipient, string.Format("For more information on a specific command, including viewing the triggers, type \u0002{0}help \u001Fcommand\u000F.", Bot.ServerConfig.CommandPrefix));
+            Bot.IRC.SendNotice(recipient, string.Format("For more information on a specific command, including viewing the triggers, type \u0002{0}help \u001Fcommand\u001F\u0002.", Bot.ServerConfig.CommandPrefix));
         }
 
         private void SendCommandHelp(CommandMessage command)
@@ -60,7 +61,7 @@ namespace Combot.Modules.Plugins
                 {
                     if (foundCommand.AllowedAccess.Exists(allowed => command.Access.Contains(allowed)))
                     {
-                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Help information for \u0002{0}\u000F", foundCommand.Name));
+                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Help information for \u0002{0}\u0002", foundCommand.Name));
                         if (foundCommand.Description != string.Empty)
                         {
                             Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("{0}", foundCommand.Description));
@@ -75,32 +76,45 @@ namespace Combot.Modules.Plugins
                             switch (messageType)
                             {
                                 case MessageType.Channel:
-                                    messageSyntax = "\u0002/msg \u001Fchannel\u000F";
+                                    messageSyntax = "\u0002/msg \u001Fchannel\u001F\u0002";
                                     break;
                                 case MessageType.Query:
-                                    messageSyntax = string.Format("\u0002/msg {0}\u000F", Bot.IRC.Nickname);
+                                    messageSyntax = string.Format("\u0002/msg {0}\u0002", Bot.IRC.Nickname);
                                     break;
                                 case MessageType.Notice:
-                                    messageSyntax = string.Format("\u0002/notice {0}\u000F", Bot.IRC.Nickname);
+                                    messageSyntax = string.Format("\u0002/notice {0}\u0002", Bot.IRC.Nickname);
                                     break;
                             }
                             List<CommandArgument> validArguments = foundCommand.Arguments.FindAll(arg => arg.MessageTypes.Contains(messageType));
                             string argHelp = string.Empty;
                             if (validArguments.Count > 0)
                             {
-                                argHelp = string.Format(" \u0002{0}\u000F", string.Join(" ", validArguments.Select(arg =>
+                                argHelp = string.Format(" \u0002{0}\u0002", string.Join(" ", validArguments.Select(arg =>
                                 {
+                                    string argString = string.Empty;
+                                    if (arg.DependentArguments.Count > 0)
+                                    {
+                                        argString = "(";
+                                    }
                                     if (arg.Required)
                                     {
-                                        return "\u001F" + arg.Name + "\u000F\u0002";
+                                        argString += "\u001F" + arg.Name + "\u001F";
                                     }
-                                    return "[\u001F" + arg.Name + "\u000F\u0002]";
+                                    else
+                                    {
+                                        argString += "[\u001F" + arg.Name + "\u001F]";
+                                    }
+                                    if (arg.DependentArguments.Count > 0)
+                                    {
+                                        argString += string.Format("\u0002:When {0}\u0002)", string.Join(" or ", arg.DependentArguments.Select(dep => { return string.Format("\u0002\u001F{0}\u001F\u0002=\u0002{1}\u0002", dep.Name, string.Join(",", dep.Values)); })));
+                                    }
+                                    return argString;
                                 })));
                             }
                             if (foundCommand.Triggers.Any())
                             {
                                 string triggerString = (foundCommand.Triggers.Count > 1) ? string.Format("({0})", string.Join("|", foundCommand.Triggers)) : foundCommand.Triggers.First();
-                                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Syntax: {0} {1}\u0002{2}\u000F{3}", messageSyntax, Bot.ServerConfig.CommandPrefix, triggerString, argHelp));
+                                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("Syntax: {0} {1}\u0002{2}\u0002{3}", messageSyntax, Bot.ServerConfig.CommandPrefix, triggerString, argHelp));
                             }
 
                             // Display argument help
@@ -113,17 +127,10 @@ namespace Combot.Modules.Plugins
                                     {
                                         commandDesc = string.Format(" - {0}", arg.Description);
                                     }
-                                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\u0002{0}\u000F{1}", arg.Name, commandDesc));
+                                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\u0002{0}\u0002{1}", arg.Name, commandDesc));
                                     if (arg.AllowedValues.Count > 0)
                                     {
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tAllowed Values: \u0002{0}\u000F", string.Join(", ", arg.AllowedValues)));
-                                    }
-                                    if (arg.DependentArguments.Count > 0)
-                                    {
-                                        foreach (CommandArgument.DependentArgumentInfo dependentArgument in arg.DependentArguments)
-                                        {
-                                            Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tOnly used when \u0002{0}\u000F is \u0002{1}\u000F.", dependentArgument.Name, string.Join(", or ", dependentArgument.Values)));
-                                        }
+                                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tAllowed Values: \u0002{0}\u0002", string.Join(", ", arg.AllowedValues)));
                                     }
                                 });
                             }
@@ -131,17 +138,17 @@ namespace Combot.Modules.Plugins
                     }
                     else
                     {
-                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("You do not have access to view help on \u0002{0}\u000F.", helpCommand));
+                        Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("You do not have access to view help on \u0002{0}\u0002.", helpCommand));
                     }
                 }
                 else
                 {
-                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u000F does not exist.", helpCommand));
+                    Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u0002 does not exist.", helpCommand));
                 }
             }
             else
             {
-                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u000F does not exist.", helpCommand));
+                Bot.IRC.SendNotice(command.Nick.Nickname, string.Format("The command \u0002{0}\u0002 does not exist.", helpCommand));
             }
         }
     }

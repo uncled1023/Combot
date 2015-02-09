@@ -72,7 +72,7 @@ namespace Combot.Modules
                 {
                     nickAccessTypes.Add(Bot.PrivilegeModeMapping[privilege]);
                 }
-                if (Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Contains(UserMode.r))
+                if ((Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Contains(UserMode.r)) || command.Nick.Nickname == Bot.IRC.Nickname)
                 {
                     nickAccessTypes.Add(AccessType.Owner);
                 }
@@ -247,8 +247,9 @@ namespace Combot.Modules
         {
             Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT * FROM `channels` WHERE " +
-                            "`name` = {0}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { channel });
+                            "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
+                            "`name` = {1}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
 
             if (!results.Any())
             {
@@ -263,8 +264,9 @@ namespace Combot.Modules
         {
             Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT * FROM `nicks` WHERE " +
-                            "`nickname` = {0}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { nickname });
+                            "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
+                            "`nickname` = {1}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
 
             if (!results.Any())
             {
@@ -273,6 +275,20 @@ namespace Combot.Modules
                                 "`nickname` = {1}";
                 database.Execute(insert, new object[] { Bot.ServerConfig.Name, nickname });
             }
+        }
+
+        public string GetNickname(int id)
+        {
+            Database database = new Database(Bot.ServerConfig.Database);
+            string search = "SELECT `nickname` FROM `nicks` " +
+                            "WHERE `id` = {0}";
+            List<Dictionary<string, object>> results = database.Query(search, new object[] { id });
+            string nickname = string.Empty;
+            if (results.Any())
+            {
+                nickname = results.First()["nickname"].ToString();
+            }
+            return nickname;
         }
     }
 }

@@ -342,7 +342,12 @@ namespace Combot.IRCServices
                                         }
                                         else
                                         {
-                                            nick.Modes.Add((UserMode)Enum.Parse(typeof(UserMode), modeArr[i].ToString()));
+                                            UserMode foundMode;
+                                            bool valid = Enum.TryParse(modeArr[i].ToString(), false, out foundMode);
+                                            if (valid)
+                                            {
+                                                nick.Modes.Add(foundMode);
+                                            }
                                         }
                                     }
                                     if (!nickFound)

@@ -211,6 +211,11 @@ namespace Combot
             return hasAccess;
         }
 
+        public void ExecuteCommand(string message, string location, MessageType type)
+        {
+            ParseCommandMessage(DateTime.Now, message, new Nick { Nickname = IRC.Nickname }, location, type);
+        }
+
         private void HandleConnectEvent()
         {
             Connected = true;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using Combot.IRCServices.Messaging;
@@ -37,6 +38,7 @@ namespace Combot.Modules.Plugins
                                 if (!ytRegex.IsMatch(message.Message) || !Bot.Modules.Exists(mod => mod.Name == "YouTube"))
                                 {
                                     WebClient x = new WebClient();
+                                    x.Encoding = Encoding.UTF8;
                                     string source = x.DownloadString(urlMatch.ToString());
                                     string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
                                     Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.UrlDecode(StripTagsCharArray(title)), url.Host));
