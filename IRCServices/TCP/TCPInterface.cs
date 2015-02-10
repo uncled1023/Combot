@@ -71,10 +71,36 @@ namespace Combot.IRCServices.TCP
 
         internal void Write(string data)
         {
-            if (_tcpStream.CanWrite && Connected)
+            try
             {
-                byte[] message = System.Text.Encoding.UTF8.GetBytes(data + Environment.NewLine);
-                _tcpStream.Write(message, 0, message.Length);
+                if (_tcpStream.CanWrite && Connected)
+                {
+                    byte[] message = System.Text.Encoding.UTF8.GetBytes(data + Environment.NewLine);
+                    _tcpStream.Write(message, 0, message.Length);
+                }
+            }
+            catch (IOException)
+            {
+                /*
+                _currentFailedCount++;
+                Action<TCPError> localEvent = TCPErrorEvent;
+                if (localEvent != null && _tcpStream.CanRead)
+                {
+                    TCPError error = new TCPError();
+                    error.Message = string.Format("Read Timeout, No Response from Server in {0}ms", _readTimeout);
+                    localEvent(error);
+                }
+                */
+            }
+            catch (Exception ex)
+            {
+                Action<TCPError> localEvent = TCPErrorEvent;
+                if (localEvent != null)
+                {
+                    TCPError error = new TCPError();
+                    error.Message = ex.Message;
+                    localEvent(error);
+                }
             }
         }
 

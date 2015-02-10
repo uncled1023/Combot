@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Combot.IRCServices.Messaging;
@@ -25,18 +27,23 @@ namespace Combot.Modules.Plugins
 
             if (foundCommand.Name == "Version Check")
             {
-                VersionItem tmpItem = new VersionItem();
-                tmpItem.Location = command.Location;
-                tmpItem.MessageType = command.MessageType;
-                tmpItem.Nick = command.Arguments["Nickname"];
-                listLock.EnterWriteLock();
-                if (versionList.Exists(item => item.Nick == command.Arguments["Nickname"]))
+                string nick = command.Arguments["Nickname"].ToString();
+                List<string> nickList = nick.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                for (int i = 0; i < nickList.Count; i++)
                 {
-                    versionList.RemoveAll(item => item.Nick == command.Arguments["Nickname"]);
+                    VersionItem tmpItem = new VersionItem();
+                    tmpItem.Location = command.Location;
+                    tmpItem.MessageType = command.MessageType;
+                    tmpItem.Nick = nickList[i];
+                    listLock.EnterWriteLock();
+                    if (versionList.Exists(item => item.Nick == nickList[i]))
+                    {
+                        versionList.RemoveAll(item => item.Nick == nickList[i]);
+                    }
+                    versionList.Add(tmpItem);
+                    listLock.ExitWriteLock();
+                    Bot.IRC.SendCTCPMessage(nickList[i], "VERSION");
                 }
-                versionList.Add(tmpItem);
-                listLock.ExitWriteLock();
-                Bot.IRC.SendCTCPMessage(command.Arguments["Nickname"], "VERSION");
             }
         }
 

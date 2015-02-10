@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,16 +67,24 @@ namespace Combot
             {
                 if (ServerConfig.Hosts.Count > i)
                 {
-                    IPAddress[] ipList = Dns.GetHostAddresses(ServerConfig.Hosts[i].Host);
-                    foreach (IPAddress ip in ipList)
+                    try
                     {
-                        serverConnected = IRC.Connect(ip, ServerConfig.Hosts[i].Port);
-                        if (serverConnected)
+
+                        IPAddress[] ipList = Dns.GetHostAddresses(ServerConfig.Hosts[i].Host);
+                        foreach (IPAddress ip in ipList)
                         {
-                            break;
+                            serverConnected = IRC.Connect(ip, ServerConfig.Hosts[i].Port);
+                            if (serverConnected)
+                            {
+                                break;
+                            }
                         }
+                        i++;
                     }
-                    i++;
+                    catch (SocketException ex)
+                    {
+                        break;
+                    }
                 }
                 else
                 {
@@ -123,9 +132,14 @@ namespace Combot
         {
             if (RetryAllowed)
             {
+                if (ErrorEvent != null)
+                {
+                    ErrorEvent(new BotError() { Message = string.Format("Retrying connection in {0} seconds.", (int)Math.Pow(2, RetryCount)), Type = ErrorType.IRC });
+                }
                 Task.Run(() =>
                 {
-                    Thread.Sleep((int)Math.Pow(1000, RetryCount));
+                    Thread.Sleep(1000 * (int)Math.Pow(2, RetryCount));
+                    RetryCount++;
                     Connect();
                 });
             }

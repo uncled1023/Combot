@@ -82,7 +82,7 @@ namespace Combot.Modules.Plugins
             AddNick(info.Nick.Nickname);
             AddNick(info.KickedNick.Nickname);
             Database database = new Database(Bot.ServerConfig.Database);
-            string query = "INSERT INTO `channelkickss` SET " +
+            string query = "INSERT INTO `channelkicks` SET " +
                            "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                            "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
                            "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4}), " +

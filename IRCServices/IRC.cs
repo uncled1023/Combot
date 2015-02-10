@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using Combot.IRCServices.Messaging;
 using Combot.IRCServices.TCP;
 
@@ -27,6 +29,7 @@ namespace Combot.IRCServices
         private int ReadTimeout;
         private int AllowedFailedReads;
         private Thread TCPReader;
+        private Thread KeepAlive;
         private event Action<string> TCPMessageEvent;
         private readonly TCPInterface _TCP;
         private readonly ReaderWriterLockSlim ChannelRWLock;
@@ -77,6 +80,10 @@ namespace Combot.IRCServices
                     TCPReader = new Thread(ReadTCPMessages);
                     TCPReader.IsBackground = true;
                     TCPReader.Start();
+
+                    KeepAlive = new Thread(() => CheckConnection(IP, port));
+                    KeepAlive.IsBackground = true;
+                    KeepAlive.Start();
 
                     if (ConnectEvent != null)
                     {
@@ -261,6 +268,54 @@ namespace Combot.IRCServices
             }
         }
 
+        private void CheckConnection(IPAddress IP, int port)
+        {
+            int diconnectCount = 0;
+            bool stillConnected = true;
+            while (_TCP.Connected)
+            {
+                Thread.Sleep(1000); 
+                stillConnected = NetworkInterface.GetIsNetworkAvailable();
+
+                if (stillConnected)
+                {
+                    Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    try
+                    {
+                        s.Connect(IP, port);
+                    }
+                    catch
+                    {
+                        stillConnected = false;
+                    }
+                }
+
+                if (!stillConnected)
+                {
+                    diconnectCount++;
+                }
+                else
+                {
+                    diconnectCount = 0;
+                }
+
+                if (diconnectCount >= 5)
+                {
+                    Disconnect();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Responds with PONG on a PING with the specified arguments.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HandlePing(object sender, PingInfo e)
+        {
+            SendPong(e.Message);
+        }
+
         private void HandleTCPConnection(int e)
         {
             if (DisconnectEvent != null)
@@ -280,16 +335,6 @@ namespace Combot.IRCServices
         private void HandleErrorMessage(object sender, ErrorMessage e)
         {
             Disconnect();
-        }
-
-        /// <summary>
-        /// Responds with PONG on a PING with the specified arguments.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void HandlePing(object sender, PingInfo e)
-        {
-            SendPong(e.Message);
         }
 
         private void HandleReply(object sender, IReply e)
