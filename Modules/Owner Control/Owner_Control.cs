@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -199,6 +200,122 @@ namespace Combot.Modules.Plugins
                                 case MessageType.Notice:
                                     Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
                                     break;
+                            }
+                            break;
+                    }
+                    break;
+                case "Modules":
+                    string moduleType = command.Arguments["Action"].ToString();
+                    string moduleName = command.Arguments["Module"].ToString();
+                    switch (moduleType.ToLower())
+                    {
+                        case "load":
+                            if (!Bot.Modules.Exists(mod => mod.Name.ToLower() == moduleName.ToLower()))
+                            {
+                                string modulePath = Path.Combine(Bot.ServerConfig.ModuleLocation, moduleName);
+                                bool loaded = Bot.LoadModule(modulePath);
+                                if (loaded)
+                                {
+                                    string moduleMessage = string.Format("\u0002{0}\u000F has been loaded.", moduleName);
+                                    switch (command.MessageType)
+                                    {
+                                        case MessageType.Channel:
+                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
+                                            break;
+                                        case MessageType.Query:
+                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                        case MessageType.Notice:
+                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    string moduleMessage = string.Format("\u0002{0}\u000F was unable to be loaded.", moduleName);
+                                    switch (command.MessageType)
+                                    {
+                                        case MessageType.Channel:
+                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
+                                            break;
+                                        case MessageType.Query:
+                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                        case MessageType.Notice:
+                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                string moduleInvalid = string.Format("\u0002{0}\u000F is already loaded.", moduleName);
+                                switch (command.MessageType)
+                                {
+                                    case MessageType.Channel:
+                                        Bot.IRC.SendPrivateMessage(command.Location, moduleInvalid);
+                                        break;
+                                    case MessageType.Query:
+                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleInvalid);
+                                        break;
+                                    case MessageType.Notice:
+                                        Bot.IRC.SendNotice(command.Nick.Nickname, moduleInvalid);
+                                        break;
+                                }
+                            }
+                            break;
+                        case "unload":
+                            if (Bot.Modules.Exists(mod => mod.Name.ToLower() == moduleName.ToLower()))
+                            {
+                                bool unloaded = Bot.UnloadModule(moduleName);
+                                if (unloaded)
+                                {
+                                    string moduleMessage = string.Format("\u0002{0}\u000F has been unloaded.", moduleName);
+                                    switch (command.MessageType)
+                                    {
+                                        case MessageType.Channel:
+                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
+                                            break;
+                                        case MessageType.Query:
+                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                        case MessageType.Notice:
+                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    string moduleMessage = string.Format("\u0002{0}\u000F was unable to be unloaded.", moduleName);
+                                    switch (command.MessageType)
+                                    {
+                                        case MessageType.Channel:
+                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
+                                            break;
+                                        case MessageType.Query:
+                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                        case MessageType.Notice:
+                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
+                                            break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                string moduleInvalid = string.Format("\u0002{0}\u000F is not loaded.", moduleName);
+                                switch (command.MessageType)
+                                {
+                                    case MessageType.Channel:
+                                        Bot.IRC.SendPrivateMessage(command.Location, moduleInvalid);
+                                        break;
+                                    case MessageType.Query:
+                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleInvalid);
+                                        break;
+                                    case MessageType.Notice:
+                                        Bot.IRC.SendNotice(command.Nick.Nickname, moduleInvalid);
+                                        break;
+                                }
                             }
                             break;
                     }

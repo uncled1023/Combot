@@ -20,6 +20,7 @@ namespace Combot.Configurations
         public DatabaseConfig Database { get; set; }
         public string ModuleLocation { get; set; }
         public bool AutoConnect { get; set; }
+        public bool Reconnect { get; set; }
         public bool AutoRegister { get; set; }
         public string CommandPrefix { get; set; }
         public int JoinDelay { get; set; }

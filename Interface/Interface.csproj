@@ -52,6 +52,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -70,6 +72,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BufferInfo.cs" />
+    <Compile Include="LocationInfo.cs" />
+    <Compile Include="ScrollToBottomAction.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">

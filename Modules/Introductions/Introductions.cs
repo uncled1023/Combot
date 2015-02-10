@@ -289,19 +289,38 @@ namespace Combot.Modules.Plugins
             }
             else
             {
-                for (int i = 0; i < results.Count; i++)
+                if (results.Any())
                 {
-                    string introMessage = string.Format("Introduction #\u0002{0}\u0002: {1}", i + 1, results[i]["message"]);
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        string introMessage = string.Format("Introduction #\u0002{0}\u0002: {1}", i + 1, results[i]["message"]);
+                        switch (command.MessageType)
+                        {
+                            case MessageType.Channel:
+                                Bot.IRC.SendNotice(command.Nick.Nickname, introMessage);
+                                break;
+                            case MessageType.Query:
+                                Bot.IRC.SendPrivateMessage(command.Nick.Nickname, introMessage);
+                                break;
+                            case MessageType.Notice:
+                                Bot.IRC.SendNotice(command.Nick.Nickname, introMessage);
+                                break;
+                        }
+                    }
+                }
+                else
+                {
+                    string invalid = "You do not have any introductions set.";
                     switch (command.MessageType)
                     {
                         case MessageType.Channel:
-                            Bot.IRC.SendNotice(command.Nick.Nickname, introMessage);
+                            Bot.IRC.SendPrivateMessage(command.Location, invalid);
                             break;
                         case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, introMessage);
+                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, invalid);
                             break;
                         case MessageType.Notice:
-                            Bot.IRC.SendNotice(command.Nick.Nickname, introMessage);
+                            Bot.IRC.SendNotice(command.Nick.Nickname, invalid);
                             break;
                     }
                 }

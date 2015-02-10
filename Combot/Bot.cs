@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using Combot.IRCServices;
 using Combot.Configurations;
 using Combot.IRCServices.Messaging;
@@ -26,12 +27,15 @@ namespace Combot
 
         private bool GhostSent;
         private int CurNickChoice;
+        private int RetryCount;
+        private bool RetryAllowed;
 
         public Bot(ServerConfig serverConfig)
         {
             Modules = new List<Module>();
             GhostSent = false;
             CurNickChoice = 0;
+            RetryCount = 0;
             ServerConfig = serverConfig;
 
             IRC = new IRC(serverConfig.MaxMessageLength, serverConfig.MessageSendDelay);
@@ -55,6 +59,7 @@ namespace Combot
         {
             GhostSent = false;
             CurNickChoice = 0;
+            RetryAllowed = ServerConfig.Reconnect;
             bool serverConnected = false;
             int i = 0;
             do
@@ -96,6 +101,10 @@ namespace Combot
                     Disconnect();
                 }
             }
+            else
+            {
+                Reconnect();
+            }
         }
 
         /// <summary>
@@ -106,6 +115,32 @@ namespace Combot
             IRC.Disconnect();
             Connected = false;
             LoggedIn = false;
+            RetryCount = 0;
+            RetryAllowed = false;
+        }
+
+        private void Reconnect()
+        {
+            if (RetryAllowed)
+            {
+                Task.Run(() =>
+                {
+                    Thread.Sleep((int)Math.Pow(1000, RetryCount));
+                    Connect();
+                });
+            }
+        }
+
+        private void HandleConnectEvent()
+        {
+            Connected = true;
+            RetryCount = 0;
+        }
+
+        private void HandleDisconnectEvent()
+        {
+            Connected = false;
+            Reconnect();
         }
 
         public void LoadModules()
@@ -118,23 +153,46 @@ namespace Combot
             }
         }
 
-        public void LoadModule(string location)
+        public bool LoadModule(string module)
         {
             Module newModule = new Module();
-            newModule.ConfigPath = location;
+            newModule.ConfigPath = module;
             newModule.LoadConfig();
 
             if (newModule.Enabled && !Modules.Exists(mod => mod.ClassName == newModule.ClassName))
             {
-                if (File.Exists(string.Format(@"{0}\{1}.dll", location, newModule.Name)))
+                if (File.Exists(string.Format(@"{0}\{1}.dll", module, newModule.Name)))
                 {
                     Module loadedModule = newModule.CreateInstance(this);
                     if (loadedModule.Loaded)
                     {
                         Modules.Add(loadedModule);
+                        return true;
                     }
                 }
             }
+            return false;
+        }
+
+        public void UnloadModules()
+        {
+            List<Module> moduleList = Modules;
+            for (int i = 0; i < moduleList.Count; i++)
+            {
+                UnloadModule(moduleList[i].Name);
+            }
+        }
+
+        public bool UnloadModule(string moduleName)
+        {
+            Module module = Modules.Find(mod => mod.Name.ToLower() == moduleName.ToLower());
+            if (module != null)
+            {
+                module.Loaded = false;
+                Modules.Remove(module);
+                return true;
+            }
+            return false;
         }
 
         public bool CheckChannelAccess(string channel, string nickname, AccessType access)
@@ -214,16 +272,6 @@ namespace Combot
         public void ExecuteCommand(string message, string location, MessageType type)
         {
             ParseCommandMessage(DateTime.Now, message, new Nick { Nickname = IRC.Nickname }, location, type);
-        }
-
-        private void HandleConnectEvent()
-        {
-            Connected = true;
-        }
-
-        private void HandleDisconnectEvent()
-        {
-            Connected = false;
         }
 
         private void HandleJoinEvent(object sender, JoinChannelInfo info)
@@ -459,7 +507,28 @@ namespace Combot
                             if (!validArguments[i].AllowedValues.Exists(val => val.ToLower() == argVal.ToLower()))
                             {
                                 invalidArgs = true;
-                                string invalidMessage = string.Format("Invalid value for \u0002{0}\u000F in \u0002{1}{2} {3}\u000F.  Valid options are \u0002{4}\u000F.", validArguments[i].Name, ServerConfig.CommandPrefix, command, string.Join(" ", validArguments.Select(arg => { if (arg.Required) { return "\u001F" + arg.Name + "\u000F\u0002"; } return "[\u001F" + arg.Name + "\u000F\u0002]"; })), string.Join(", ", validArguments[i].AllowedValues));
+                                string argHelp = string.Format(" \u0002{0}\u0002", string.Join(" ", validArguments.Select(arg =>
+                                {
+                                    string argString = string.Empty;
+                                    if (arg.DependentArguments.Count > 0)
+                                    {
+                                        argString = "(";
+                                    }
+                                    if (arg.Required)
+                                    {
+                                        argString += "\u001F" + arg.Name + "\u001F";
+                                    }
+                                    else
+                                    {
+                                        argString += "[\u001F" + arg.Name + "\u001F]";
+                                    }
+                                    if (arg.DependentArguments.Count > 0)
+                                    {
+                                        argString += string.Format("\u0002:When {0}\u0002)", string.Join(" or ", arg.DependentArguments.Select(dep => { return string.Format("\u0002\u001F{0}\u001F\u0002=\u0002{1}\u0002", dep.Name, string.Join(",", dep.Values)); })));
+                                    }
+                                    return argString;
+                                })));
+                                string invalidMessage = string.Format("Invalid value for \u0002{0}\u0002 in \u0002{1}{2}\u0002{3}.  Valid options are \u0002{4}\u0002.", validArguments[i].Name, ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments[i].AllowedValues));
                                 switch (messageType)
                                 {
                                     case MessageType.Channel:
@@ -486,7 +555,28 @@ namespace Combot
                     }
                     else
                     {
-                        string missingArgument = string.Format("Missing a required argument for \u0002{0}{1} {2}\u000F.  The required arguments are \u0002{3}\u000F.", ServerConfig.CommandPrefix, command, string.Join(" ", validArguments.Select(arg => { if (arg.Required) { return "\u001F" + arg.Name + "\u000F\u0002"; } return "[\u001F" + arg.Name + "\u000F\u0002]"; })), string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
+                        string argHelp = string.Format(" \u0002{0}\u0002", string.Join(" ", validArguments.Select(arg =>
+                        {
+                            string argString = string.Empty;
+                            if (arg.DependentArguments.Count > 0)
+                            {
+                                argString = "(";
+                            }
+                            if (arg.Required)
+                            {
+                                argString += "\u001F" + arg.Name + "\u001F";
+                            }
+                            else
+                            {
+                                argString += "[\u001F" + arg.Name + "\u001F]";
+                            }
+                            if (arg.DependentArguments.Count > 0)
+                            {
+                                argString += string.Format("\u0002:When {0}\u0002)", string.Join(" or ", arg.DependentArguments.Select(dep => { return string.Format("\u0002\u001F{0}\u001F\u0002=\u0002{1}\u0002", dep.Name, string.Join(",", dep.Values)); })));
+                            }
+                            return argString;
+                        })));
+                        string missingArgument = string.Format("Missing a required argument for \u0002{0}{1}\u0002{2}.  The required arguments are \u0002{3}\u0002.", ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
                         if (messageType == MessageType.Channel || messageType == MessageType.Query)
                         {
                             IRC.SendPrivateMessage(location, missingArgument);

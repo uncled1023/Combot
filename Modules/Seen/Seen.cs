@@ -25,7 +25,7 @@ namespace Combot.Modules.Plugins
 
         private void GetLastSeen(CommandMessage command)
         {
-            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : null;
             Database database = new Database(Bot.ServerConfig.Database);
             List<Dictionary<string, object>> channelList = GetChannelList(database, channel, command.Arguments["Nickname"]);
             List<Dictionary<string, object>> partList = GetPartList(database, channel, command.Arguments["Nickname"]);
@@ -39,28 +39,28 @@ namespace Combot.Modules.Plugins
             {
                 DateTime chanTime = (DateTime)channelList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(chanTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago saying the following in \u0002{2}\u0002: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), channel, channelList.First()["message"]);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago saying the following in \u0002{2}\u0002: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"], channelList.First()["message"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { chanTime, message } });
             }
             if (partList.Any())
             {
                 DateTime partTime = (DateTime)partList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(partTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago leaving \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channel);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago leaving \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { partTime, message } });
             }
             if (joinList.Any())
             {
                 DateTime joinTime = (DateTime)joinList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(joinTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago joining \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channel);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago joining \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { joinTime, message } });
             }
             if (kickList.Any())
             {
                 DateTime kickTime = (DateTime)kickList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(kickTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago being kicked from \u0002{2}\u0002 with the reason: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), channel, kickList.First()["message"]);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago being kicked from \u0002{2}\u0002 with the reason: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"], kickList.First()["message"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { kickTime, message } });
             }
             if (quitList.Any())
@@ -98,7 +98,15 @@ namespace Combot.Modules.Plugins
             }
             else
             {
-                string notFound = string.Format("I have not seen \u0002{0}\u0002 in \u0002{1}\u0002.", command.Arguments["Nickname"], channel);
+                string notFound = string.Empty;
+                if (channel != null)
+                {
+                    notFound = string.Format("I have not seen \u0002{0}\u0002 in \u0002{1}\u0002.", command.Arguments["Nickname"], channel);
+                }
+                else
+                {
+                    notFound = string.Format("I have not seen \u0002{0}\u0002.", command.Arguments["Nickname"]);
+                }
                 switch (command.MessageType)
                 {
                     case MessageType.Channel:
@@ -116,58 +124,122 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetChannelList(Database database, string channel, string nickname)
         {
-            string search = "SELECT `channelmessages`.`message`, `channelmessages`.`date_added` FROM `channelmessages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelmessages`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelmessages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
-                            "ORDER BY date_added DESC LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+            if (channel != null)
+            {
+                string search = "SELECT `channelmessages`.`message`, `channelmessages`.`date_added`, `channels`.`name` FROM `channelmessages` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelmessages`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelmessages`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+            }
+            else
+            {
+                string search = "SELECT `channelmessages`.`message`, `channelmessages`.`date_added`, `channels`.`name` FROM `channelmessages` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelmessages`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelmessages`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });   
+            }
         }
 
         private List<Dictionary<string, object>> GetPartList(Database database, string channel, string nickname)
         {
-            string search = "SELECT `channelparts`.`date_added` FROM `channelparts` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelparts`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelparts`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelparts`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
-                            "ORDER BY date_added DESC LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+            if (channel != null)
+            {
+                string search = "SELECT `channelparts`.`date_added`, `channels`.`name` FROM `channelparts` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelparts`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelparts`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelparts`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+            }
+            else
+            {
+                string search = "SELECT `channelparts`.`date_added`, `channels`.`name` FROM `channelparts` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelparts`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelparts`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelparts`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            }
         }
 
         private List<Dictionary<string, object>> GetJoinList(Database database, string channel, string nickname)
         {
-            string search = "SELECT `channeljoins`.`date_added` FROM `channeljoins` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channeljoins`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channeljoins`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channeljoins`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
-                            "ORDER BY date_added DESC LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+            if (channel != null)
+            {
+                string search = "SELECT `channeljoins`.`date_added`, `channels`.`name` FROM `channeljoins` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channeljoins`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channeljoins`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channeljoins`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+            }
+            else
+            {
+                string search = "SELECT `channeljoins`.`date_added`, `channels`.`name` FROM `channeljoins` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channeljoins`.`nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channeljoins`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channeljoins`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            }
         }
 
         private List<Dictionary<string, object>> GetKickList(Database database, string channel, string nickname)
         {
-            string search = "SELECT `channelkicks`.`date_added`, `channelkicks`.`reason` FROM `channelkicks` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelkicks`.`kicked_nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelkicks`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelkicks`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
-                            "ORDER BY date_added DESC LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+            if (channel != null)
+            {
+                string search = "SELECT `channelkicks`.`date_added`, `channelkicks`.`reason`, `channels`.`name` FROM `channelkicks` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelkicks`.`kicked_nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelkicks`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelkicks`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+            }
+            else
+            {
+                string search = "SELECT `channelkicks`.`date_added`, `channelkicks`.`reason`, `channels`.`name` FROM `channelkicks` " +
+                                "INNER JOIN `nicks` " +
+                                "ON `channelkicks`.`kicked_nick_id` = `nicks`.`id` " +
+                                "INNER JOIN `channels` " +
+                                "ON `channelkicks`.`channel_id` = `channels`.`id` " +
+                                "INNER JOIN `servers` " +
+                                "ON `channelkicks`.`server_id` = `servers`.`id` " +
+                                "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
+                                "ORDER BY date_added DESC LIMIT 1";
+                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            }
         }
 
         private List<Dictionary<string, object>> GetQuitList(Database database, string nickname)
