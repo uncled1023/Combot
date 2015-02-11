@@ -17,7 +17,7 @@ namespace Combot.Modules.Plugins
             {
                 case "Love":
                     Random random = new Random();
-                    int randNum = random.Next(0, 3);
+                    int randNum = random.Next(0, 4);
                     switch (randNum)
                     {
                         case 0:
@@ -48,7 +48,7 @@ namespace Combot.Modules.Plugins
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Sure is enterprise quality in here.");
                     break;
                 case "Bot Response":
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, GetOptionValue("Response"));
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, GetOptionValue("Response").ToString());
                     break;
             }
         }

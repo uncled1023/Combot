@@ -55,7 +55,7 @@ namespace Combot.Modules.Plugins
         {
             List<Dictionary<string, object>> currentMessages = GetSentMessages(command.Arguments["Nickname"]);
             int numMessages = currentMessages.Select(msg => GetNickname((int) msg["nick_id"]) == command.Nick.Nickname).Count();
-            if (numMessages < GetOptionValue("Max Messages"))
+            if (numMessages < (int)GetOptionValue("Max Messages"))
             {
                 AddNick(command.Nick.Nickname);
                 AddNick(command.Arguments["Nickname"]);

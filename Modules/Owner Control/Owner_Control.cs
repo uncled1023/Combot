@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Combot.Modules.Plugins
 {
@@ -86,6 +87,7 @@ namespace Combot.Modules.Plugins
                             break;
                         case "server":
                             Bot.Disconnect();
+                            Thread.Sleep(1000);
                             Bot.Connect();
                             break;
                         case "client":

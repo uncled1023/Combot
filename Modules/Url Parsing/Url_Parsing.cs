@@ -27,6 +27,9 @@ namespace Combot.Modules.Plugins
                     Uri url = new Uri(urlMatch.Value);
                     WebRequest webRequest = HttpWebRequest.Create(url);
                     webRequest.Method = "HEAD";
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
                     using (WebResponse webResponse = webRequest.GetResponse())
                     {
                         string contentType = webResponse.ContentType.Split('/')[0];

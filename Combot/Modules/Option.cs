@@ -4,7 +4,7 @@
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public dynamic Value { get; set; }
+        public object Value { get; set; }
 
         public Option()
         {

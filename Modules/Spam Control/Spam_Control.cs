@@ -27,6 +27,9 @@ namespace Combot.Modules.Plugins
         {
             if (!ChannelBlacklist.Contains(message.Channel) && !NickBlacklist.Contains(message.Sender.Nickname))
             {
+                int timeThreshold = Convert.ToInt32(GetOptionValue("Time Threshold"));
+                int maxMessages = Convert.ToInt32(GetOptionValue("Max Messages"));
+                int maxHighlights = Convert.ToInt32(GetOptionValue("Max Highlights"));
                 // Check for line spam
                 if (SpamMessageList.Exists(msg => msg.Channel == message.Channel && msg.Nick == message.Sender.Nickname))
                 {
@@ -34,12 +37,12 @@ namespace Combot.Modules.Plugins
                     SpamMessageInfo info = SpamMessageList.Find(msg => msg.Channel == message.Channel && msg.Nick == message.Sender.Nickname);
                     SpamMessageLock.ExitReadLock();
                     TimeSpan difference = message.TimeStamp.Subtract(info.FirstMessageTime);
-                    if (difference.TotalMilliseconds < (int) GetOptionValue("Time Threshold"))
+                    if (difference.TotalMilliseconds < timeThreshold)
                     {
                         info.Lines++;
-                        if (info.Lines > (int) GetOptionValue("Max Messages"))
+                        if (info.Lines > maxMessages)
                         {
-                            Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, GetOptionValue("Time Threshold")));
+                            Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold));
                             SpamMessageLock.EnterWriteLock();
                             SpamMessageList.Remove(info);
                             SpamMessageLock.ExitWriteLock();
@@ -89,12 +92,12 @@ namespace Combot.Modules.Plugins
                         SpamHighlightInfo info = SpamHighlightList.Find(highlight => highlight.Channel == message.Channel && highlight.Nick == message.Sender.Nickname);
                         SpamHighlightLock.ExitReadLock();
                         TimeSpan difference = message.TimeStamp.Subtract(info.FirstHighlightTime);
-                        if (difference.TotalMilliseconds < (int) GetOptionValue("Time Threshold"))
+                        if (difference.TotalMilliseconds < timeThreshold)
                         {
                             info.Highlights += foundNicks.Count;
-                            if (info.Highlights > (int) GetOptionValue("Maximum Highlights"))
+                            if (info.Highlights > maxHighlights)
                             {
-                                Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, GetOptionValue("Time Threshold")));
+                                Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold));
                                 SpamHighlightLock.EnterWriteLock();
                                 SpamHighlightList.Remove(info);
                                 SpamHighlightLock.ExitWriteLock();

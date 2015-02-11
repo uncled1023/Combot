@@ -19,32 +19,42 @@ namespace Combot.Databases
 
         public List<Dictionary<string, object>> Query(string query, params object[] args)
         {
-            MySqlCommand cmd = PrepareQuery(query, args);
-            MySqlDataReader reader = cmd.ExecuteReader();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            while (reader.Read())
+            if (Connected)
             {
-                Dictionary<string, object> row = new Dictionary<string, object>();
-                for (int i = 0; i < reader.FieldCount; i++)
+                MySqlCommand cmd = PrepareQuery(query, args);
+                MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    row.Add(reader.GetName(i), reader.GetValue(i));
+                    Dictionary<string, object> row = new Dictionary<string, object>();
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        row.Add(reader.GetName(i), reader.GetValue(i));
+                    }
+                    rows.Add(row);
                 }
-                rows.Add(row);
+                reader.Close();
             }
-            reader.Close();
             return rows;
         }
 
         public object ScalarQuery(string query, params object[] args)
         {
-            MySqlCommand cmd = PrepareQuery(query, args);
-            return cmd.ExecuteScalar();
+            if (Connected)
+            {
+                MySqlCommand cmd = PrepareQuery(query, args);
+                return cmd.ExecuteScalar();
+            }
+            return null;
         }
 
         public void Execute(string query, params object[] args)
         {
-            MySqlCommand cmd = PrepareQuery(query, args);
-            cmd.ExecuteNonQuery();
+            if (Connected)
+            {
+                MySqlCommand cmd = PrepareQuery(query, args);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private void Connect(DatabaseConfig config)
@@ -72,6 +82,7 @@ namespace Combot.Databases
         {
             if (Connection != null && Connected)
             {
+                Connected = false;
                 Connection.Close();
             }
         }

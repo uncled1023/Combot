@@ -174,9 +174,9 @@ namespace Combot.Modules
             return newModule;
         }
 
-        public dynamic GetOptionValue(string name)
+        public object GetOptionValue(string name)
         {
-            dynamic foundValue = null;
+            object foundValue = null;
             Option foundOption = Options.Find(opt => opt.Name == name);
             if (foundOption != null)
             {
