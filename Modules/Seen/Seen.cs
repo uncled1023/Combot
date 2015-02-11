@@ -83,18 +83,7 @@ namespace Combot.Modules.Plugins
                         seenMessage = lastSeenList[i].Values.First();
                     }
                 }
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, seenMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, seenMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, seenMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, seenMessage);
             }
             else
             {
@@ -107,18 +96,7 @@ namespace Combot.Modules.Plugins
                 {
                     notFound = string.Format("I have not seen \u0002{0}\u0002.", command.Arguments["Nickname"]);
                 }
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, notFound);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, notFound);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, notFound);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notFound);
             }
         }
 

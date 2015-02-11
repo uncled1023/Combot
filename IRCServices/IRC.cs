@@ -99,13 +99,21 @@ namespace Combot.IRCServices
         /// Disconencts from the active TCP connection.
         /// </summary>
         /// <returns></returns>
-        public bool Disconnect()
+        public void Disconnect()
         {
-            bool result = false;
-
             if (_TCP.Connected)
             {
                 _TCP.Disconnect();
+            }
+
+            if (KeepAlive.IsAlive)
+            {
+                KeepAlive.Join();
+            }
+
+            if (TCPReader.IsAlive)
+            {
+                TCPReader.Join();
             }
 
             ChannelRWLock.EnterWriteLock();
@@ -116,8 +124,6 @@ namespace Combot.IRCServices
             {
                 DisconnectEvent();
             }
-
-            return result;
         }
 
         /// <summary>
@@ -271,11 +277,11 @@ namespace Combot.IRCServices
         private void CheckConnection(IPAddress IP, int port)
         {
             int diconnectCount = 0;
-            bool stillConnected = true;
+            bool disconnectActivated = false;
             while (_TCP.Connected)
             {
                 Thread.Sleep(1000); 
-                stillConnected = NetworkInterface.GetIsNetworkAvailable();
+                bool stillConnected = NetworkInterface.GetIsNetworkAvailable();
 
                 if (stillConnected)
                 {
@@ -299,9 +305,13 @@ namespace Combot.IRCServices
                     diconnectCount = 0;
                 }
 
-                if (diconnectCount >= 5)
+                if (diconnectCount >= 5 && !disconnectActivated)
                 {
-                    Disconnect();
+                    disconnectActivated = true;
+                    Task.Run(() =>
+                    {
+                        Disconnect();
+                    });
                 }
             }
         }

@@ -111,27 +111,13 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string noWeather = string.Format("No weather information available for \u0002{0}\u000F", command.Arguments["Location"]);
-                    if (command.MessageType == MessageType.Channel || command.MessageType == MessageType.Notice)
-                    {
-                        Bot.IRC.SendNotice(command.Nick.Nickname, noWeather);
-                    }
-                    else
-                    {
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noWeather);
-                    }
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noWeather);
                 }
             }
             else
             {
                 string noWeather = string.Format("No weather information available for \u0002{0}\u000F", command.Arguments["Location"]);
-                if (command.MessageType == MessageType.Channel || command.MessageType == MessageType.Notice)
-                {
-                    Bot.IRC.SendNotice(command.Nick.Nickname, noWeather);
-                }
-                else
-                {
-                    Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noWeather);
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noWeather);
             }
         }
 
@@ -179,18 +165,7 @@ namespace Combot.Modules.Plugins
             {
                 weatherMsg = string.Format("No weather information available for \u0002{0}\u000F", command.Arguments["Location"]);
             }
-            if (command.MessageType == MessageType.Channel)
-            {
-                Bot.IRC.SendPrivateMessage(command.Location, weatherMsg);
-            }
-            else if (command.MessageType == MessageType.Notice)
-            {
-                Bot.IRC.SendNotice(command.Nick.Nickname, weatherMsg);
-            }
-            else if (command.MessageType == MessageType.Query)
-            {
-                Bot.IRC.SendPrivateMessage(command.Nick.Nickname, weatherMsg);
-            }
+            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, weatherMsg);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Combot.IRCServices
             TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
             if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
-                Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
+                Thread.Sleep((int)(MessageSendDelay - sinceLastMessage.TotalMilliseconds));
             }
             LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)
@@ -68,7 +68,7 @@ namespace Combot.IRCServices
             TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
             if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
-                Thread.Sleep((int) sinceLastMessage.TotalMilliseconds);
+                Thread.Sleep((int) (MessageSendDelay - sinceLastMessage.TotalMilliseconds));
             }
             LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)

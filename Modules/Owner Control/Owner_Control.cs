@@ -32,18 +32,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string message = string.Format("I am already in \u0002{0}\u000F.", command.Arguments["Channel"]);
-                        switch (command.MessageType)
-                        {
-                            case MessageType.Channel:
-                                Bot.IRC.SendPrivateMessage(command.Location, message);
-                                break;
-                            case MessageType.Query:
-                                Bot.IRC.SendPrivateMessage(command.Nick.Nickname, message);
-                                break;
-                            case MessageType.Notice:
-                                Bot.IRC.SendNotice(command.Nick.Nickname, message);
-                                break;
-                        }
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
                     }
                     break;
                 case "Part Channel":
@@ -55,18 +44,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string message = string.Format("I am not in \u0002{0}\u000F.", channel);
-                        switch (command.MessageType)
-                        {
-                            case MessageType.Channel:
-                                Bot.IRC.SendPrivateMessage(command.Location, message);
-                                break;
-                            case MessageType.Query:
-                                Bot.IRC.SendPrivateMessage(command.Nick.Nickname, message);
-                                break;
-                            case MessageType.Notice:
-                                Bot.IRC.SendNotice(command.Nick.Nickname, message);
-                                break;
-                        }
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
                     }
                     break;
                 case "Speak":
@@ -103,18 +81,7 @@ namespace Combot.Modules.Plugins
                             else
                             {
                                 string message = string.Format("I am not in \u0002{0}\u000F.", cycleChannel);
-                                switch (command.MessageType)
-                                {
-                                    case MessageType.Channel:
-                                        Bot.IRC.SendPrivateMessage(command.Location, message);
-                                        break;
-                                    case MessageType.Query:
-                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, message);
-                                        break;
-                                    case MessageType.Notice:
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, message);
-                                        break;
-                                }
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
                             }
                             break;
                         case "server":
@@ -137,51 +104,18 @@ namespace Combot.Modules.Plugins
                             {
                                 string nickList = string.Join(", ", Bot.IRC.Channels.Find(chan => chan.Name == listLocation).Nicks.Select(nick => nick.Nickname));
                                 string nickMessage = string.Format("Nicknames in \u0002{0}\u000F: {1}", listLocation, nickList);
-                                switch (command.MessageType)
-                                {
-                                    case MessageType.Channel:
-                                        Bot.IRC.SendPrivateMessage(command.Location, nickMessage);
-                                        break;
-                                    case MessageType.Query:
-                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, nickMessage);
-                                        break;
-                                    case MessageType.Notice:
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, nickMessage);
-                                        break;
-                                }
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, nickMessage);
                             }
                             else
                             {
                                 string message = string.Format("I do not have nickname information for \u0002{0}\u000F.", listLocation);
-                                switch (command.MessageType)
-                                {
-                                    case MessageType.Channel:
-                                        Bot.IRC.SendPrivateMessage(command.Location, message);
-                                        break;
-                                    case MessageType.Query:
-                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, message);
-                                        break;
-                                    case MessageType.Notice:
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, message);
-                                        break;
-                                }
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
                             }
                             break;
                         case "channels":
                             string channelList = string.Join(", ", Bot.IRC.Channels.Select(chan => chan.Name));
                             string channelMessage = string.Format("I am in the following channels: \u0002{0}\u000F", channelList);
-                            switch (command.MessageType)
-                            {
-                                case MessageType.Channel:
-                                    Bot.IRC.SendPrivateMessage(command.Location, channelMessage);
-                                    break;
-                                case MessageType.Query:
-                                    Bot.IRC.SendPrivateMessage(command.Nick.Nickname, channelMessage);
-                                    break;
-                                case MessageType.Notice:
-                                    Bot.IRC.SendNotice(command.Nick.Nickname, channelMessage);
-                                    break;
-                            }
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, channelMessage);
                             break;
                         case "servers":
                             // TODO Add server list
@@ -189,18 +123,7 @@ namespace Combot.Modules.Plugins
                         case "modules":
                             string moduleList = string.Join(", ", Bot.Modules.Select(module => module.Name));
                             string moduleMessage = string.Format("I have the following modules loaded: \u0002{0}\u000F", moduleList);
-                            switch (command.MessageType)
-                            {
-                                case MessageType.Channel:
-                                    Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
-                                    break;
-                                case MessageType.Query:
-                                    Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
-                                    break;
-                                case MessageType.Notice:
-                                    Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
-                                    break;
-                            }
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
                             break;
                     }
                     break;
@@ -217,51 +140,18 @@ namespace Combot.Modules.Plugins
                                 if (loaded)
                                 {
                                     string moduleMessage = string.Format("\u0002{0}\u000F has been loaded.", moduleName);
-                                    switch (command.MessageType)
-                                    {
-                                        case MessageType.Channel:
-                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
-                                            break;
-                                        case MessageType.Query:
-                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                        case MessageType.Notice:
-                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                    }
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
                                 }
                                 else
                                 {
                                     string moduleMessage = string.Format("\u0002{0}\u000F was unable to be loaded.", moduleName);
-                                    switch (command.MessageType)
-                                    {
-                                        case MessageType.Channel:
-                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
-                                            break;
-                                        case MessageType.Query:
-                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                        case MessageType.Notice:
-                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                    }
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
                                 }
                             }
                             else
                             {
                                 string moduleInvalid = string.Format("\u0002{0}\u000F is already loaded.", moduleName);
-                                switch (command.MessageType)
-                                {
-                                    case MessageType.Channel:
-                                        Bot.IRC.SendPrivateMessage(command.Location, moduleInvalid);
-                                        break;
-                                    case MessageType.Query:
-                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleInvalid);
-                                        break;
-                                    case MessageType.Notice:
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, moduleInvalid);
-                                        break;
-                                }
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
                             }
                             break;
                         case "unload":
@@ -271,54 +161,25 @@ namespace Combot.Modules.Plugins
                                 if (unloaded)
                                 {
                                     string moduleMessage = string.Format("\u0002{0}\u000F has been unloaded.", moduleName);
-                                    switch (command.MessageType)
-                                    {
-                                        case MessageType.Channel:
-                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
-                                            break;
-                                        case MessageType.Query:
-                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                        case MessageType.Notice:
-                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                    }
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
                                 }
                                 else
                                 {
                                     string moduleMessage = string.Format("\u0002{0}\u000F was unable to be unloaded.", moduleName);
-                                    switch (command.MessageType)
-                                    {
-                                        case MessageType.Channel:
-                                            Bot.IRC.SendPrivateMessage(command.Location, moduleMessage);
-                                            break;
-                                        case MessageType.Query:
-                                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                        case MessageType.Notice:
-                                            Bot.IRC.SendNotice(command.Nick.Nickname, moduleMessage);
-                                            break;
-                                    }
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
                                 }
                             }
                             else
                             {
                                 string moduleInvalid = string.Format("\u0002{0}\u000F is not loaded.", moduleName);
-                                switch (command.MessageType)
-                                {
-                                    case MessageType.Channel:
-                                        Bot.IRC.SendPrivateMessage(command.Location, moduleInvalid);
-                                        break;
-                                    case MessageType.Query:
-                                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, moduleInvalid);
-                                        break;
-                                    case MessageType.Notice:
-                                        Bot.IRC.SendNotice(command.Nick.Nickname, moduleInvalid);
-                                        break;
-                                }
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
                             }
                             break;
                     }
+                    break;
+                case "Update":
+                    Bot.ServerConfig.Load();
+                    Bot.Modules.ForEach(module => module.LoadConfig());
                     break;
             }
         }

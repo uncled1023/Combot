@@ -251,8 +251,8 @@ namespace Interface.ViewModels
             if (server == SelectedServer)
             {
                 Connected = true;
-                AddToBuffer(server, null, "-- Connected --");
             }
+            AddToBuffer(server, null, "-- Connected --");
         }
 
         private void DisconnectHandler(string server)
@@ -260,8 +260,8 @@ namespace Interface.ViewModels
             if (server == SelectedServer)
             {
                 Connected = false;
-                AddToBuffer(server, null, "-- Disconnected --");
             }
+            AddToBuffer(server, null, "-- Disconnected --");
         }
 
         private void ExecuteToggleConnection()

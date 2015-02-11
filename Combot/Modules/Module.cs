@@ -56,6 +56,7 @@ namespace Combot.Modules
         {
             // Check to make sure the command exists, the nick or channel isn't on a blacklist, and the module is loaded.
             if (Loaded
+                && Enabled
                 && !ChannelBlacklist.Contains(command.Location)
                 && !NickBlacklist.Contains(command.Nick.Nickname)
                 && Commands.Exists(c => c.Triggers.Contains(command.Command)
@@ -289,6 +290,22 @@ namespace Combot.Modules
                 nickname = results.First()["nickname"].ToString();
             }
             return nickname;
+        }
+
+        public void SendResponse(MessageType messageType, string location, string nickname, string message)
+        {
+            switch (messageType)
+            {
+                case MessageType.Channel:
+                    Bot.IRC.SendPrivateMessage(location, message);
+                    break;
+                case MessageType.Query:
+                    Bot.IRC.SendPrivateMessage(nickname, message);
+                    break;
+                case MessageType.Notice:
+                    Bot.IRC.SendNotice(nickname, message);
+                    break;
+            }
         }
     }
 }

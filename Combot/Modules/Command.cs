@@ -104,12 +104,6 @@ namespace Combot.Modules
                                     validArguments.Add(newArgument);
                                 }
                             }
-                            else
-                            {
-                                CommandArgument newArgument = new CommandArgument();
-                                newArgument.Copy(Arguments[i]);
-                                validArguments.Add(newArgument);
-                            }
                         }
                     }
                     else

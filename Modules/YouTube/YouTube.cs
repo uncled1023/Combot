@@ -54,34 +54,12 @@ namespace Combot.Modules.Plugins
                 string videoID = parsed["data"]["items"].First().Value<string>("id");
                 string vidDescription = GetYoutubeDescription(videoID);
                 string youtubeMessage = string.Format("{0} - {1}", vidDescription, string.Format("http://youtu.be/{0}", videoID));
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, youtubeMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, youtubeMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, youtubeMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, youtubeMessage);
             }
             else
             {
                 string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, noResults);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noResults);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, noResults);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
             }
         }
 

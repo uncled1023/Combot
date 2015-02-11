@@ -23,6 +23,8 @@ namespace Combot
         public List<Module> Modules;
         public bool Connected = false;
         public bool LoggedIn = false;
+        public DateTime ConnectionTime;
+        public DateTime LoadTime;
         public Dictionary<PrivilegeMode, AccessType> PrivilegeModeMapping = new Dictionary<PrivilegeMode, AccessType>() { { PrivilegeMode.v, AccessType.Voice }, { PrivilegeMode.h, AccessType.HalfOperator }, { PrivilegeMode.o, AccessType.Operator }, { PrivilegeMode.a, AccessType.SuperOperator }, { PrivilegeMode.q, AccessType.Founder } };
         public Dictionary<ChannelMode, AccessType> ChannelModeMapping = new Dictionary<ChannelMode, AccessType>() { { ChannelMode.v, AccessType.Voice }, { ChannelMode.h, AccessType.HalfOperator }, { ChannelMode.o, AccessType.Operator }, { ChannelMode.a, AccessType.SuperOperator }, { ChannelMode.q, AccessType.Founder } };
 
@@ -38,6 +40,8 @@ namespace Combot
             CurNickChoice = 0;
             RetryCount = 0;
             ServerConfig = serverConfig;
+            LoadTime = DateTime.Now;
+            ConnectionTime = DateTime.Now;
 
             IRC = new IRC(serverConfig.MaxMessageLength, serverConfig.MessageSendDelay);
             IRC.ConnectEvent += HandleConnectEvent;
@@ -58,6 +62,7 @@ namespace Combot
         /// </summary>
         public void Connect()
         {
+            ConnectionTime = DateTime.Now;
             GhostSent = false;
             CurNickChoice = 0;
             RetryAllowed = ServerConfig.Reconnect;
@@ -121,11 +126,11 @@ namespace Combot
         /// </summary>
         public void Disconnect()
         {
+            RetryAllowed = false;
+            RetryCount = 0;
             IRC.Disconnect();
             Connected = false;
             LoggedIn = false;
-            RetryCount = 0;
-            RetryAllowed = false;
         }
 
         private void Reconnect()
@@ -543,16 +548,7 @@ namespace Combot
                                     return argString;
                                 })));
                                 string invalidMessage = string.Format("Invalid value for \u0002{0}\u0002 in \u0002{1}{2}\u0002{3}.  Valid options are \u0002{4}\u0002.", validArguments[i].Name, ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments[i].AllowedValues));
-                                switch (messageType)
-                                {
-                                    case MessageType.Channel:
-                                    case MessageType.Query:
-                                        IRC.SendPrivateMessage(location, invalidMessage);
-                                        break;
-                                    case MessageType.Notice:
-                                        IRC.SendNotice(location, invalidMessage);
-                                        break;
-                                }
+                                module.SendResponse(messageType, location, sender.Nickname, invalidMessage);       
                                 break;
                             }
                         }
@@ -591,14 +587,7 @@ namespace Combot
                             return argString;
                         })));
                         string missingArgument = string.Format("Missing a required argument for \u0002{0}{1}\u0002{2}.  The required arguments are \u0002{3}\u0002.", ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
-                        if (messageType == MessageType.Channel || messageType == MessageType.Query)
-                        {
-                            IRC.SendPrivateMessage(location, missingArgument);
-                        }
-                        else if (messageType == MessageType.Notice)
-                        {
-                            IRC.SendNotice(location, missingArgument);
-                        }
+                        module.SendResponse(messageType, location, sender.Nickname, missingArgument);
                     }
 
                 }

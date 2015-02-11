@@ -64,18 +64,8 @@ namespace Combot.Modules.Plugins
                 listLock.ExitReadLock();
                 if (versionItem != null)
                 {
-                    switch (versionItem.MessageType)
-                    {
-                        case MessageType.Channel:
-                            Bot.IRC.SendPrivateMessage(versionItem.Location, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
-                            break;
-                        case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(message.Sender.Nickname, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
-                            break;
-                        case MessageType.Notice:
-                            Bot.IRC.SendNotice(message.Sender.Nickname, string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments));
-                            break;
-                    }
+                    string verResponse = string.Format("[{0}] Using version: {1}", versionItem.Nick, message.Arguments);
+                    SendResponse(versionItem.MessageType, versionItem.Location, message.Sender.Nickname, verResponse);
                     listLock.EnterWriteLock();
                     versionList.RemoveAll(item => item.Nick == versionItem.Nick);
                     listLock.ExitWriteLock();

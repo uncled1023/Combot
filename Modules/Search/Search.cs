@@ -48,51 +48,18 @@ namespace Combot.Modules.Plugins
                     string title = HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("titleNoFormatting")));
                     string content = HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("content")));
                     string resultMessage = string.Format("[{0}] \u0002{1}\u000F: {2}.", url, title, content);
-                    switch (command.MessageType)
-                    {
-                        case MessageType.Channel:
-                            Bot.IRC.SendPrivateMessage(command.Location, resultMessage);
-                            break;
-                        case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, resultMessage);
-                            break;
-                        case MessageType.Notice:
-                            Bot.IRC.SendNotice(command.Nick.Nickname, resultMessage);
-                            break;
-                    }
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
                 }
                 else
                 {
                     string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
-                    switch (command.MessageType)
-                    {
-                        case MessageType.Channel:
-                            Bot.IRC.SendPrivateMessage(command.Location, noResults);
-                            break;
-                        case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noResults);
-                            break;
-                        case MessageType.Notice:
-                            Bot.IRC.SendNotice(command.Nick.Nickname, noResults);
-                            break;
-                    }
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
                 }
             }
             else
             {
                 string errorCode = string.Format("Unable to search for \u0002{0}\u000F.  Google returned status code \u0002{1}\u000F.", command.Arguments["Query"], responseCode);
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, errorCode);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, errorCode);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, errorCode);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
             }
         }
 

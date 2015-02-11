@@ -69,34 +69,12 @@ namespace Combot.Modules.Plugins
                                "`date_posted` = {7}";
                 database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, command.Arguments["Nickname"], Bot.ServerConfig.Name, command.Nick.Nickname, command.Arguments["Message"], anonymous, command.TimeStamp });
                 string message = string.Format("I will send your message to \u0002{0}\u0002 as soon as I see them.", command.Arguments["Nickname"]);
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, message);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, message);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, message);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
             }
             else
             {
                 string maxMessage = string.Format("You already have sent the maximum number of messages to \u0002{0}\u0002.  Wait until they have read their messages before sending another.");
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, maxMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, maxMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, maxMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, maxMessage);
             }
         }
 

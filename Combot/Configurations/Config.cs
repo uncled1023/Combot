@@ -50,6 +50,7 @@ namespace Combot.Configurations
             if (!Servers.Exists(server => server.Name == config.Name))
             {
                 config.ModifyEvent += SaveServers;
+                config.LoadEvent += LoadServers;
                 Servers.Add(config);
             }
             ConfigRWLock.ExitWriteLock();
@@ -93,6 +94,38 @@ namespace Combot.Configurations
                 for (int i = 0; i < Servers.Count; i++)
                 {
                     Servers[i].ModifyEvent += SaveServers;
+                }
+                ConfigRWLock.ExitWriteLock();
+            }
+            ConfigFileRWLock.ExitReadLock();
+        }
+
+        public void UpdateServers()
+        {
+            ConfigFileRWLock.EnterReadLock();
+            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.config");
+            if (File.Exists(ConfigPath))
+            {
+                string configContents;
+                using (StreamReader streamReader = new StreamReader(ConfigPath, Encoding.UTF8))
+                {
+                    configContents = streamReader.ReadToEnd();
+                }
+
+                // Load the deserialized file into the config
+                ConfigRWLock.EnterWriteLock();
+                List<ServerConfig> newConfigs = JsonConvert.DeserializeObject<List<ServerConfig>>(configContents, JsonSettings);
+
+                for (int i = 0; i < newConfigs.Count; i++)
+                {
+                    if (Servers.Count > i)
+                    {
+                        Servers[i].Copy(newConfigs[i]);
+                    }
+                    else
+                    {
+                        Servers.Add(newConfigs[i]);
+                    }
                 }
                 ConfigRWLock.ExitWriteLock();
             }

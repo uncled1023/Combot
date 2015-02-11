@@ -31,7 +31,7 @@ namespace Combot.Modules.Plugins
         private void SendFullHelp(string recipient, List<AccessType> access)
         {
             Bot.IRC.SendNotice(recipient, string.Format("You have the following commands available to use.  " +
-                                                        "To use them either type \u0002{1}\u001Fcommand trigger\u001F\u0002 into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand trigger\u001F\u0002, or send a notice by typing \u0002/notice {0} \u001Fcommand trigger\u001F\u0002.  ",
+                                                        "To use them either type \u0002{1}\u001Fcommand trigger\u001F\u0002 into a channel, send a private message by typing \u0002/msg {0} \u001Fcommand trigger\u001F\u0002, or send a notice by typing \u0002/notice {0} \u001Fcommand trigger\u001F\u0002.",
                                                         Bot.IRC.Nickname, Bot.ServerConfig.CommandPrefix));
             Bot.IRC.SendNotice(recipient, "\u200B");
             List<string> commandList = new List<string>();

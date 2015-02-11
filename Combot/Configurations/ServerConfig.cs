@@ -6,6 +6,7 @@ namespace Combot.Configurations
     public class ServerConfig
     {
         public event Action ModifyEvent;
+        public event Action LoadEvent;
         public string Name { get; set; }
         public List<string> Nicknames { get; set; }
         public string Realname { get; set; }
@@ -55,11 +56,66 @@ namespace Combot.Configurations
             Database = new DatabaseConfig();
         }
 
+        public void Copy(ServerConfig config)
+        {
+            Name = config.Name;
+            Nicknames = new List<string>();
+            for (int i = 0; i < config.Nicknames.Count; i++)
+            {
+                Nicknames.Add(config.Nicknames[i]);
+            }
+            Realname = config.Realname;
+            Username = config.Username;
+            Password = config.Password;
+            Email = config.Email;
+            AutoConnect = config.AutoConnect;
+            AutoRegister = config.AutoRegister;
+            CommandPrefix = config.CommandPrefix;
+            JoinDelay = config.JoinDelay;
+            MaxMessageLength = config.MaxMessageLength;
+            MessageSendDelay = config.MessageSendDelay;
+            ModuleLocation = config.ModuleLocation;
+            Owners = new List<string>();
+            for (int i = 0; i < config.Owners.Count; i++)
+            {
+                Owners.Add(config.Owners[i]);
+            }
+            ChannelBlacklist = new List<string>();
+            for (int i = 0; i < config.ChannelBlacklist.Count; i++)
+            {
+                ChannelBlacklist.Add(config.ChannelBlacklist[i]);
+            }
+            NickBlacklist = new List<string>();
+            for (int i = 0; i < config.NickBlacklist.Count; i++)
+            {
+                NickBlacklist.Add(config.NickBlacklist[i]);
+            }
+            Channels = new List<ChannelConfig>();
+            for (int i = 0; i < config.Channels.Count; i++)
+            {
+                Channels.Add(config.Channels[i]);
+            }
+            Hosts = new List<HostConfig>();
+            for (int i = 0; i < config.Hosts.Count; i++)
+            {
+                Hosts.Add(config.Hosts[i]);
+            }
+            Database = config.Database;
+        }
+
         public void Save()
         {
             if (ModifyEvent != null)
             {
                 ModifyEvent();
+            }
+        }
+
+        public void Load()
+        {
+            if (LoadEvent != null)
+            {
+                LoadEvent();
             }
         }
     }

@@ -39,54 +39,19 @@ namespace Combot.Modules.Plugins
             catch
             {
                 string errorMessage = string.Format("Unable to fetch results for \u0002{0}\u000F.", command.Arguments["Query"]);
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, errorMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, errorMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, errorMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage);
             }
             if (xnList.Count > 1)
             {
                 string queryMessage = string.Format("Result for: {0}", xnList[0]["subpod"]["plaintext"].InnerText);
                 string resultMessage = xnList[1]["subpod"]["plaintext"].InnerText;
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, queryMessage);
-                        Bot.IRC.SendPrivateMessage(command.Location, resultMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, queryMessage);
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, resultMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, queryMessage);
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, resultMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, queryMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
             }
             else
             {
                 string errorMessage = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
-                switch (command.MessageType)
-                {
-                    case MessageType.Channel:
-                        Bot.IRC.SendPrivateMessage(command.Location, errorMessage);
-                        break;
-                    case MessageType.Query:
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, errorMessage);
-                        break;
-                    case MessageType.Notice:
-                        Bot.IRC.SendNotice(command.Nick.Nickname, errorMessage);
-                        break;
-                }
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage);
             }
         }
     }
