@@ -18,47 +18,73 @@ namespace Combot.Modules.Plugins
         {
             Regex urlRegex = new Regex("(https?)://([\\w-]+\\.)+[\\w-]+(/[\\w-./?%&=]*)?");
 
-            if (urlRegex.IsMatch(message.Message))
+            if (!Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
+                && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
+                && !ChannelBlacklist.Contains(message.Channel)
+                && !NickBlacklist.Contains(message.Sender.Nickname))
             {
-                MatchCollection urlMatches = urlRegex.Matches(message.Message);
-                for (int i = 0; i < urlMatches.Count; i++)
+                if (urlRegex.IsMatch(message.Message))
                 {
-                    Match urlMatch = urlMatches[i];
-                    Uri url = new Uri(urlMatch.Value);
-                    WebRequest webRequest = HttpWebRequest.Create(url);
-                    webRequest.Method = "HEAD";
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                    using (WebResponse webResponse = webRequest.GetResponse())
+                    MatchCollection urlMatches = urlRegex.Matches(message.Message);
+                    for (int i = 0; i < urlMatches.Count; i++)
                     {
-                        string contentType = webResponse.ContentType.Split('/')[0];
-                        long contentLength = webResponse.ContentLength;
-                        switch (contentType)
+                        Match urlMatch = urlMatches[i];
+                        Uri url = new Uri(urlMatch.Value);
+                        HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
+                        webRequest.Method = "HEAD";
+                        webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+                        try
                         {
-                            case "text":
-                                Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-                                if (!ytRegex.IsMatch(message.Message) || !Bot.Modules.Exists(mod => mod.Name == "YouTube"))
+                            using (HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse())
+                            {
+                                int code = (int) webResponse.StatusCode;
+                                if (code == 200)
                                 {
-                                    WebClient x = new WebClient();
-                                    x.Encoding = Encoding.UTF8;
-                                    string source = x.DownloadString(urlMatch.ToString());
-                                    string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
-                                    Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.UrlDecode(StripTagsCharArray(title)), url.Host));
+                                    string contentType = webResponse.ContentType.Split('/')[0];
+                                    long contentLength = webResponse.ContentLength;
+                                    switch (contentType)
+                                    {
+                                        case "text":
+                                            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+                                            if (!ytRegex.IsMatch(message.Message) || !Bot.Modules.Exists(mod => mod.Name == "YouTube"))
+                                            {
+                                                WebClient x = new WebClient();
+                                                x.Encoding = Encoding.UTF8;
+                                                string source = x.DownloadString(urlMatch.ToString());
+                                                string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
+                                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.UrlDecode(StripTagsCharArray(title)), url.Host));
+                                            }
+                                            break;
+                                        case "image":
+                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
+                                            break;
+                                        case "video":
+                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            break;
+                                        case "application":
+                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            break;
+                                        case "audio":
+                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            break;
+                                    }
                                 }
-                                break;
-                            case "image":
-                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
-                                break;
-                            case "video":
-                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                break;
-                            case "application":
-                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                break;
-                            case "audio":
-                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                break;
+                                else
+                                {
+                                    Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
+                                }
+                            }
+                        }
+                        catch (WebException ex)
+                        {
+                            if (ex.Response != null)
+                            {
+                                int code = (int) ((HttpWebResponse) ex.Response).StatusCode;
+                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
+                            }
                         }
                     }
                 }

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Combot.IRCServices;
 using Combot.Configurations;
+using Combot.Databases;
 using Combot.IRCServices.Messaging;
 using Combot.Modules;
 
@@ -20,6 +21,7 @@ namespace Combot
         public event Action<BotError> ErrorEvent;
         public ServerConfig ServerConfig;
         public IRC IRC;
+        public Database Database;
         public List<Module> Modules;
         public bool Connected = false;
         public bool LoggedIn = false;
@@ -53,6 +55,8 @@ namespace Combot
             IRC.Message.JoinChannelEvent += HandleJoinEvent;
             IRC.Message.KickEvent += HandleKickEvent;
             IRC.Message.ChannelModeChangeEvent += HandleChannelModeChangeEvent;
+
+            Database = new Database(serverConfig.Database);
 
             LoadModules();
         }

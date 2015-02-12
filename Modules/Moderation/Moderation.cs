@@ -329,7 +329,14 @@ namespace Combot.Modules.Plugins
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
-                Bot.IRC.SendKick(channel, command.Arguments["Nickname"]);
+                if (command.Arguments.ContainsKey("Reason"))
+                {
+                    Bot.IRC.SendKick(channel, command.Arguments["Nickname"], command.Arguments["Reason"]);
+                }
+                else
+                {
+                    Bot.IRC.SendKick(channel, command.Arguments["Nickname"]);
+                }
             }
             else
             {

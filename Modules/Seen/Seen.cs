@@ -26,12 +26,11 @@ namespace Combot.Modules.Plugins
         private void GetLastSeen(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : null;
-            Database database = new Database(Bot.ServerConfig.Database);
-            List<Dictionary<string, object>> channelList = GetChannelList(database, channel, command.Arguments["Nickname"]);
-            List<Dictionary<string, object>> partList = GetPartList(database, channel, command.Arguments["Nickname"]);
-            List<Dictionary<string, object>> joinList = GetJoinList(database, channel, command.Arguments["Nickname"]);
-            List<Dictionary<string, object>> kickList = GetKickList(database, channel, command.Arguments["Nickname"]);
-            List<Dictionary<string, object>> quitList = GetQuitList(database, command.Arguments["Nickname"]);
+            List<Dictionary<string, object>> channelList = GetChannelList(channel, command.Arguments["Nickname"]);
+            List<Dictionary<string, object>> partList = GetPartList(channel, command.Arguments["Nickname"]);
+            List<Dictionary<string, object>> joinList = GetJoinList(channel, command.Arguments["Nickname"]);
+            List<Dictionary<string, object>> kickList = GetKickList(channel, command.Arguments["Nickname"]);
+            List<Dictionary<string, object>> quitList = GetQuitList(command.Arguments["Nickname"]);
 
             List<Dictionary<DateTime, string>> lastSeenList = new List<Dictionary<DateTime, string>>();
 
@@ -100,7 +99,7 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private List<Dictionary<string, object>> GetChannelList(Database database, string channel, string nickname)
+        private List<Dictionary<string, object>> GetChannelList(string channel, string nickname)
         {
             if (channel != null)
             {
@@ -113,7 +112,7 @@ namespace Combot.Modules.Plugins
                                 "ON `channelmessages`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
             }
             else
             {
@@ -126,11 +125,11 @@ namespace Combot.Modules.Plugins
                                 "ON `channelmessages`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });   
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });   
             }
         }
 
-        private List<Dictionary<string, object>> GetPartList(Database database, string channel, string nickname)
+        private List<Dictionary<string, object>> GetPartList(string channel, string nickname)
         {
             if (channel != null)
             {
@@ -143,7 +142,7 @@ namespace Combot.Modules.Plugins
                                 "ON `channelparts`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
             }
             else
             {
@@ -156,11 +155,11 @@ namespace Combot.Modules.Plugins
                                 "ON `channelparts`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
             }
         }
 
-        private List<Dictionary<string, object>> GetJoinList(Database database, string channel, string nickname)
+        private List<Dictionary<string, object>> GetJoinList(string channel, string nickname)
         {
             if (channel != null)
             {
@@ -173,7 +172,7 @@ namespace Combot.Modules.Plugins
                                 "ON `channeljoins`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
             }
             else
             {
@@ -186,11 +185,11 @@ namespace Combot.Modules.Plugins
                                 "ON `channeljoins`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
             }
         }
 
-        private List<Dictionary<string, object>> GetKickList(Database database, string channel, string nickname)
+        private List<Dictionary<string, object>> GetKickList(string channel, string nickname)
         {
             if (channel != null)
             {
@@ -203,7 +202,7 @@ namespace Combot.Modules.Plugins
                                 "ON `channelkicks`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] {Bot.ServerConfig.Name, channel, nickname});
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
             }
             else
             {
@@ -216,11 +215,11 @@ namespace Combot.Modules.Plugins
                                 "ON `channelkicks`.`server_id` = `servers`.`id` " +
                                 "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
                                 "ORDER BY date_added DESC LIMIT 1";
-                return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
             }
         }
 
-        private List<Dictionary<string, object>> GetQuitList(Database database, string nickname)
+        private List<Dictionary<string, object>> GetQuitList(string nickname)
         {
             string search = "SELECT `quits`.`date_added` FROM `quits` " +
                             "INNER JOIN `nicks` " +
@@ -229,7 +228,7 @@ namespace Combot.Modules.Plugins
                             "ON `quits`.`server_id` = `servers`.`id` " +
                             "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
                             "ORDER BY date_added DESC LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
         }
 
         private string ConvertToDifference(TimeSpan time)

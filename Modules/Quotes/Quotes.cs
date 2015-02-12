@@ -60,7 +60,6 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetQuoteList(string channel)
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
                             "INNER JOIN `nicks` " +
                             "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
@@ -69,12 +68,11 @@ namespace Combot.Modules.Plugins
                             "INNER JOIN `servers` " +
                             "ON `channelmessages`.`server_id` = `servers`.`id` " +
                             "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
         }
 
         private List<Dictionary<string, object>> GetQuoteList(string channel, string nickname)
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
                             "INNER JOIN `nicks` " +
                             "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
@@ -83,7 +81,7 @@ namespace Combot.Modules.Plugins
                             "INNER JOIN `servers` " +
                             "ON `channelmessages`.`server_id` = `servers`.`id` " +
                             "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
     }
 }

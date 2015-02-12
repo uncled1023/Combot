@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Combot.IRCServices;
 
 namespace Combot.Modules.Plugins
 {
@@ -19,6 +20,28 @@ namespace Combot.Modules.Plugins
             Command foundCommand = Commands.Find(c => c.Triggers.Contains(command.Command));
             switch (foundCommand.Name)
             {
+                case "Owner Identify":
+                    if (command.Arguments["Password"] == Bot.ServerConfig.Password)
+                    {
+                        if (!Bot.ServerConfig.Owners.Contains(command.Nick.Nickname))
+                        {
+                            Bot.ServerConfig.Owners.Add(command.Nick.Nickname);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are now identified as an owner.");
+                        }
+                        else
+                        {
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are already identified as an owner.");
+                        }
+                        for (int i = 0; i < Bot.IRC.Channels.Count; i++)
+                        {
+                            Nick foundNick = Bot.IRC.Channels[i].Nicks.Find(nick => nick.Nickname == command.Nick.Nickname);
+                            if (foundNick != null)
+                            {
+                                foundNick.AddMode(UserMode.r);
+                            }
+                        }
+                    }
+                    break;
                 case "Change Nick":
                     Bot.IRC.SendNick(command.Arguments["Nickname"]);
                     break;

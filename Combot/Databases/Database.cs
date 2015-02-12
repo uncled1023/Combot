@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Combot.Configurations;
 using MySql.Data.MySqlClient;
 
@@ -9,11 +10,13 @@ namespace Combot.Databases
     {
         private bool Connected { get; set; }
         private MySqlConnection Connection { get; set; }
+        private ReaderWriterLockSlim DatabaseLock { get; set; }
 
         public Database(DatabaseConfig config)
         {
             Connected = false;
             Connection = null;
+            DatabaseLock = new ReaderWriterLockSlim();
             Connect(config);
         }
 
@@ -22,6 +25,7 @@ namespace Combot.Databases
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             if (Connected)
             {
+                DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
                 MySqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -34,6 +38,7 @@ namespace Combot.Databases
                     rows.Add(row);
                 }
                 reader.Close();
+                DatabaseLock.ExitWriteLock();
             }
             return rows;
         }
@@ -42,8 +47,11 @@ namespace Combot.Databases
         {
             if (Connected)
             {
+                DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
-                return cmd.ExecuteScalar();
+                object result = cmd.ExecuteScalar();
+                DatabaseLock.ExitWriteLock();
+                return result;
             }
             return null;
         }
@@ -52,8 +60,10 @@ namespace Combot.Databases
         {
             if (Connected)
             {
+                DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
-                cmd.ExecuteNonQuery();
+                int result = cmd.ExecuteNonQuery();
+                DatabaseLock.ExitWriteLock();
             }
         }
 

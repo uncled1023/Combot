@@ -397,7 +397,7 @@ namespace Combot.Modules.Plugins
                     break;
                 case "Module Configuration":
                     string moduleParameter = command.Arguments["Parameter"];
-                    Module foundModule = Bot.Modules.Find(module => module.Commands.Exists(c => c.Triggers.Contains(command.Arguments["Module"]) || c.Name == command.Arguments["Module"]));
+                    Module foundModule = Bot.Modules.Find(module => module.Name == command.Arguments["Module"] || module.ClassName == command.Arguments["Module"]);
                     if (foundModule != null)
                     {
                         string action = command.Arguments["Action"];

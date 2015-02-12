@@ -231,59 +231,55 @@ namespace Combot.Modules
 
         public void AddServer()
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT * FROM `servers` WHERE " +
                             "`name` = {0}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name });
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name });
 
             if (!results.Any())
             {
                 string query = "INSERT INTO `servers` SET " +
                                "`name` = {0}";
-                database.Execute(query, new object[] { Bot.ServerConfig.Name });
+                Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name });
             }
         }
 
         public void AddChannel(string channel)
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT * FROM `channels` WHERE " +
                             "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
                             "`name` = {1}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
 
             if (!results.Any())
             {
                 string query = "INSERT INTO `channels` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`name` = {1}";
-                database.Execute(query, new object[] { Bot.ServerConfig.Name, channel });
+                Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, channel });
             }
         }
 
         public void AddNick(string nickname)
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT * FROM `nicks` WHERE " +
                             "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
                             "`nickname` = {1}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
 
             if (!results.Any())
             {
                 string insert = "INSERT INTO `nicks` SET " +
                                 "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                 "`nickname` = {1}";
-                database.Execute(insert, new object[] { Bot.ServerConfig.Name, nickname });
+                Bot.Database.Execute(insert, new object[] { Bot.ServerConfig.Name, nickname });
             }
         }
 
         public string GetNickname(int id)
         {
-            Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT `nickname` FROM `nicks` " +
                             "WHERE `id` = {0}";
-            List<Dictionary<string, object>> results = database.Query(search, new object[] { id });
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { id });
             string nickname = string.Empty;
             if (results.Any())
             {

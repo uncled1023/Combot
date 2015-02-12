@@ -312,7 +312,7 @@ namespace Combot.IRCServices.Messaging
                             case "NICK":
                                 NickChangeInfo nickMsg = new NickChangeInfo();
                                 nickMsg.OldNick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                nickMsg.NewNick = new Nick() { Nickname = recipient.Remove(0, 1) };
+                                nickMsg.NewNick = new Nick() { Nickname = recipient.TrimStart(':') };
 
                                 await Task.Run(() =>
                                 {
@@ -390,7 +390,7 @@ namespace Combot.IRCServices.Messaging
                             case "QUIT":
                                 QuitInfo quitMsg = new QuitInfo();
                                 quitMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                quitMsg.Message = recipient.Remove(0, 1);
+                                quitMsg.Message = string.Join(" ", recipient.Remove(0, 1), args);
 
                                 await Task.Run(() =>
                                 {

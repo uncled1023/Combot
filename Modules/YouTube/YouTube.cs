@@ -31,12 +31,18 @@ namespace Combot.Modules.Plugins
 
         private void HandleChannelMessage(object sender, ChannelMessage message)
         {
-            Regex urlRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-            if (urlRegex.IsMatch(message.Message))
+            if (!Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
+                && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
+                && !ChannelBlacklist.Contains(message.Channel)
+                && !NickBlacklist.Contains(message.Sender.Nickname))
             {
-                Match urlMatch = urlRegex.Match(message.Message);
-                string youtubeMessage = GetYoutubeDescription(urlMatch.Groups["ID"].Value);
-                Bot.IRC.SendPrivateMessage(message.Channel, youtubeMessage);
+                Regex urlRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+                if (urlRegex.IsMatch(message.Message))
+                {
+                    Match urlMatch = urlRegex.Match(message.Message);
+                    string youtubeMessage = GetYoutubeDescription(urlMatch.Groups["ID"].Value);
+                    Bot.IRC.SendPrivateMessage(message.Channel, youtubeMessage);
+                }
             }
         }
 
