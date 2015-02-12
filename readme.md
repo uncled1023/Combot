@@ -4,8 +4,6 @@ Created by: Chris Woodward
 
 Combot is designed to provide an all-in-one solution for those who wish to run an IRC bot easily.  It includes many useful features as well as fun games.  It can even be used as your personal client!
 
-**Currently Under Development**
-
 ## Feature Set
 
 * Auto-Reconnect Available
@@ -32,7 +30,7 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 ## Installation - Windows
 
 1) Download the Release.zip from the latest release in https://github.com/uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
-2) Run Combot.exe
+2) Run Combot-Interface.exe
 
 ## Installation - Linux
 
