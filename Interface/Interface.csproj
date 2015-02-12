@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Interface</RootNamespace>
-    <AssemblyName>Interface</AssemblyName>
+    <AssemblyName>Combot-Interface</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -49,6 +49,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Bot.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Interface.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -148,9 +154,26 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Bot.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)Combot.Servers.$(ConfigurationName).config" "$(TargetDir)Combot.Servers.config"</PostBuildEvent>
+    <PostBuildEvent>copy "$(SolutionDir)Combot.Servers.$(ConfigurationName).config" "$(TargetDir)Combot.Servers.config"
+
+if $(ConfigurationName) == Debug goto :exit
+
+:release
+md "$(SolutionDir)Release\Modules\"
+copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)Release\" /y
+copy "$(TargetDir)Combot.dll" "$(SolutionDir)Release\" /y
+copy "$(TargetDir)Combot-Interface.exe" "$(SolutionDir)Release\" /y
+copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)Release\" /y
+copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)Release\" /y
+xcopy "$(TargetDir)Modules" "$(SolutionDir)Release\Modules\" /y /s /e
+copy "$(SolutionDir)Combot.Servers.config" "$(SolutionDir)Release\Combot.Servers.config" /y
+
+:exit</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
