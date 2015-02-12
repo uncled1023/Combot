@@ -39,7 +39,7 @@ namespace Combot.IRCServices
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage));
+                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
                 SendPrivateMessage(recipient, nextMessage);
             }
             else
@@ -87,7 +87,7 @@ namespace Combot.IRCServices
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage));
+                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
                 SendNotice(recipient, nextMessage);
             }
             else

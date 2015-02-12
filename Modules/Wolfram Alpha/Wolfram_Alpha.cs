@@ -41,7 +41,7 @@ namespace Combot.Modules.Plugins
                 string errorMessage = string.Format("Unable to fetch results for \u0002{0}\u000F.", command.Arguments["Query"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage);
             }
-            if (xnList.Count > 1)
+            if (xnList != null && xnList.Count > 1)
             {
                 string queryMessage = string.Format("Result for: {0}", xnList[0]["subpod"]["plaintext"].InnerText);
                 string resultMessage = xnList[1]["subpod"]["plaintext"].InnerText;
