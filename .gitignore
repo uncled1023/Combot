@@ -211,7 +211,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-Combot.Servers.config
 Combot.Servers.Debug.config
 Combot.Servers.Release.config
 Packages.dgml
