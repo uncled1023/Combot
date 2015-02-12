@@ -55,7 +55,7 @@ namespace Combot.Modules.Plugins
                                                 x.Encoding = Encoding.UTF8;
                                                 string source = x.DownloadString(urlMatch.ToString());
                                                 string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
-                                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.UrlDecode(StripTagsCharArray(title)), url.Host));
+                                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
                                             }
                                             break;
                                         case "image":

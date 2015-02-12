@@ -45,8 +45,8 @@ namespace Combot.Modules.Plugins
                 {
                     var result = parsed["responseData"]["results"][0];
                     string url = result.Value<string>("unescapedUrl");
-                    string title = HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("titleNoFormatting")));
-                    string content = HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("content")));
+                    string title = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("titleNoFormatting"))));
+                    string content = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("content"))));
                     string resultMessage = string.Format("[{0}] \u0002{1}\u000F: {2}.", url, title, content);
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
                 }
