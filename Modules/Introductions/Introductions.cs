@@ -43,9 +43,9 @@ namespace Combot.Modules.Plugins
         private void HandleJoinEvent(object sender, JoinChannelInfo info)
         {
             if (!Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
-                    && !Bot.ServerConfig.NickBlacklist.Contains(info.Nick.Nickname)
-                    && !ChannelBlacklist.Contains(info.Channel)
-                    && !NickBlacklist.Contains(info.Nick.Nickname))
+                && !Bot.ServerConfig.NickBlacklist.Contains(info.Nick.Nickname)
+                && !ChannelBlacklist.Contains(info.Channel)
+                && !NickBlacklist.Contains(info.Nick.Nickname))
             {
                 List<Dictionary<string, object>> results = GetIntroductionList(info.Channel, info.Nick.Nickname);
                 if (results.Any())
@@ -68,11 +68,11 @@ namespace Combot.Modules.Plugins
                 AddChannel(channel);
                 AddNick(command.Nick.Nickname);
                 string query = "INSERT INTO `introductions` SET " +
-                    "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
-                    "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
-                    "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4}), " +
-                    "`message` = {5}, " +
-                    "`date_added` = {6}";
+                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
+                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
+                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4}), " +
+                                "`message` = {5}, " +
+                                "`date_added` = {6}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, channel, Bot.ServerConfig.Name, command.Nick.Nickname, command.Arguments["Message"], command.TimeStamp });
                 string introMessage = string.Format("Added introduction.  You now have \u0002{0}\u0002 introductions set.", results.Count + 1);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
@@ -85,7 +85,9 @@ namespace Combot.Modules.Plugins
         }
 
         /* Returns the parsed ID field if valid, otherwise returns 0 */
-        private int HasValidIntroductionID(CommandMessage command){
+        private int HasValidIntroductionID(CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             int num = 0;
             int ret = 0;
             List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
@@ -110,8 +112,8 @@ namespace Combot.Modules.Plugins
             if (num > 0){
                 int id = Convert.ToInt32(results[num - 1]["id"]);
                 string query = "UPDATE `introductions` SET " +
-                    "`message` = {0} " +
-                    "WHERE `id` = {1}";
+                                "`message` = {0} " +
+                                "WHERE `id` = {1}";
                 Bot.Database.Execute(query, new object[] { command.Arguments["Message"], id });
                 string introMessage = string.Format("Introduction #\u0002{0}\u0002 is now: {1}", num, command.Arguments["Message"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
@@ -132,7 +134,7 @@ namespace Combot.Modules.Plugins
             if (num > 0){
                 int id = Convert.ToInt32(results[num - 1]["id"]);
                 string query = "DELETE FROM `introductions` " +
-                    "WHERE `id` = {0}";
+                                "WHERE `id` = {0}";
                 Bot.Database.Execute(query, new object[] { id });
                 string introMessage = string.Format("Introduction #\u0002{0}\u0002 has been deleted.", num);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
@@ -185,13 +187,13 @@ namespace Combot.Modules.Plugins
         {
             // Check to see if they have reached the max number of introductions
             string search = "SELECT `introductions`.`id`, `introductions`.`message` FROM `introductions` " +
-                "INNER JOIN `nicks` " +
-                "ON `introductions`.`nick_id` = `nicks`.`id` " +
-                "INNER JOIN `channels` " +
-                "ON `introductions`.`channel_id` = `channels`.`id` " +
-                "INNER JOIN `servers` " +
-                "ON `nicks`.`server_id` = `servers`.`id` " +
-                "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
+                            "INNER JOIN `nicks` " +
+                            "ON `introductions`.`nick_id` = `nicks`.`id` " +
+                            "INNER JOIN `channels` " +
+                            "ON `introductions`.`channel_id` = `channels`.`id` " +
+                            "INNER JOIN `servers` " +
+                            "ON `nicks`.`server_id` = `servers`.`id` " +
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
     }
