@@ -84,91 +84,85 @@ namespace Combot.Modules.Plugins
             }
         }
 
+		/* Returns the parsed ID field if valid, otherwise returns 0 */
+		private int HasValidIntroductionID(CommandMessage command){
+            int num = 0;
+			int ret = 0;
+            List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
+
+            if (int.TryParse(command.Arguments["ID"], out num))
+            {
+                if (results.Count >= num && num > 0)
+                {
+					ret = num;
+                }
+            }
+
+			return ret;
+		}
+
         private void EditIntroduction(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
-            int num = 0;
-            if (int.TryParse(command.Arguments["ID"], out num))
-            {
-                if (results.Count >= num)
-                {
-                    int id = Convert.ToInt32(results[num - 1]["id"]);
-                    string query = "UPDATE `introductions` SET " +
-                                   "`message` = {0} " +
-                                   "WHERE `id` = {1}";
-                    Bot.Database.Execute(query, new object[] { command.Arguments["Message"], id });
-                    string introMessage = string.Format("Introduction #\u0002{0}\u0002 is now: {1}", num, command.Arguments["Message"]);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
-                }
-                else
-                {
-                    string invalid = "Invalid introduction ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-                }
-            }
-            else
-            {
-                string invalid = "Invalid introduction ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-            }
+            int num = HasValidIntroductionID( command );
+
+			if (num > 0){
+				int id = Convert.ToInt32(results[num - 1]["id"]);
+				string query = "UPDATE `introductions` SET " +
+					"`message` = {0} " +
+					"WHERE `id` = {1}";
+				Bot.Database.Execute(query, new object[] { command.Arguments["Message"], id });
+				string introMessage = string.Format("Introduction #\u0002{0}\u0002 is now: {1}", num, command.Arguments["Message"]);
+				SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+			}
+			else
+			{
+				string invalid = "Invalid introduction ID.";
+				SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+			}
         }
 
         private void DeleteIntroduction(CommandMessage command)
-        {
-            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
-            int num = 0;
-            if (int.TryParse(command.Arguments["ID"], out num))
-            {
-                if (results.Count >= num)
-                {
-                    int id = Convert.ToInt32(results[num - 1]["id"]);
-                    string query = "DELETE FROM `introductions` " +
-                                   "WHERE `id` = {0}";
-                    Bot.Database.Execute(query, new object[] { id });
-                    string introMessage = string.Format("Introduction #\u0002{0}\u0002 has been deleted.", num);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
-                }
-                else
-                {
-                    string invalid = "Invalid introduction ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-                }
-            }
-            else
-            {
-                string invalid = "Invalid introduction ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-            }
-        }
+		{
+			string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+			List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
+			int num = HasValidIntroductionID( command );
+
+			if (num > 0){
+				int id = Convert.ToInt32(results[num - 1]["id"]);
+				string query = "DELETE FROM `introductions` " +
+					"WHERE `id` = {0}";
+				Bot.Database.Execute(query, new object[] { id });
+				string introMessage = string.Format("Introduction #\u0002{0}\u0002 has been deleted.", num);
+				SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+			}
+			else
+			{
+				string invalid = "Invalid introduction ID.";
+				SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+			}
+		}
 
         private void ViewIntroduction(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             List<Dictionary<string, object>> results = GetIntroductionList(channel, command.Nick.Nickname);
             int num = 0;
+
             if (command.Arguments.ContainsKey("ID"))
-            {
-                if (int.TryParse(command.Arguments["ID"], out num))
-                {
-                    if (results.Count >= num)
-                    {
-                        string introMessage = string.Format("Introduction #\u0002{0}\u0002: {1}", num, results[num - 1]["message"]);
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
-                    }
-                    else
-                    {
-                        string invalid = "Invalid introduction ID.";
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-                    }
-                }
-                else
-                {
-                    string invalid = "Invalid introduction ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
-                }
-            }
+			{
+				num = HasValidIntroductionID( command );
+				if ( num > 0 ){
+					string introMessage = string.Format("Introduction #\u0002{0}\u0002: {1}", num, results[num - 1]["message"]);
+					SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+				}
+				else
+				{
+					string invalid = "Invalid introduction ID.";
+					SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+				}
+			}
             else
             {
                 if (results.Any())
