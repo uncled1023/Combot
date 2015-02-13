@@ -348,7 +348,14 @@ namespace Combot.Modules.Plugins
         private void KickSelf(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            Bot.IRC.Command.SendKick(channel, command.Nick.Nickname);
+            if (command.Arguments.ContainsKey("Reason"))
+            {
+                Bot.IRC.Command.SendKick(channel, command.Nick.Nickname, command.Arguments["Reason"]);
+            }
+            else
+            {
+                Bot.IRC.Command.SendKick(channel, command.Nick.Nickname);
+            }
         }
 
         private void ClearChannel(Command curCommand, CommandMessage command)
