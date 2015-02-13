@@ -15,6 +15,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>d616e726</NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,7 +30,6 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>d616e726</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -159,11 +159,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)Combot.Servers.$(ConfigurationName).config" "$(TargetDir)Combot.Servers.config"
-
-if $(ConfigurationName) == Debug goto :exit
+    <PostBuildEvent>if $(ConfigurationName) == Debug goto :exit
 
 :release
+
 md "$(SolutionDir)Release\Modules\"
 copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)Release\" /y
 copy "$(TargetDir)Combot.dll" "$(SolutionDir)Release\" /y
