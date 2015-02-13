@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Combot.Modules.Plugins
@@ -16,12 +17,10 @@ namespace Combot.Modules.Plugins
             switch (foundCommand.Name)
             {
                 case "About":
-                    string ownerNum = " is";
-                    if (Bot.ServerConfig.Owners.Count > 1)
-                    {
-                        ownerNum = "s are";
-                    }
-                    string aboutMessage = string.Format("Combot v{0} is created by Uncled1023.  My current owner{1} {2}.", Assembly.GetExecutingAssembly().GetName().Version, ownerNum, string.Join(", ", Bot.ServerConfig.Owners));
+                    Assembly assembly = Assembly.GetExecutingAssembly();
+                    FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+                    string version = fileVersionInfo.ProductVersion;
+                    string aboutMessage = string.Format("Combot v{0}.  Created by Uncled1023.  You can find my source at {1}.  ", version, GetOptionValue("Source Code"));
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, aboutMessage);
                     break;
                 case "Source":

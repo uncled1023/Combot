@@ -25,7 +25,7 @@ namespace Combot.Modules.Plugins
 
         private void GetLastSeen(CommandMessage command)
         {
-            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : null;
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             List<Dictionary<string, object>> channelList = GetChannelList(channel, command.Arguments["Nickname"]);
             List<Dictionary<string, object>> partList = GetPartList(channel, command.Arguments["Nickname"]);
             List<Dictionary<string, object>> joinList = GetJoinList(channel, command.Arguments["Nickname"]);

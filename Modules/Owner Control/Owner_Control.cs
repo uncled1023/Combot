@@ -199,7 +199,11 @@ namespace Combot.Modules.Plugins
                     break;
                 case "Update":
                     Bot.ServerConfig.Load();
-                    Bot.Modules.ForEach(module => module.LoadConfig());
+                    for (int i = 0; i < Bot.Modules.Count; i++)
+                    {
+                        Bot.Modules[i].LoadConfig();
+                    }
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Update Complete");
                     break;
             }
         }

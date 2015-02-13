@@ -18,10 +18,12 @@ namespace Combot.Modules.Plugins
         {
             Regex urlRegex = new Regex("(https?)://([\\w-]+\\.)+[\\w-]+(/[\\w-./?%&=]*)?");
 
-            if (!Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
                 && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
                 && !ChannelBlacklist.Contains(message.Channel)
-                && !NickBlacklist.Contains(message.Sender.Nickname))
+                && !NickBlacklist.Contains(message.Sender.Nickname)
+                && !Bot.IsCommand(message.Message))
             {
                 if (urlRegex.IsMatch(message.Message))
                 {

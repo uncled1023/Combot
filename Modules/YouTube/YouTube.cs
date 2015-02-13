@@ -31,10 +31,12 @@ namespace Combot.Modules.Plugins
 
         private void HandleChannelMessage(object sender, ChannelMessage message)
         {
-            if (!Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
                 && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
                 && !ChannelBlacklist.Contains(message.Channel)
-                && !NickBlacklist.Contains(message.Sender.Nickname))
+                && !NickBlacklist.Contains(message.Sender.Nickname)
+                && !Bot.IsCommand(message.Message))
             {
                 Regex urlRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
                 if (urlRegex.IsMatch(message.Message))

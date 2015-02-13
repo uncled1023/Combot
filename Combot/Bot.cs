@@ -297,6 +297,25 @@ namespace Combot
             ParseCommandMessage(DateTime.Now, message, new Nick { Nickname = IRC.Nickname }, location, type);
         }
 
+        public bool IsCommand(string message)
+        {
+            bool isCommand = false;
+            string[] msgArgs = message.Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries);
+            string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
+            // Find the module that contains the command
+            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
+            if (module != null)
+            {
+                // Find the command
+                Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
+                if (cmd != null)
+                {
+                    isCommand = true;
+                }
+            }
+            return isCommand;
+        }
+
         private void HandleJoinEvent(object sender, JoinChannelInfo info)
         {
             if (info.Nick.Nickname == IRC.Nickname)
@@ -460,7 +479,7 @@ namespace Combot
             argsOnly.RemoveAt(0);
 
             // Find the module that contains the command
-            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded);
+            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
             if (module != null)
             {
                 // Find the command

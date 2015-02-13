@@ -25,7 +25,7 @@ namespace Combot.Modules.Plugins
 
         private void HandleChannelMessage(object sender, ChannelMessage message)
         {
-            if (!ChannelBlacklist.Contains(message.Channel) && !NickBlacklist.Contains(message.Sender.Nickname))
+            if (Enabled && !ChannelBlacklist.Contains(message.Channel) && !NickBlacklist.Contains(message.Sender.Nickname))
             {
                 int timeThreshold = Convert.ToInt32(GetOptionValue("Time Threshold"));
                 int maxMessages = Convert.ToInt32(GetOptionValue("Max Messages"));

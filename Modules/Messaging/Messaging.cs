@@ -33,22 +33,34 @@ namespace Combot.Modules.Plugins
 
         private void HandleChannelMessage(object sender, ChannelMessage message)
         {
-            CheckMessages(message.Sender.Nickname);
+            if (Enabled)
+            {
+                CheckMessages(message.Sender.Nickname);
+            }
         }
 
         private void HandlePrivateMessage(object sender, PrivateMessage message)
         {
-            CheckMessages(message.Sender.Nickname);
+            if (Enabled)
+            {
+                CheckMessages(message.Sender.Nickname);
+            }
         }
 
         private void HandleChannelNotice(object sender, ChannelNotice message)
         {
-            CheckMessages(message.Sender.Nickname);
+            if (Enabled)
+            {
+                CheckMessages(message.Sender.Nickname);
+            }
         }
 
         private void HandlePrivateNotice(object sender, PrivateNotice message)
         {
-            CheckMessages(message.Sender.Nickname);
+            if (Enabled)
+            {
+                CheckMessages(message.Sender.Nickname);
+            }
         }
 
         private void AddMessage(CommandMessage command, bool anonymous = false)

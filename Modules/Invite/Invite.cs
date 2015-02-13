@@ -11,7 +11,8 @@ namespace Combot.Modules.Plugins
 
         private void HandleInvite(object sender, InviteChannelInfo inviteInfo)
         {
-            if (!Bot.ServerConfig.NickBlacklist.Contains(inviteInfo.Requester.Nickname)
+            if (Enabled
+                && !Bot.ServerConfig.NickBlacklist.Contains(inviteInfo.Requester.Nickname)
                 && !NickBlacklist.Contains(inviteInfo.Requester.Nickname))
             {
                 if (!Bot.ServerConfig.ChannelBlacklist.Contains(inviteInfo.Channel) && !ChannelBlacklist.Contains(inviteInfo.Channel))

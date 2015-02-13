@@ -155,6 +155,7 @@ namespace Combot.Modules
                     newModule = (Module)Activator.CreateInstance(t);
                     newModule.Copy(this);
                     newModule.Loaded = true;
+                    newModule.ConfigPath = ConfigPath;
                     newModule.Bot = bot;
                     newModule.Initialize();
                 }

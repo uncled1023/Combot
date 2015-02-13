@@ -16,7 +16,8 @@ namespace Combot.Modules.Plugins
 
         private void HandleChannelMessageEvent(object sender, ChannelMessage message)
         {
-            if (!Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
                 && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
                 && !ChannelBlacklist.Contains(message.Channel)
                 && !NickBlacklist.Contains(message.Sender.Nickname))

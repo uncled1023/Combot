@@ -42,7 +42,8 @@ namespace Combot.Modules.Plugins
 
         private void HandleJoinEvent(object sender, JoinChannelInfo info)
         {
-            if (!Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
                 && !Bot.ServerConfig.NickBlacklist.Contains(info.Nick.Nickname)
                 && !ChannelBlacklist.Contains(info.Channel)
                 && !NickBlacklist.Contains(info.Nick.Nickname))
