@@ -152,54 +152,49 @@ namespace Combot.Modules.Plugins
                             break;
                     }
                     break;
-                case "Modules":
-                    string moduleType = command.Arguments["Action"].ToString();
-                    string moduleName = command.Arguments["Module"].ToString();
-                    switch (moduleType.ToLower())
+                case "Load Module":
+                    string loadModuleName = command.Arguments["Module"].ToString();
+                    if (!Bot.Modules.Exists(mod => mod.Name.ToLower() == loadModuleName.ToLower()))
                     {
-                        case "load":
-                            if (!Bot.Modules.Exists(mod => mod.Name.ToLower() == moduleName.ToLower()))
-                            {
-                                string modulePath = Path.Combine(Bot.ServerConfig.ModuleLocation, moduleName);
-                                bool loaded = Bot.LoadModule(modulePath);
-                                if (loaded)
-                                {
-                                    string moduleMessage = string.Format("\u0002{0}\u000F has been loaded.", moduleName);
-                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
-                                }
-                                else
-                                {
-                                    string moduleMessage = string.Format("\u0002{0}\u000F was unable to be loaded.", moduleName);
-                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
-                                }
-                            }
-                            else
-                            {
-                                string moduleInvalid = string.Format("\u0002{0}\u000F is already loaded.", moduleName);
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
-                            }
-                            break;
-                        case "unload":
-                            if (Bot.Modules.Exists(mod => mod.Name.ToLower() == moduleName.ToLower()))
-                            {
-                                bool unloaded = Bot.UnloadModule(moduleName);
-                                if (unloaded)
-                                {
-                                    string moduleMessage = string.Format("\u0002{0}\u000F has been unloaded.", moduleName);
-                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
-                                }
-                                else
-                                {
-                                    string moduleMessage = string.Format("\u0002{0}\u000F was unable to be unloaded.", moduleName);
-                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
-                                }
-                            }
-                            else
-                            {
-                                string moduleInvalid = string.Format("\u0002{0}\u000F is not loaded.", moduleName);
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
-                            }
-                            break;
+                        string modulePath = Path.Combine(Bot.ServerConfig.ModuleLocation, loadModuleName);
+                        bool loaded = Bot.LoadModule(modulePath);
+                        if (loaded)
+                        {
+                            string moduleMessage = string.Format("\u0002{0}\u000F has been loaded.", loadModuleName);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
+                        }
+                        else
+                        {
+                            string moduleMessage = string.Format("\u0002{0}\u000F was unable to be loaded.", loadModuleName);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
+                        }
+                    }
+                    else
+                    {
+                        string moduleInvalid = string.Format("\u0002{0}\u000F is already loaded.", loadModuleName);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
+                    }
+                    break;
+                case "Unload Module":
+                    string unloadModuleName = command.Arguments["Module"].ToString();
+                    if (Bot.Modules.Exists(mod => mod.Name.ToLower() == unloadModuleName.ToLower()))
+                    {
+                        bool unloaded = Bot.UnloadModule(unloadModuleName);
+                        if (unloaded)
+                        {
+                            string moduleMessage = string.Format("\u0002{0}\u000F has been unloaded.", unloadModuleName);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
+                        }
+                        else
+                        {
+                            string moduleMessage = string.Format("\u0002{0}\u000F was unable to be unloaded.", unloadModuleName);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleMessage);
+                        }
+                    }
+                    else
+                    {
+                        string moduleInvalid = string.Format("\u0002{0}\u000F is not loaded.", unloadModuleName);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, moduleInvalid);
                     }
                     break;
                 case "Update":

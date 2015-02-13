@@ -45,21 +45,21 @@ namespace Combot.Modules.Plugins
             {
                 DateTime partTime = (DateTime)partList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(partTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago leaving \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"]);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago leaving \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), partList.First()["name"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { partTime, message } });
             }
             if (joinList.Any())
             {
                 DateTime joinTime = (DateTime)joinList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(joinTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago joining \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"]);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago joining \u0002{2}\u0002.", command.Arguments["Nickname"], ConvertToDifference(difference), joinList.First()["name"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { joinTime, message } });
             }
             if (kickList.Any())
             {
                 DateTime kickTime = (DateTime)kickList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(kickTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago being kicked from \u0002{2}\u0002 with the reason: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), channelList.First()["name"], kickList.First()["message"]);
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago being kicked from \u0002{2}\u0002 with the reason: {3}", command.Arguments["Nickname"], ConvertToDifference(difference), kickList.First()["name"], kickList.First()["reason"]);
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { kickTime, message } });
             }
             if (quitList.Any())
