@@ -67,6 +67,8 @@ namespace Combot.Modules.Plugins
                             Bot.IRC.Command.SendNotice(command.Nick.Nickname, string.Format("{0}", foundCommand.Description));
                         }
                         Bot.IRC.Command.SendNotice(command.Nick.Nickname, "\u200B");
+                        Dictionary<string, string> argDescriptions = new Dictionary<string, string>();
+                        int index = 0;
                         for (int i = 0; i < foundCommand.AllowedMessageTypes.Count; i++)
                         {
                             MessageType messageType = foundCommand.AllowedMessageTypes[i];
@@ -127,12 +129,40 @@ namespace Combot.Modules.Plugins
                                     {
                                         commandDesc = string.Format(" - {0}", arg.Description);
                                     }
-                                    Bot.IRC.Command.SendNotice(command.Nick.Nickname, string.Format("\t\t\u0002{0}\u0002{1}", arg.Name, commandDesc));
+                                    if (!argDescriptions.ContainsKey(arg.Name))
+                                    {
+                                        argDescriptions.Add(arg.Name, string.Format("\t\t\u0002{0}\u0002{1}", arg.Name, commandDesc));
+                                    }
                                     if (arg.AllowedValues.Count > 0)
                                     {
-                                        Bot.IRC.Command.SendNotice(command.Nick.Nickname, string.Format("\t\t\t\tAllowed Values: \u0002{0}\u0002", string.Join(", ", arg.AllowedValues)));
+                                        string argAllowed = string.Format("\t\t\t\tAllowed Values: \u0002{0}\u0002", string.Join(", ", arg.AllowedValues));
+                                        bool containsAllowed = false;
+                                        for (int x = 0; x < index; x++)
+                                        {
+                                            if (argDescriptions.ContainsKey(arg.Name + " - Allowed Values " + x))
+                                            {
+                                                if (argDescriptions[arg.Name + " - Allowed Values " + x] == argAllowed)
+                                                {
+                                                    containsAllowed = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (!containsAllowed)
+                                        {
+                                            argDescriptions.Add(arg.Name + " - Allowed Values " + index, argAllowed);
+                                            index++;
+                                        }
                                     }
                                 });
+                            }
+                        }
+                        Bot.IRC.Command.SendNotice(command.Nick.Nickname, "\u200B");
+                        if (argDescriptions.Count > 0)
+                        {
+                            foreach (KeyValuePair<string, string> argDescription in argDescriptions)
+                            {
+                                Bot.IRC.Command.SendNotice(command.Nick.Nickname, argDescription.Value);
                             }
                         }
                     }
