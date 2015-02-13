@@ -41,7 +41,7 @@ namespace Combot.Modules.Plugins
                 {
                     Match urlMatch = urlRegex.Match(message.Message);
                     string youtubeMessage = GetYoutubeDescription(urlMatch.Groups["ID"].Value);
-                    Bot.IRC.SendPrivateMessage(message.Channel, youtubeMessage);
+                    Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
                 }
             }
         }

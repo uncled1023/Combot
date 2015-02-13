@@ -110,8 +110,8 @@ namespace Combot.Modules.Plugins
                     if (foundChannel != null)
                     {
                         string rollCall = string.Join(", ", foundChannel.Nicks.Select(nick => nick.Nickname));
-                        Bot.IRC.SendPrivateMessage(channel, "It's time for a Roll Call!");
-                        Bot.IRC.SendPrivateMessage(channel, rollCall);
+                        Bot.IRC.Command.SendPrivateMessage(channel, "It's time for a Roll Call!");
+                        Bot.IRC.Command.SendPrivateMessage(channel, rollCall);
                     }
                     else
                     {
@@ -146,7 +146,7 @@ namespace Combot.Modules.Plugins
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, Bot.ChannelModeMapping[mode]))
             {
                 SetMode(set, channel, mode, command.Arguments["Nickname"]);
-                Bot.IRC.SendPrivateMessage("ChanServ", string.Format("{0} {1} {2} {3}", optionCommand, channel, command.Arguments["Option"], command.Arguments["Nickname"]));
+                Bot.IRC.Command.SendPrivateMessage("ChanServ", string.Format("{0} {1} {2} {3}", optionCommand, channel, command.Arguments["Option"], command.Arguments["Nickname"]));
             }
             else
             {
@@ -192,7 +192,7 @@ namespace Combot.Modules.Plugins
                 }
                 if (allowedMode)
                 {
-                    Bot.IRC.SendMode(channel, modeList);
+                    Bot.IRC.Command.SendMode(channel, modeList);
                 }
                 else
                 {
@@ -213,7 +213,7 @@ namespace Combot.Modules.Plugins
             modeInfo.Mode = mode;
             modeInfo.Parameter = nickname;
             modeInfo.Set = set;
-            Bot.IRC.SendMode(channel, modeInfo);
+            Bot.IRC.Command.SendMode(channel, modeInfo);
         }
 
         private void ModifyChannelTopic(Command curCommand, CommandMessage command)
@@ -221,7 +221,7 @@ namespace Combot.Modules.Plugins
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
-                Bot.IRC.SendTopic(channel, command.Arguments["Message"]);
+                Bot.IRC.Command.SendTopic(channel, command.Arguments["Message"]);
             }
             else
             {
@@ -235,7 +235,7 @@ namespace Combot.Modules.Plugins
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
-                Bot.IRC.SendInvite(channel, command.Arguments["Nickname"]);
+                Bot.IRC.Command.SendInvite(channel, command.Arguments["Nickname"]);
             }
             else
             {
@@ -331,11 +331,11 @@ namespace Combot.Modules.Plugins
             {
                 if (command.Arguments.ContainsKey("Reason"))
                 {
-                    Bot.IRC.SendKick(channel, command.Arguments["Nickname"], command.Arguments["Reason"]);
+                    Bot.IRC.Command.SendKick(channel, command.Arguments["Nickname"], command.Arguments["Reason"]);
                 }
                 else
                 {
-                    Bot.IRC.SendKick(channel, command.Arguments["Nickname"]);
+                    Bot.IRC.Command.SendKick(channel, command.Arguments["Nickname"]);
                 }
             }
             else
@@ -348,7 +348,7 @@ namespace Combot.Modules.Plugins
         private void KickSelf(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            Bot.IRC.SendKick(channel, command.Nick.Nickname);
+            Bot.IRC.Command.SendKick(channel, command.Nick.Nickname);
         }
 
         private void ClearChannel(Command curCommand, CommandMessage command)
@@ -356,7 +356,7 @@ namespace Combot.Modules.Plugins
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
             {
-                Bot.IRC.SendPrivateMessage("ChanServ", string.Format("CLEAR {0} {1}", channel, command.Arguments["Target"]));
+                Bot.IRC.Command.SendPrivateMessage("ChanServ", string.Format("CLEAR {0} {1}", channel, command.Arguments["Target"]));
             }
             else
             {

@@ -16,7 +16,7 @@ namespace Combot.Modules.Plugins
         {
             listLock = new ReaderWriterLockSlim();
             pingList = new List<PingItem>();
-            Bot.IRC.Message.CTCPNoticeRecievedEvent += HandlePingResponse;
+            Bot.IRC.Message.CTCPNoticeReceivedEvent += HandlePingResponse;
             Bot.CommandReceivedEvent += HandleCommandEvent;
         }
 
@@ -39,7 +39,7 @@ namespace Combot.Modules.Plugins
                 }
                 pingList.Add(tmpItem);
                 listLock.ExitWriteLock();
-                Bot.IRC.SendCTCPMessage(command.Nick.Nickname, "PING", epoch.ToString());
+                Bot.IRC.Command.SendCTCPMessage(command.Nick.Nickname, "PING", epoch.ToString());
             }
         }
 
@@ -79,13 +79,13 @@ namespace Combot.Modules.Plugins
                     switch (pingItem.MessageType)
                     {
                         case MessageType.Channel:
-                            Bot.IRC.SendPrivateMessage(pingItem.Location, string.Format("{0}, your ping is {1}", pingItem.Nick, timeString));
+                            Bot.IRC.Command.SendPrivateMessage(pingItem.Location, string.Format("{0}, your ping is {1}", pingItem.Nick, timeString));
                             break;
                         case MessageType.Notice:
-                            Bot.IRC.SendNotice(pingItem.Nick, string.Format("Your ping is {0}", timeString));
+                            Bot.IRC.Command.SendNotice(pingItem.Nick, string.Format("Your ping is {0}", timeString));
                             break;
                         case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(pingItem.Nick, string.Format("Your ping is {0}", timeString));
+                            Bot.IRC.Command.SendPrivateMessage(pingItem.Nick, string.Format("Your ping is {0}", timeString));
                             break;
                     }
                     listLock.EnterWriteLock();

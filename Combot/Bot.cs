@@ -357,20 +357,20 @@ namespace Combot
                         LoggedIn = true;
                         if (!GhostSent && IRC.Nickname != ServerConfig.Nicknames[CurNickChoice])
                         {
-                            IRC.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nicknames[CurNickChoice], ServerConfig.Password));
+                            IRC.Command.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nicknames[CurNickChoice], ServerConfig.Password));
                             Thread.Sleep(1000);
-                            IRC.SendNick(ServerConfig.Nicknames[CurNickChoice]);
+                            IRC.Command.SendNick(ServerConfig.Nicknames[CurNickChoice]);
                             GhostSent = true;
                         }
                         // Identify to NickServ if need be
-                        IRC.SendPrivateMessage("NickServ", string.Format("IDENTIFY {0}", ServerConfig.Password));
+                        IRC.Command.SendPrivateMessage("NickServ", string.Format("IDENTIFY {0}", ServerConfig.Password));
 
                         // Join all required channels
                         // Delay joining channels for configured time
                         Thread.Sleep(ServerConfig.JoinDelay);
                         foreach (ChannelConfig channel in ServerConfig.Channels)
                         {
-                            IRC.SendJoin(channel.Name, channel.Key);
+                            IRC.Command.SendJoin(channel.Name, channel.Key);
                         }
                         break;
                 }
@@ -383,7 +383,7 @@ namespace Combot
                     case IRCErrorCode.ERR_NOTREGISTERED:
                         if (ServerConfig.AutoRegister && ServerConfig.Password != string.Empty && ServerConfig.Email != string.Empty)
                         {
-                            IRC.SendPrivateMessage("NickServ", string.Format("REGISTER {0} {1}", ServerConfig.Password, ServerConfig.Email));
+                            IRC.Command.SendPrivateMessage("NickServ", string.Format("REGISTER {0} {1}", ServerConfig.Password, ServerConfig.Email));
                         }
                         break;
                     case IRCErrorCode.ERR_NICKNAMEINUSE:
@@ -484,7 +484,7 @@ namespace Combot
                     {
                         string whoStyle = string.Format(@"[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s({0})\s(?<Modes>[^\s]+)\s:[\d]\s(.+)", newCommand.Nick.Nickname);
                         Regex whoRegex = new Regex(whoStyle);
-                        IRC.SendWho(newCommand.Nick.Nickname);
+                        IRC.Command.SendWho(newCommand.Nick.Nickname);
                         ServerReplyMessage whoReply = IRC.Message.GetServerReply(IRCReplyCode.RPL_WHOREPLY, whoStyle);
                         if (whoReply.ReplyCode != 0)
                         {

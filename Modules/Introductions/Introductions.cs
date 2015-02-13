@@ -53,7 +53,7 @@ namespace Combot.Modules.Plugins
                     Random randNum = new Random();
                     int index = randNum.Next(0, results.Count);
                     Dictionary<string, object> intro = results[index];
-                    Bot.IRC.SendPrivateMessage(info.Channel, string.Format("\u200B{0}", intro["message"]));
+                    Bot.IRC.Command.SendPrivateMessage(info.Channel, string.Format("\u200B{0}", intro["message"]));
                 }
             }
         }

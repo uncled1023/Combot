@@ -43,15 +43,15 @@ namespace Combot.Modules.Plugins
                     }
                     break;
                 case "Change Nick":
-                    Bot.IRC.SendNick(command.Arguments["Nickname"]);
+                    Bot.IRC.Command.SendNick(command.Arguments["Nickname"]);
                     break;
                 case "Identify":
-                    Bot.IRC.SendPrivateMessage("NickServ", string.Format("Identify {0}", Bot.ServerConfig.Password));
+                    Bot.IRC.Command.SendPrivateMessage("NickServ", string.Format("Identify {0}", Bot.ServerConfig.Password));
                     break;
                 case "Join Channel":
                     if (!Bot.IRC.Channels.Exists(chan => chan.Name == command.Arguments["Channel"]))
                     {
-                        Bot.IRC.SendJoin(command.Arguments["Channel"]);
+                        Bot.IRC.Command.SendJoin(command.Arguments["Channel"]);
                     }
                     else
                     {
@@ -63,7 +63,7 @@ namespace Combot.Modules.Plugins
                     string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
                     if (Bot.IRC.Channels.Exists(chan => chan.Name == channel))
                     {
-                        Bot.IRC.SendPart(channel);
+                        Bot.IRC.Command.SendPart(channel);
                     }
                     else
                     {
@@ -73,11 +73,11 @@ namespace Combot.Modules.Plugins
                     break;
                 case "Speak":
                     string location = command.Arguments.ContainsKey("Target") ? command.Arguments["Target"] : command.Location;
-                    Bot.IRC.SendPrivateMessage(location, command.Arguments["Message"]);
+                    Bot.IRC.Command.SendPrivateMessage(location, command.Arguments["Message"]);
                     break;
                 case "Action":
                     string actionLocation = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-                    Bot.IRC.SendCTCPMessage(actionLocation, "ACTION", command.Arguments["Message"]);
+                    Bot.IRC.Command.SendCTCPMessage(actionLocation, "ACTION", command.Arguments["Message"]);
                     break;
                 case "Quit":
                     string quitType = command.Arguments["Type"].ToString();
@@ -99,8 +99,8 @@ namespace Combot.Modules.Plugins
                             string cycleChannel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
                             if (Bot.IRC.Channels.Exists(chan => chan.Name == cycleChannel))
                             {
-                                Bot.IRC.SendPart(cycleChannel);
-                                Bot.IRC.SendJoin(cycleChannel);
+                                Bot.IRC.Command.SendPart(cycleChannel);
+                                Bot.IRC.Command.SendJoin(cycleChannel);
                             }
                             else
                             {

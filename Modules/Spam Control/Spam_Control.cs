@@ -42,7 +42,7 @@ namespace Combot.Modules.Plugins
                         info.Lines++;
                         if (info.Lines > maxMessages)
                         {
-                            Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold));
+                            Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold));
                             SpamMessageLock.EnterWriteLock();
                             SpamMessageList.Remove(info);
                             SpamMessageLock.ExitWriteLock();
@@ -97,7 +97,7 @@ namespace Combot.Modules.Plugins
                             info.Highlights += foundNicks.Count;
                             if (info.Highlights > maxHighlights)
                             {
-                                Bot.IRC.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold));
+                                Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold));
                                 SpamHighlightLock.EnterWriteLock();
                                 SpamHighlightList.Remove(info);
                                 SpamHighlightLock.ExitWriteLock();

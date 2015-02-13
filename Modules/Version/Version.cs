@@ -16,8 +16,8 @@ namespace Combot.Modules.Plugins
         {
             listLock = new ReaderWriterLockSlim();
             versionList = new List<VersionItem>();
-            Bot.IRC.Message.CTCPMessageRecievedEvent += HandleVersionQuery;
-            Bot.IRC.Message.CTCPNoticeRecievedEvent += HandleVersionResponse;
+            Bot.IRC.Message.CTCPMessageReceivedEvent += HandleVersionQuery;
+            Bot.IRC.Message.CTCPNoticeReceivedEvent += HandleVersionResponse;
             Bot.CommandReceivedEvent += HandleCommandEvent;
         }
 
@@ -42,7 +42,7 @@ namespace Combot.Modules.Plugins
                     }
                     versionList.Add(tmpItem);
                     listLock.ExitWriteLock();
-                    Bot.IRC.SendCTCPMessage(nickList[i], "VERSION");
+                    Bot.IRC.Command.SendCTCPMessage(nickList[i], "VERSION");
                 }
             }
         }
@@ -51,7 +51,7 @@ namespace Combot.Modules.Plugins
         {
             if (message.Command.ToLower() == "version")
             {
-                Bot.IRC.SendCTCPNotice(message.Sender.Nickname, "VERSION", string.Format("Combot v{0} on {1}", Assembly.GetExecutingAssembly().GetName().Version, GetOptionValue("Machine Reply")));
+                Bot.IRC.Command.SendCTCPNotice(message.Sender.Nickname, "VERSION", string.Format("Combot v{0} on {1}", Assembly.GetExecutingAssembly().GetName().Version, GetOptionValue("Machine Reply")));
             }
         }
 

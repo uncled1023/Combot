@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Combot.IRCServices.Messaging;
+using Combot.IRCServices.Commanding;
 using Combot.IRCServices.TCP;
 
 namespace Combot.IRCServices
@@ -17,15 +18,13 @@ namespace Combot.IRCServices
     {
         public List<Channel> Channels = new List<Channel>();
         public Messages Message;
+        public Commands Command;
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
         public string Nickname;
         public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q } };
 
-        private int MaxMessageLength;
-        private int MessageSendDelay;
-        private DateTime LastMessageSend;
         private int ReadTimeout;
         private int AllowedFailedReads;
         private Thread TCPReader;
@@ -38,11 +37,9 @@ namespace Combot.IRCServices
         {
             _TCP = new TCPInterface();
             Message = new Messages(this);
+            Command = new Commands(this, maxMessageLength, messageSendDelay);
             Nickname = string.Empty;
             ChannelRWLock = new ReaderWriterLockSlim();
-            LastMessageSend = DateTime.Now;
-            MaxMessageLength = maxMessageLength;
-            MessageSendDelay = messageSendDelay;
             ReadTimeout = readTimeout;
             AllowedFailedReads = allowedFailedReads;
 
@@ -134,8 +131,8 @@ namespace Combot.IRCServices
         public void Login(string serverName, Nick nick)
         {
             Nickname = nick.Nickname;
-            SendNick(nick.Nickname);
-            SendUser(nick.Username, nick.Host, serverName, nick.Realname);
+            Command.SendNick(nick.Nickname);
+            Command.SendUser(nick.Username, nick.Host, serverName, nick.Realname);
         }
 
         /// <summary>
@@ -264,7 +261,7 @@ namespace Combot.IRCServices
             return null;
         }
 
-        private void SendTCPMessage(string message)
+        internal void SendTCPMessage(string message)
         {
             if (_TCP.Connected)
             {
@@ -323,7 +320,7 @@ namespace Combot.IRCServices
         /// <param name="e"></param>
         private void HandlePing(object sender, PingInfo e)
         {
-            SendPong(e.Message);
+            Command.SendPong(e.Message);
         }
 
         private void HandleTCPConnection(int e)
@@ -506,7 +503,7 @@ namespace Combot.IRCServices
                             break;
                     }
                 }
-                SendWho(channel.Name);
+                Command.SendWho(channel.Name);
             }
             ChannelRWLock.ExitWriteLock();
         }
@@ -582,7 +579,7 @@ namespace Combot.IRCServices
                 newChannel.Name = e.Channel;
                 newChannel.Nicks.Add(e.Nick);
                 Channels.Add(newChannel);
-                SendWho(newChannel.Name);
+                Command.SendWho(newChannel.Name);
             }
             ChannelRWLock.ExitWriteLock();
         }

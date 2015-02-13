@@ -306,7 +306,7 @@ namespace Interface.ViewModels
                         {
                             if (botInstance.IRC.Channels.Exists(chan => chan.Name == SelectedLocation))
                             {
-                                botInstance.IRC.SendPrivateMessage(SelectedLocation, message);
+                                botInstance.IRC.Command.SendPrivateMessage(SelectedLocation, message);
                             }
                             else
                             {
@@ -315,7 +315,7 @@ namespace Interface.ViewModels
                         }
                         else
                         {
-                            botInstance.IRC.SendPrivateMessage(SelectedLocation, message);
+                            botInstance.IRC.Command.SendPrivateMessage(SelectedLocation, message);
                         }
                     }
                 }
@@ -343,7 +343,7 @@ namespace Interface.ViewModels
                     Bot botInstance = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
                     if (botInstance.IRC.Channels.Exists(chan => chan.Name == location))
                     {
-                        botInstance.IRC.SendPart(location);
+                        botInstance.IRC.Command.SendPart(location);
                     }
                 }
                 if (LocationList.Contains(location))

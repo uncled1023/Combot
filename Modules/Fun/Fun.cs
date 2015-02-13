@@ -21,25 +21,25 @@ namespace Combot.Modules.Plugins
                     switch (randNum)
                     {
                         case 0:
-                            Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("gently makes love to {0}", command.Arguments["Nickname"]));
+                            Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("gently makes love to {0}", command.Arguments["Nickname"]));
                             break;
                         case 1:
-                            Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("sings a love ballad to {0}", command.Arguments["Nickname"]));
+                            Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("sings a love ballad to {0}", command.Arguments["Nickname"]));
                             break;
                         case 2:
-                            Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("slowly sneaks up behind {0}", command.Arguments["Nickname"]));
-                            Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("squeezes {0} tightly", command.Arguments["Nickname"]));
+                            Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("slowly sneaks up behind {0}", command.Arguments["Nickname"]));
+                            Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("squeezes {0} tightly", command.Arguments["Nickname"]));
                             break;
                         case 3:
-                            Bot.IRC.SendPrivateMessage(channel, string.Format("I love you {0}!  Sooo much!", command.Arguments["Nickname"]));
+                            Bot.IRC.Command.SendPrivateMessage(channel, string.Format("I love you {0}!  Sooo much!", command.Arguments["Nickname"]));
                             break;
                     }
                     break;
                 case "Hug":
-                    Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("hugs {0}", command.Arguments["Nickname"]));
+                    Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("hugs {0}", command.Arguments["Nickname"]));
                     break;
                 case "Slap":
-                    Bot.IRC.SendCTCPMessage(channel, "ACTION", string.Format("slaps {0} with a large trout", command.Arguments["Nickname"]));
+                    Bot.IRC.Command.SendCTCPMessage(channel, "ACTION", string.Format("slaps {0} with a large trout", command.Arguments["Nickname"]));
                     break;
                 case "Brazilian Laugh":
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "HUEHUEHUE");

@@ -86,18 +86,7 @@ namespace Combot.Modules
                 else
                 {
                     string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F.", command.Command);
-                    switch (command.MessageType)
-                    {
-                        case MessageType.Channel:
-                            Bot.IRC.SendPrivateMessage(command.Location, noAccessMessage);
-                            break;
-                        case MessageType.Query:
-                            Bot.IRC.SendPrivateMessage(command.Nick.Nickname, noAccessMessage);
-                            break;
-                        case MessageType.Notice:
-                            Bot.IRC.SendNotice(command.Nick.Nickname, noAccessMessage);
-                            break;
-                    }
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
                 }
             }
         }
@@ -293,13 +282,13 @@ namespace Combot.Modules
             switch (messageType)
             {
                 case MessageType.Channel:
-                    Bot.IRC.SendPrivateMessage(location, message);
+                    Bot.IRC.Command.SendPrivateMessage(location, message);
                     break;
                 case MessageType.Query:
-                    Bot.IRC.SendPrivateMessage(nickname, message);
+                    Bot.IRC.Command.SendPrivateMessage(nickname, message);
                     break;
                 case MessageType.Notice:
-                    Bot.IRC.SendNotice(nickname, message);
+                    Bot.IRC.Command.SendNotice(nickname, message);
                     break;
             }
         }

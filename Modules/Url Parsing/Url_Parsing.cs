@@ -55,26 +55,26 @@ namespace Combot.Modules.Plugins
                                                 x.Encoding = Encoding.UTF8;
                                                 string source = x.DownloadString(urlMatch.ToString());
                                                 string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
-                                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
                                             }
                                             break;
                                         case "image":
-                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
+                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
                                             break;
                                         case "video":
-                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
                                             break;
                                         case "application":
-                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
                                             break;
                                         case "audio":
-                                            Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
                                             break;
                                     }
                                 }
                                 else
                                 {
-                                    Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
+                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
                                 }
                             }
                         }
@@ -83,7 +83,7 @@ namespace Combot.Modules.Plugins
                             if (ex.Response != null)
                             {
                                 int code = (int) ((HttpWebResponse) ex.Response).StatusCode;
-                                Bot.IRC.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
                             }
                         }
                     }

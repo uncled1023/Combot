@@ -17,8 +17,8 @@ namespace Combot.IRCServices.Messaging
         public event EventHandler<ServerNotice> ServerNoticeReceivedEvent;
         public event EventHandler<ChannelNotice> ChannelNoticeReceivedEvent;
         public event EventHandler<PrivateNotice> PrivateNoticeReceivedEvent;
-        public event EventHandler<CTCPMessage> CTCPMessageRecievedEvent;
-        public event EventHandler<CTCPMessage> CTCPNoticeRecievedEvent; 
+        public event EventHandler<CTCPMessage> CTCPMessageReceivedEvent;
+        public event EventHandler<CTCPMessage> CTCPNoticeReceivedEvent; 
         public event EventHandler<TopicChangeInfo> TopicChangeEvent;
         public event EventHandler<ChannelModeChangeInfo> ChannelModeChangeEvent;
         public event EventHandler<UserModeChangeInfo> UserModeChangeEvent;
@@ -132,9 +132,9 @@ namespace Combot.IRCServices.Messaging
 
                                     await Task.Run(() =>
                                     {
-                                        if (CTCPMessageRecievedEvent != null)
+                                        if (CTCPMessageReceivedEvent != null)
                                         {
-                                            CTCPMessageRecievedEvent(this, ctcpMessage);
+                                            CTCPMessageReceivedEvent(this, ctcpMessage);
                                         }
                                     });
                                 }
@@ -198,9 +198,9 @@ namespace Combot.IRCServices.Messaging
 
                                     await Task.Run(() =>
                                     {
-                                        if (CTCPNoticeRecievedEvent != null)
+                                        if (CTCPNoticeReceivedEvent != null)
                                         {
-                                            CTCPNoticeRecievedEvent(this, ctcpMessage);
+                                            CTCPNoticeReceivedEvent(this, ctcpMessage);
                                         }
                                     });
                                 }

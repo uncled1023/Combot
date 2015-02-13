@@ -89,15 +89,15 @@ namespace Combot.Modules.Plugins
                     string message = receivedMessages[i]["message"].ToString();
                     if ((bool) receivedMessages[i]["anonymous"])
                     {
-                        Bot.IRC.SendPrivateMessage(nickname, string.Format("An anonymous sender has left you a message on \u0002{0}\u0002", dateSent.ToString("MMMM d, yyyy h:mm:ss tt")));
-                        Bot.IRC.SendPrivateMessage(nickname, string.Format("\"{0}\"", message));
+                        Bot.IRC.Command.SendPrivateMessage(nickname, string.Format("An anonymous sender has left you a message on \u0002{0}\u0002", dateSent.ToString("MMMM d, yyyy h:mm:ss tt")));
+                        Bot.IRC.Command.SendPrivateMessage(nickname, string.Format("\"{0}\"", message));
                     }
                     else
                     {
                         string sentNick = GetNickname((int) receivedMessages[i]["sender_nick_id"]);
-                        Bot.IRC.SendPrivateMessage(nickname, string.Format("\u0002{0}\u0002 has left you a message on \u0002{1}\u0002", sentNick, dateSent.ToString("MMMM d, yyyy h:mm:ss tt")));
-                        Bot.IRC.SendPrivateMessage(nickname, string.Format("\"{0}\"", message));
-                        Bot.IRC.SendPrivateMessage(nickname, string.Format("If you would like to reply to them, please type \u0002{0}{1} {2} \u001FMessage\u001F\u0002", Bot.ServerConfig.CommandPrefix, Commands.Find(cmd => cmd.Name == "Message").Triggers.First(), sentNick));
+                        Bot.IRC.Command.SendPrivateMessage(nickname, string.Format("\u0002{0}\u0002 has left you a message on \u0002{1}\u0002", sentNick, dateSent.ToString("MMMM d, yyyy h:mm:ss tt")));
+                        Bot.IRC.Command.SendPrivateMessage(nickname, string.Format("\"{0}\"", message));
+                        Bot.IRC.Command.SendPrivateMessage(nickname, string.Format("If you would like to reply to them, please type \u0002{0}{1} {2} \u001FMessage\u001F\u0002", Bot.ServerConfig.CommandPrefix, Commands.Find(cmd => cmd.Name == "Message").Triggers.First(), sentNick));
                     }
                     DeleteMessage((int) receivedMessages[i]["id"]);
                 }

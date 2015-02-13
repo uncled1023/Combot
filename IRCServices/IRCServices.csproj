@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <NuGetPackageImportStamp>6839a7db</NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -26,7 +27,6 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>6839a7db</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -56,12 +56,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Channel.cs" />
+    <Compile Include="Commanding\Commands.cs" />
+    <Compile Include="Commanding\CommandTypes.cs" />
     <Compile Include="IRC.cs" />
     <Compile Include="Messaging\GetError.cs" />
     <Compile Include="Messaging\GetReply.cs" />
     <Compile Include="Messaging\Messages.cs" />
     <Compile Include="Messaging\MessageTypes.cs" />
-    <Compile Include="SendCommand.cs" />
     <Compile Include="Nick.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TCP\TCPInterface.cs" />

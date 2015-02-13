@@ -75,11 +75,11 @@ namespace Combot.Modules.Plugins
                     string startMsg = string.Format("{0} day forecast for {1}", days, command.Arguments["Location"]);
                     if (command.MessageType == MessageType.Channel || command.MessageType == MessageType.Notice)
                     {
-                        Bot.IRC.SendNotice(command.Nick.Nickname, startMsg);
+                        Bot.IRC.Command.SendNotice(command.Nick.Nickname, startMsg);
                     }
                     else
                     {
-                        Bot.IRC.SendPrivateMessage(command.Nick.Nickname, startMsg);
+                        Bot.IRC.Command.SendPrivateMessage(command.Nick.Nickname, startMsg);
                     }
                     int index = 0;
                     foreach (XmlNode node in nodes)
@@ -97,11 +97,11 @@ namespace Combot.Modules.Plugins
                                 string forecastMsg = string.Format("{0}: {1} with a high of {2} F ({3} C) and a low of {4} F ({5} C).", weekday, conditions, highf, highc, lowf, lowc);
                                 if (command.MessageType == MessageType.Channel || command.MessageType == MessageType.Notice)
                                 {
-                                    Bot.IRC.SendNotice(command.Nick.Nickname, forecastMsg);
+                                    Bot.IRC.Command.SendNotice(command.Nick.Nickname, forecastMsg);
                                 }
                                 else
                                 {
-                                    Bot.IRC.SendPrivateMessage(command.Nick.Nickname, forecastMsg);
+                                    Bot.IRC.Command.SendPrivateMessage(command.Nick.Nickname, forecastMsg);
                                 }
                             }
                             index++;

@@ -1,15 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
 using System.Threading;
+using Combot.IRCServices.Messaging;
 
-namespace Combot.IRCServices
+namespace Combot.IRCServices.Commanding
 {
-    public partial class IRC
+    public class Commands
     {
+        public event EventHandler<string> RawMessageSentEvent;
+        public event EventHandler<ChannelMessage> MessageSentEvent;
+        public event EventHandler<PrivateMessage> PrivateMessageSentEvent;
+        public event EventHandler<ServerNotice> ServerNoticeSentEvent;
+        public event EventHandler<ChannelNotice> ChannelNoticeSentEvent;
+        public event EventHandler<PrivateNotice> PrivateNoticeSentEvent;
+        public event EventHandler<CTCPMessage> CTCPMessageSentEvent;
+        public event EventHandler<CTCPMessage> CTCPNoticeSentEvent;
+        public event EventHandler<TopicChangeInfo> TopicSentEvent;
+        public event EventHandler<ChannelModeChangeInfo> ChannelModeSentEvent;
+        public event EventHandler<UserModeChangeInfo> UserModeSentEvent;
+        public event EventHandler<NickChangeInfo> NickSentEvent;
+        public event EventHandler<InviteChannelInfo> InviteSentEvent;
+        public event EventHandler<JoinChannelInfo> JoinSentEvent;
+        public event EventHandler<PartChannelInfo> PartSentEvent;
+        public event EventHandler<KickInfo> KickSentEvent;
+        public event EventHandler<QuitInfo> QuitSentEvent;
+        public event EventHandler<PingInfo> PingSentEvent;
+        public event EventHandler<PongInfo> PongSentEvent;
+
+        private IRC _IRC;
+        private int MaxMessageLength;
+        private int MessageSendDelay;
+        private DateTime LastMessageSend;
+
+        public Commands(IRC irc, int maxMessageLength, int messageSendDelay)
+        {
+            _IRC = irc;
+            LastMessageSend = DateTime.Now;
+            MaxMessageLength = maxMessageLength;
+            MessageSendDelay = messageSendDelay;
+        }
+
         /// <summary>
         /// Sends a private message to a nick or channel
         /// </summary>
@@ -25,7 +56,7 @@ namespace Combot.IRCServices
             LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)
             {
-                List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 string subMessage = string.Empty;
                 string nextMessage = string.Empty;
                 for (int i = 0; i < splitMessage.Count; i++)
@@ -39,12 +70,12 @@ namespace Combot.IRCServices
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
                 SendPrivateMessage(recipient, nextMessage);
             }
             else
             {
-                SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
+                _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
             }
         }
 
@@ -68,12 +99,12 @@ namespace Combot.IRCServices
             TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
             if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
             {
-                Thread.Sleep((int) (MessageSendDelay - sinceLastMessage.TotalMilliseconds));
+                Thread.Sleep((int)(MessageSendDelay - sinceLastMessage.TotalMilliseconds));
             }
             LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)
             {
-                List<string> splitMessage = message.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 string subMessage = string.Empty;
                 string nextMessage = string.Empty;
                 for (int i = 0; i < splitMessage.Count; i++)
@@ -87,12 +118,12 @@ namespace Combot.IRCServices
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
                 SendNotice(recipient, nextMessage);
             }
             else
             {
-                SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
             }
         }
 
@@ -119,7 +150,7 @@ namespace Combot.IRCServices
             {
                 message = " " + message;
             }
-            SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient, command, message));
+            _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient, command, message));
         }
 
         public void SendCTCPMessage(List<string> recipients, string command, string message)
@@ -148,7 +179,7 @@ namespace Combot.IRCServices
             {
                 message = " " + message;
             }
-            SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient, command, message));
+            _IRC.SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient, command, message));
         }
 
         public void SendCTCPNotice(List<string> recipients, string command, string message)
@@ -171,7 +202,7 @@ namespace Combot.IRCServices
         /// <param name="password"></param>
         public void SendPassword(string password)
         {
-            SendTCPMessage(string.Format("PASSWORD {0}", password));
+            _IRC.SendTCPMessage(string.Format("PASSWORD {0}", password));
         }
 
         /// <summary>
@@ -180,7 +211,7 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendNick(string nick)
         {
-            SendTCPMessage(string.Format("NICK {0}", nick));
+            _IRC.SendTCPMessage(string.Format("NICK {0}", nick));
         }
 
         /// <summary>
@@ -189,7 +220,7 @@ namespace Combot.IRCServices
         /// <param name="user"></param>
         public void SendUser(string username, string hostname, string servername, string realname)
         {
-            SendTCPMessage(string.Format("USER {0} {1} {2} :{3}", username, hostname, servername, realname));
+            _IRC.SendTCPMessage(string.Format("USER {0} {1} {2} :{3}", username, hostname, servername, realname));
         }
 
         /// <summary>
@@ -199,7 +230,7 @@ namespace Combot.IRCServices
         /// <param name="password"></param>
         public void SendOper(string username, string password)
         {
-            SendTCPMessage(string.Format("OPER {0} {1}", username, password));
+            _IRC.SendTCPMessage(string.Format("OPER {0} {1}", username, password));
         }
 
         /// <summary>
@@ -208,12 +239,12 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendQuit()
         {
-            SendTCPMessage("QUIT");
+            _IRC.SendTCPMessage("QUIT");
         }
 
         public void SendQuit(string message)
         {
-            SendTCPMessage(string.Format("QUIT :{0}", message));
+            _IRC.SendTCPMessage(string.Format("QUIT :{0}", message));
         }
 
         /// <summary>
@@ -224,7 +255,7 @@ namespace Combot.IRCServices
         {
             string message = string.Empty;
             message = (key != string.Empty) ? string.Format("{0} {1}", channel, key) : channel;
-            SendTCPMessage(string.Format("JOIN {0}", message));
+            _IRC.SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
         public void SendJoin(List<string> channels, List<string> keys)
@@ -234,7 +265,7 @@ namespace Combot.IRCServices
             string key_string = string.Empty;
 
             foreach (string channel in channels)
-            {                
+            {
                 channel_string += channel + ",";
             }
             foreach (string key in keys)
@@ -248,7 +279,7 @@ namespace Combot.IRCServices
             key_string = key_string.TrimEnd(',');
 
             message = (key_string != string.Empty) ? string.Format("{0} {1}", channel_string, key_string) : channel_string;
-            SendTCPMessage(string.Format("JOIN {0}", message));
+            _IRC.SendTCPMessage(string.Format("JOIN {0}", message));
         }
 
         /// <summary>
@@ -257,7 +288,7 @@ namespace Combot.IRCServices
         /// <param name="channel"></param>
         public void SendPart(string channel)
         {
-            SendTCPMessage(string.Format("PART {0}", channel));
+            _IRC.SendTCPMessage(string.Format("PART {0}", channel));
         }
 
         public void SendPart(List<string> channels)
@@ -280,7 +311,7 @@ namespace Combot.IRCServices
         public void SendMode(string channel, ChannelModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+            _IRC.SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
         }
 
         public void SendMode(string channel, List<ChannelModeInfo> modeInfos)
@@ -294,7 +325,7 @@ namespace Combot.IRCServices
         public void SendMode(string nick, UserModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            SendTCPMessage(string.Format("MODE {0} {1}", nick, mode_set + modeInfo.Mode.ToString()));
+            _IRC.SendTCPMessage(string.Format("MODE {0} {1}", nick, mode_set + modeInfo.Mode.ToString()));
         }
 
         public void SendMode(string nick, List<UserModeInfo> modeInfos)
@@ -311,12 +342,12 @@ namespace Combot.IRCServices
         /// <param name="channel"></param>
         public void SendTopic(string channel)
         {
-            SendTCPMessage(string.Format("TOPIC {0}", channel));
+            _IRC.SendTCPMessage(string.Format("TOPIC {0}", channel));
         }
 
         public void SendTopic(string channel, string topic)
         {
-            SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
+            _IRC.SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
         }
 
         /// <summary>
@@ -324,12 +355,12 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendNames()
         {
-            SendTCPMessage("NAMES");
+            _IRC.SendTCPMessage("NAMES");
         }
 
         public void SendNames(string channel)
         {
-            SendTCPMessage(string.Format("NAMES {0}", channel));
+            _IRC.SendTCPMessage(string.Format("NAMES {0}", channel));
         }
 
         public void SendNames(List<string> channels)
@@ -347,12 +378,12 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendList()
         {
-            SendTCPMessage("LIST");
+            _IRC.SendTCPMessage("LIST");
         }
 
         public void SendList(string channel)
         {
-            SendTCPMessage(string.Format("LIST {0}", channel));
+            _IRC.SendTCPMessage(string.Format("LIST {0}", channel));
         }
 
         public void SendList(List<string> channels)
@@ -372,7 +403,7 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendInvite(string channel, string nick)
         {
-            SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
+            _IRC.SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
         }
 
         /// <summary>
@@ -382,12 +413,12 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendKick(string channel, string nick)
         {
-            SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
+            _IRC.SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
         }
 
         public void SendKick(string channel, string nick, string reason)
         {
-            SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
+            _IRC.SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
         }
 
         /// <summary>
@@ -396,7 +427,7 @@ namespace Combot.IRCServices
         /// <param name="server"></param>
         public void SendVersion(string server)
         {
-            SendTCPMessage(string.Format("VERSION {0}", server));
+            _IRC.SendTCPMessage(string.Format("VERSION {0}", server));
         }
 
         /// <summary>
@@ -405,12 +436,12 @@ namespace Combot.IRCServices
         /// <param name="stat"></param>
         public void SendStats(ServerStat stat)
         {
-            SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
+            _IRC.SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
         }
 
         public void SendStats(ServerStat stat, string parameter)
         {
-            SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
+            _IRC.SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
         }
 
         /// <summary>
@@ -419,12 +450,12 @@ namespace Combot.IRCServices
         /// <param name="mask"></param>
         public void SendLinks(string mask)
         {
-            SendTCPMessage(string.Format("LINKS {0}", mask));
+            _IRC.SendTCPMessage(string.Format("LINKS {0}", mask));
         }
 
         public void SendLinks(string server, string mask)
         {
-            SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
+            _IRC.SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
         }
 
         /// <summary>
@@ -432,12 +463,12 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendTime()
         {
-            SendTCPMessage("TIME");
+            _IRC.SendTCPMessage("TIME");
         }
 
         public void SendTime(string server)
         {
-            SendTCPMessage(string.Format("TIME {0}", server));
+            _IRC.SendTCPMessage(string.Format("TIME {0}", server));
         }
 
         /// <summary>
@@ -446,12 +477,12 @@ namespace Combot.IRCServices
         /// <param name="server"></param>
         public void SendConnect(string server)
         {
-            SendTCPMessage(string.Format("CONNECT {0}", server));
+            _IRC.SendTCPMessage(string.Format("CONNECT {0}", server));
         }
 
         public void SendConnect(string server, string originator, int port)
         {
-            SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
+            _IRC.SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
         }
 
         /// <summary>
@@ -460,7 +491,7 @@ namespace Combot.IRCServices
         /// <param name="target"></param>
         public void SendTrace(string target)
         {
-            SendTCPMessage(string.Format("TRACE {0}", target));
+            _IRC.SendTCPMessage(string.Format("TRACE {0}", target));
         }
 
         /// <summary>
@@ -468,12 +499,12 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendAdmin()
         {
-            SendTCPMessage("ADMIN");
+            _IRC.SendTCPMessage("ADMIN");
         }
 
         public void SendAdmin(string host)
         {
-            SendTCPMessage(string.Format("ADMIN {0}", host));
+            _IRC.SendTCPMessage(string.Format("ADMIN {0}", host));
         }
 
         /// <summary>
@@ -482,7 +513,7 @@ namespace Combot.IRCServices
         /// <param name="host"></param>
         public void SendInfo(string host)
         {
-            SendTCPMessage(string.Format("INFO {0}", host));
+            _IRC.SendTCPMessage(string.Format("INFO {0}", host));
         }
 
         /// <summary>
@@ -490,7 +521,7 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendWho()
         {
-            SendTCPMessage("WHO");
+            _IRC.SendTCPMessage("WHO");
         }
 
         public void SendWho(string host, bool ops = false)
@@ -504,7 +535,7 @@ namespace Combot.IRCServices
             {
                 msg = string.Format("WHO {0}", host);
             }
-            SendTCPMessage(msg);
+            _IRC.SendTCPMessage(msg);
         }
 
         /// <summary>
@@ -513,12 +544,12 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendWhois(string nick)
         {
-            SendTCPMessage(string.Format("WHOIS {0}", nick));
+            _IRC.SendTCPMessage(string.Format("WHOIS {0}", nick));
         }
 
         public void SendWhois(string nick, string server)
         {
-            SendTCPMessage(string.Format("WHOIS {0} {1}", server, nick));
+            _IRC.SendTCPMessage(string.Format("WHOIS {0} {1}", server, nick));
         }
 
         /// <summary>
@@ -527,17 +558,17 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendWhowas(string nick)
         {
-            SendTCPMessage(string.Format("WHOIS {0}", nick));
+            _IRC.SendTCPMessage(string.Format("WHOIS {0}", nick));
         }
 
         public void SendWhowas(string nick, int entries)
         {
-            SendTCPMessage(string.Format("WHOIS {0} {1}", nick, entries));
+            _IRC.SendTCPMessage(string.Format("WHOIS {0} {1}", nick, entries));
         }
 
         public void SendWhowas(string nick, int entries, string server)
         {
-            SendTCPMessage(string.Format("WHOIS {0} {1} {2}", nick, entries, server));
+            _IRC.SendTCPMessage(string.Format("WHOIS {0} {1} {2}", nick, entries, server));
         }
 
         /// <summary>
@@ -547,7 +578,7 @@ namespace Combot.IRCServices
         /// <param name="comment"></param>
         public void SendKill(string nick, string comment)
         {
-            SendTCPMessage(string.Format("KILL {0} {1}", nick, comment));
+            _IRC.SendTCPMessage(string.Format("KILL {0} {1}", nick, comment));
         }
 
         /// <summary>
@@ -556,7 +587,7 @@ namespace Combot.IRCServices
         /// <param name="recipient"></param>
         public void SendPing(string recipient)
         {
-            SendTCPMessage(string.Format("PING {0}", recipient));
+            _IRC.SendTCPMessage(string.Format("PING {0}", recipient));
         }
 
         /// <summary>
@@ -566,26 +597,25 @@ namespace Combot.IRCServices
         /// <param name="recipient"></param>
         public void SendPong()
         {
-            SendTCPMessage("PONG");
+            _IRC.SendTCPMessage("PONG");
         }
 
         public void SendPong(string message)
         {
-            SendTCPMessage(string.Format("PONG {0}", message));
+            _IRC.SendTCPMessage(string.Format("PONG {0}", message));
         }
 
         public void SendPong(string sender, string recipient)
         {
-            SendTCPMessage(string.Format("PONG {0} {1}", sender, recipient));
+            _IRC.SendTCPMessage(string.Format("PONG {0} {1}", sender, recipient));
         }
-
 
         /// <summary>
         /// Sends an Away command to unset away status
         /// </summary>
         public void SendAway()
         {
-            SendTCPMessage("AWAY");
+            _IRC.SendTCPMessage("AWAY");
         }
 
         /// <summary>
@@ -594,7 +624,7 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendAway(string message)
         {
-            SendTCPMessage(string.Format("AWAY {0}", message));
+            _IRC.SendTCPMessage(string.Format("AWAY {0}", message));
         }
 
         /// <summary>
@@ -602,7 +632,7 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendRehash()
         {
-            SendTCPMessage("REHASH");
+            _IRC.SendTCPMessage("REHASH");
         }
 
         /// <summary>
@@ -610,7 +640,7 @@ namespace Combot.IRCServices
         /// </summary>
         public void SendRestart()
         {
-            SendTCPMessage("RESTART");
+            _IRC.SendTCPMessage("RESTART");
         }
 
         /// <summary>
@@ -619,17 +649,17 @@ namespace Combot.IRCServices
         /// <param name="nick"></param>
         public void SendSummon()
         {
-            SendTCPMessage("SUMMON");
+            _IRC.SendTCPMessage("SUMMON");
         }
 
         public void SendSummon(string nick)
         {
-            SendTCPMessage(string.Format("SUMMON {0}", nick));
+            _IRC.SendTCPMessage(string.Format("SUMMON {0}", nick));
         }
 
         public void SendSummon(string nick, string host)
         {
-            SendTCPMessage(string.Format("SUMMON {0} {1}", nick, host));
+            _IRC.SendTCPMessage(string.Format("SUMMON {0} {1}", nick, host));
         }
 
         /// <summary>
@@ -638,7 +668,7 @@ namespace Combot.IRCServices
         /// <param name="server"></param>
         public void SendUsers(string server)
         {
-            SendTCPMessage(string.Format("USERS {0}", server));
+            _IRC.SendTCPMessage(string.Format("USERS {0}", server));
         }
 
         /// <summary>
@@ -647,7 +677,7 @@ namespace Combot.IRCServices
         /// <param name="message"></param>
         public void SendWallops(string message)
         {
-            SendTCPMessage(string.Format("WALLOPS :{0}", message));
+            _IRC.SendTCPMessage(string.Format("WALLOPS :{0}", message));
         }
 
         /// <summary>
@@ -661,7 +691,7 @@ namespace Combot.IRCServices
             {
                 message += " " + nick;
             }
-            SendTCPMessage(string.Format("USERHOST {0}", message.Trim()));
+            _IRC.SendTCPMessage(string.Format("USERHOST {0}", message.Trim()));
         }
 
         /// <summary>
@@ -675,7 +705,7 @@ namespace Combot.IRCServices
             {
                 message += " " + nick;
             }
-            SendTCPMessage(string.Format("ISON {0}", message.Trim()));
+            _IRC.SendTCPMessage(string.Format("ISON {0}", message.Trim()));
         }
     }
 }
