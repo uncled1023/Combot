@@ -13,6 +13,7 @@ using Combot;
 using Combot.IRCServices.Messaging;
 using Combot.Configurations;
 using Combot.IRCServices;
+using Combot.IRCServices.Commanding;
 
 namespace Interface.ViewModels
 {
@@ -157,15 +158,21 @@ namespace Interface.ViewModels
                 Bot Combot = new Bot(server);
 
                 Combot.ErrorEvent += e => BotErrorHandler(e, Combot.ServerConfig.Name);
+
+                // Incoming Messages
                 Combot.IRC.Message.ErrorMessageEvent += (sender, e) => ErrorMessageHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.ServerReplyEvent += (sender, e) => ServerReplyHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.ChannelMessageReceivedEvent += (sender, e) => ChannelMessageReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.ChannelNoticeReceivedEvent += (sender, e) => ChannelNoticeReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PrivateMessageReceivedEvent += (sender, e) => PrivateMessageReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PrivateNoticeReceivedEvent += (sender, e) => PrivateNoticeReceivedHandler(sender, e, Combot.ServerConfig.Name);
-
                 Combot.IRC.Message.JoinChannelEvent += (sender, e) => JoinEventHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PartChannelEvent += (sender, e) => PartEventHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.QuitEvent += (sender, e) => QuitEventHandler(sender, e, Combot.ServerConfig.Name);
+
+                // Outgoing Messages
+                Combot.IRC.Command.PrivateMessageCommandEvent += (sender, e) => PrivateMessageCommandHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Command.PrivateNoticeCommandEvent += (sender, e) => PrivateNoticeCommandHandler(sender, e, Combot.ServerConfig.Name);
 
                 Combot.IRC.ConnectEvent += () => ConnectHandler(Combot.ServerConfig.Name);
                 Combot.IRC.DisconnectEvent += () => DisconnectHandler(Combot.ServerConfig.Name);
@@ -213,7 +220,8 @@ namespace Interface.ViewModels
 
         private void ChannelNoticeReceivedHandler(object sender, ChannelNotice message, string server)
         {
-            AddToBuffer(server, message.Channel, string.Format("[{0}] \u0002{1}\u0002 -NOTICE-: {2}", message.TimeStamp.ToString("HH:mm:ss"), message.Sender.Nickname, message.Message));
+            string location = (SelectedServer == server) ? SelectedLocation : null;
+            AddToBuffer(server, location, string.Format("[{0}] \u0002{1}\u0002 -NOTICE-: {2}", message.TimeStamp.ToString("HH:mm:ss"), message.Sender.Nickname, message.Message));
         }
 
         private void PrivateMessageReceivedHandler(object sender, PrivateMessage message, string server)
@@ -228,7 +236,7 @@ namespace Interface.ViewModels
 
         private void PrivateNoticeReceivedHandler(object sender, PrivateNotice message, string server)
         {
-            string location = message.Sender.Nickname;
+            string location = (SelectedServer == server) ? SelectedLocation : null;
             if (message.Sender.Nickname.ToLower() == "nickserv" || message.Sender.Nickname.ToLower() == "chanserv")
             {
                 location = null;
@@ -244,6 +252,35 @@ namespace Interface.ViewModels
         private void PartEventHandler(object sender, PartChannelInfo info, string server)
         {
             AddToBuffer(server, info.Channel, string.Format("[{0}] \u0002{1}\u0002 has left \u0002{2}\u0002.", info.TimeStamp.ToString("HH:mm:ss"), info.Nick.Nickname, info.Channel));
+        }
+
+        private void QuitEventHandler(object sender, QuitInfo info, string server)
+        {
+            string message = (info.Message == string.Empty) ? info.Nick.Nickname : info.Message;
+            AddToBuffer(server, null, string.Format("[{0}] \u0002{1}\u0002 has quit: ({2})", info.TimeStamp.ToString("HH:mm:ss"), info.Nick.Nickname, message));
+        }
+
+        private void PrivateMessageCommandHandler(object sender, PrivateMessageCommand message, string server)
+        {
+            string curNick = string.Empty;
+            Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+            if (session != null)
+            {
+                curNick = session.IRC.Nickname;
+            }
+            AddToBuffer(server, message.Recipient, string.Format("[{0}] \u0002{1}\u0002: {2}", message.TimeStamp.ToString("HH:mm:ss"), curNick, message.Message));
+        }
+
+        private void PrivateNoticeCommandHandler(object sender, PrivateNoticeCommand message, string server)
+        {
+            string curNick = string.Empty;
+            Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+            if (session != null)
+            {
+                curNick = session.IRC.Nickname;
+            }
+            string location = (SelectedServer == server) ? SelectedLocation : null;
+            AddToBuffer(server, location, string.Format("[{0}] \u0002{1}\u0002 -NOTICE-: {2}", message.TimeStamp.ToString("HH:mm:ss"), curNick, message.Message));
         }
 
         private void ConnectHandler(string server)
@@ -451,7 +488,11 @@ namespace Interface.ViewModels
                 }
                 CurrentBuffer = string.Join(Environment.NewLine, BufferList.Find(buf => buf.Server == SelectedServer && buf.Location == SelectedLocation).Buffer);
                 BufferLock.ExitWriteLock();
-                Connected = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer).Connected;
+                Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+                if (session != null)
+                {
+                    Connected = session.Connected;
+                }
             }
         }
     }

@@ -8,25 +8,46 @@ namespace Combot.IRCServices.Commanding
 {
     public class Commands
     {
-        public event EventHandler<string> RawMessageSentEvent;
-        public event EventHandler<ChannelMessage> MessageSentEvent;
-        public event EventHandler<PrivateMessage> PrivateMessageSentEvent;
-        public event EventHandler<ServerNotice> ServerNoticeSentEvent;
-        public event EventHandler<ChannelNotice> ChannelNoticeSentEvent;
-        public event EventHandler<PrivateNotice> PrivateNoticeSentEvent;
-        public event EventHandler<CTCPMessage> CTCPMessageSentEvent;
-        public event EventHandler<CTCPMessage> CTCPNoticeSentEvent;
-        public event EventHandler<TopicChangeInfo> TopicSentEvent;
-        public event EventHandler<ChannelModeChangeInfo> ChannelModeSentEvent;
-        public event EventHandler<UserModeChangeInfo> UserModeSentEvent;
-        public event EventHandler<NickChangeInfo> NickSentEvent;
-        public event EventHandler<InviteChannelInfo> InviteSentEvent;
-        public event EventHandler<JoinChannelInfo> JoinSentEvent;
-        public event EventHandler<PartChannelInfo> PartSentEvent;
-        public event EventHandler<KickInfo> KickSentEvent;
-        public event EventHandler<QuitInfo> QuitSentEvent;
-        public event EventHandler<PingInfo> PingSentEvent;
-        public event EventHandler<PongInfo> PongSentEvent;
+        public event EventHandler<PrivateMessageCommand> PrivateMessageCommandEvent;
+        public event EventHandler<PrivateNoticeCommand> PrivateNoticeCommandEvent;
+        public event EventHandler<CTCPMessageCommand> CTCPMessageCommandEvent;
+        public event EventHandler<CTCPNoticeCommand> CTCPNoticeCommandEvent;
+        public event EventHandler<PasswordCommand> PasswordCommandEvent;
+        public event EventHandler<NickCommand> NickCommandEvent;
+        public event EventHandler<UserCommand> UserCommandEvent;
+        public event EventHandler<OperCommand> OperCommandEvent;
+        public event EventHandler<QuitCommand> QuitCommandEvent;
+        public event EventHandler<JoinCommand> JoinCommandEvent;
+        public event EventHandler<PartCommand> PartCommandEvent;
+        public event EventHandler<ChannelModeCommand> ChannelModeCommandEvent;
+        public event EventHandler<UserModeCommand> UserModeCommandEvent;
+        public event EventHandler<TopicCommand> TopicCommandEvent;
+        public event EventHandler<NamesCommand> NamesCommandEvent;
+        public event EventHandler<ListCommand> ListCommandEvent;
+        public event EventHandler<InviteCommand> InviteCommandEvent;
+        public event EventHandler<KickCommand> KickCommandEvent;
+        public event EventHandler<VersionCommand> VersionCommandEvent;
+        public event EventHandler<StatsCommand> StatsCommandEvent;
+        public event EventHandler<LinksCommand> LinksCommandEvent;
+        public event EventHandler<TimeCommand> TimeCommandEvent;
+        public event EventHandler<ConnectCommand> ConnectCommandEvent;
+        public event EventHandler<TraceCommand> TraceCommandEvent; 
+        public event EventHandler<AdminCommand> AdminCommandEvent;
+        public event EventHandler<InfoCommand> InfoCommandEvent;
+        public event EventHandler<WhoCommand> WhoCommandEvent;
+        public event EventHandler<WhoisCommand> WhoisCommandEvent;
+        public event EventHandler<WhowasCommand> WhowasCommandEvent;
+        public event EventHandler<KillCommand> KillCommandEvent;
+        public event EventHandler<PingCommand> PingCommandEvent;
+        public event EventHandler<PongCommand> PongCommandEvent;
+        public event EventHandler<AwayCommand> AwayCommandEvent;
+        public event EventHandler<RehashCommand> RehashCommandEvent;
+        public event EventHandler<RestartCommand> RestartCommandEvent; 
+        public event EventHandler<SummonCommand> SummonCommandEvent;
+        public event EventHandler<UsersCommand> UsersCommandEvent;
+        public event EventHandler<WallopsCommand> WallopsCommandEvent;
+        public event EventHandler<UserhostCommand> UserhostCommandEvent;
+        public event EventHandler<IsonCommand> IsonCommandEvent; 
 
         private IRC _IRC;
         private int MaxMessageLength;
@@ -71,11 +92,19 @@ namespace Combot.IRCServices.Commanding
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
                 _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                if (PrivateMessageCommandEvent != null)
+                {
+                    PrivateMessageCommandEvent(this, new PrivateMessageCommand { Message = subMessage.Remove(0, 1), Recipient = recipient });
+                }
                 SendPrivateMessage(recipient, nextMessage);
             }
             else
             {
                 _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, message));
+                if (PrivateMessageCommandEvent != null)
+                {
+                    PrivateMessageCommandEvent(this, new PrivateMessageCommand { Message = message, Recipient = recipient });
+                }
             }
         }
 
@@ -119,11 +148,19 @@ namespace Combot.IRCServices.Commanding
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
                 _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                if (PrivateNoticeCommandEvent != null)
+                {
+                    PrivateNoticeCommandEvent(this, new PrivateNoticeCommand { Message = subMessage.Remove(0, 1), Recipient = recipient });
+                }
                 SendNotice(recipient, nextMessage);
             }
             else
             {
                 _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, message));
+                if (PrivateNoticeCommandEvent != null)
+                {
+                    PrivateNoticeCommandEvent(this, new PrivateNoticeCommand { Message = message, Recipient = recipient });
+                }
             }
         }
 
@@ -151,6 +188,10 @@ namespace Combot.IRCServices.Commanding
                 message = " " + message;
             }
             _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :\u0001{1}{2}\u0001", recipient, command, message));
+            if (CTCPMessageCommandEvent != null)
+            {
+                CTCPMessageCommandEvent(this, new CTCPMessageCommand { Arguments = message, Command = command, Recipient = recipient });
+            }
         }
 
         public void SendCTCPMessage(List<string> recipients, string command, string message)
@@ -180,6 +221,10 @@ namespace Combot.IRCServices.Commanding
                 message = " " + message;
             }
             _IRC.SendTCPMessage(string.Format("NOTICE {0} :\u0001{1}{2}\u0001", recipient, command, message));
+            if (CTCPNoticeCommandEvent != null)
+            {
+                CTCPNoticeCommandEvent(this, new CTCPNoticeCommand { Arguments = message, Command = command, Recipient = recipient });
+            }
         }
 
         public void SendCTCPNotice(List<string> recipients, string command, string message)
@@ -203,6 +248,10 @@ namespace Combot.IRCServices.Commanding
         public void SendPassword(string password)
         {
             _IRC.SendTCPMessage(string.Format("PASSWORD {0}", password));
+            if (PasswordCommandEvent != null)
+            {
+                PasswordCommandEvent(this, new PasswordCommand { Password = password });
+            }
         }
 
         /// <summary>
@@ -212,6 +261,10 @@ namespace Combot.IRCServices.Commanding
         public void SendNick(string nick)
         {
             _IRC.SendTCPMessage(string.Format("NICK {0}", nick));
+            if (NickCommandEvent != null)
+            {
+                NickCommandEvent(this, new NickCommand { Nick = nick });
+            }
         }
 
         /// <summary>
@@ -221,6 +274,10 @@ namespace Combot.IRCServices.Commanding
         public void SendUser(string username, string hostname, string servername, string realname)
         {
             _IRC.SendTCPMessage(string.Format("USER {0} {1} {2} :{3}", username, hostname, servername, realname));
+            if (UserCommandEvent != null)
+            {
+                UserCommandEvent(this, new UserCommand { Username = username, Hostname = hostname, Servername = servername, Realname = realname });
+            }
         }
 
         /// <summary>
@@ -231,6 +288,10 @@ namespace Combot.IRCServices.Commanding
         public void SendOper(string username, string password)
         {
             _IRC.SendTCPMessage(string.Format("OPER {0} {1}", username, password));
+            if (OperCommandEvent != null)
+            {
+                OperCommandEvent(this, new OperCommand {Username = username, Password = password});
+            }
         }
 
         /// <summary>
@@ -240,11 +301,19 @@ namespace Combot.IRCServices.Commanding
         public void SendQuit()
         {
             _IRC.SendTCPMessage("QUIT");
+            if (QuitCommandEvent != null)
+            {
+                QuitCommandEvent(this, new QuitCommand());
+            }
         }
 
         public void SendQuit(string message)
         {
             _IRC.SendTCPMessage(string.Format("QUIT :{0}", message));
+            if (QuitCommandEvent != null)
+            {
+                QuitCommandEvent(this, new QuitCommand {Message = message});
+            }
         }
 
         /// <summary>
@@ -256,6 +325,10 @@ namespace Combot.IRCServices.Commanding
             string message = string.Empty;
             message = (key != string.Empty) ? string.Format("{0} {1}", channel, key) : channel;
             _IRC.SendTCPMessage(string.Format("JOIN {0}", message));
+            if (JoinCommandEvent != null)
+            {
+                JoinCommandEvent(this, new JoinCommand {Channel = channel, Key = key});
+            }
         }
 
         public void SendJoin(List<string> channels, List<string> keys)
@@ -280,6 +353,10 @@ namespace Combot.IRCServices.Commanding
 
             message = (key_string != string.Empty) ? string.Format("{0} {1}", channel_string, key_string) : channel_string;
             _IRC.SendTCPMessage(string.Format("JOIN {0}", message));
+            if (JoinCommandEvent != null)
+            {
+                JoinCommandEvent(this, new JoinCommand {Channel = channel_string, Key = key_string});
+            }
         }
 
         /// <summary>
@@ -289,6 +366,10 @@ namespace Combot.IRCServices.Commanding
         public void SendPart(string channel)
         {
             _IRC.SendTCPMessage(string.Format("PART {0}", channel));
+            if (PartCommandEvent != null)
+            {
+                PartCommandEvent(this, new PartCommand {Channel = channel});
+            }
         }
 
         public void SendPart(List<string> channels)
@@ -311,7 +392,11 @@ namespace Combot.IRCServices.Commanding
         public void SendMode(string channel, ChannelModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            _IRC.SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode.ToString(), modeInfo.Parameter));
+            _IRC.SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, mode_set + modeInfo.Mode, modeInfo.Parameter));
+            if (ChannelModeCommandEvent != null)
+            {
+                ChannelModeCommandEvent(this, new ChannelModeCommand {Channel = channel, Mode = modeInfo});
+            }
         }
 
         public void SendMode(string channel, List<ChannelModeInfo> modeInfos)
@@ -325,7 +410,11 @@ namespace Combot.IRCServices.Commanding
         public void SendMode(string nick, UserModeInfo modeInfo)
         {
             string mode_set = modeInfo.Set ? "+" : "-";
-            _IRC.SendTCPMessage(string.Format("MODE {0} {1}", nick, mode_set + modeInfo.Mode.ToString()));
+            _IRC.SendTCPMessage(string.Format("MODE {0} {1}", nick, mode_set + modeInfo.Mode));
+            if (UserModeCommandEvent != null)
+            {
+                UserModeCommandEvent(this, new UserModeCommand {Nick = nick, Mode = modeInfo});
+            }
         }
 
         public void SendMode(string nick, List<UserModeInfo> modeInfos)
@@ -343,11 +432,19 @@ namespace Combot.IRCServices.Commanding
         public void SendTopic(string channel)
         {
             _IRC.SendTCPMessage(string.Format("TOPIC {0}", channel));
+            if (TopicCommandEvent != null)
+            {
+                TopicCommandEvent(this, new TopicCommand {Channel = channel});
+            }
         }
 
         public void SendTopic(string channel, string topic)
         {
             _IRC.SendTCPMessage(string.Format("TOPIC {0} :{1}", channel, topic));
+            if (TopicCommandEvent != null)
+            {
+                TopicCommandEvent(this, new TopicCommand {Channel = channel, Topic = topic});
+            }
         }
 
         /// <summary>
@@ -356,11 +453,19 @@ namespace Combot.IRCServices.Commanding
         public void SendNames()
         {
             _IRC.SendTCPMessage("NAMES");
+            if (NamesCommandEvent != null)
+            {
+                NamesCommandEvent(this, new NamesCommand());
+            }
         }
 
         public void SendNames(string channel)
         {
             _IRC.SendTCPMessage(string.Format("NAMES {0}", channel));
+            if (NamesCommandEvent != null)
+            {
+                NamesCommandEvent(this, new NamesCommand {Channel = channel});
+            }
         }
 
         public void SendNames(List<string> channels)
@@ -379,11 +484,19 @@ namespace Combot.IRCServices.Commanding
         public void SendList()
         {
             _IRC.SendTCPMessage("LIST");
+            if (ListCommandEvent != null)
+            {
+                ListCommandEvent(this, new ListCommand());
+            }
         }
 
         public void SendList(string channel)
         {
             _IRC.SendTCPMessage(string.Format("LIST {0}", channel));
+            if (ListCommandEvent != null)
+            {
+                ListCommandEvent(this, new ListCommand {Channel = channel});
+            }
         }
 
         public void SendList(List<string> channels)
@@ -404,6 +517,10 @@ namespace Combot.IRCServices.Commanding
         public void SendInvite(string channel, string nick)
         {
             _IRC.SendTCPMessage(string.Format("INVITE {0} {1}", nick, channel));
+            if (InviteCommandEvent != null)
+            {
+                InviteCommandEvent(this, new InviteCommand {Channel = channel, Nick = nick});
+            }
         }
 
         /// <summary>
@@ -414,11 +531,19 @@ namespace Combot.IRCServices.Commanding
         public void SendKick(string channel, string nick)
         {
             _IRC.SendTCPMessage(string.Format("KICK {0} {1}", channel, nick));
+            if (KickCommandEvent != null)
+            {
+                KickCommandEvent(this, new KickCommand {Channel = channel, Nick = nick});
+            }
         }
 
         public void SendKick(string channel, string nick, string reason)
         {
             _IRC.SendTCPMessage(string.Format("KICK {0} {1} :{2}", channel, nick, reason));
+            if (KickCommandEvent != null)
+            {
+                KickCommandEvent(this, new KickCommand {Channel = channel, Nick = nick, Reason = reason});
+            }
         }
 
         /// <summary>
@@ -428,6 +553,10 @@ namespace Combot.IRCServices.Commanding
         public void SendVersion(string server)
         {
             _IRC.SendTCPMessage(string.Format("VERSION {0}", server));
+            if (VersionCommandEvent != null)
+            {
+                VersionCommandEvent(this, new VersionCommand {Server = server});
+            }
         }
 
         /// <summary>
@@ -436,12 +565,20 @@ namespace Combot.IRCServices.Commanding
         /// <param name="stat"></param>
         public void SendStats(ServerStat stat)
         {
-            _IRC.SendTCPMessage(string.Format("STATS {0}", stat.ToString()));
+            _IRC.SendTCPMessage(string.Format("STATS {0}", stat));
+            if (StatsCommandEvent != null)
+            {
+                StatsCommandEvent(this, new StatsCommand {Stat = stat.ToString()});
+            }
         }
 
         public void SendStats(ServerStat stat, string parameter)
         {
-            _IRC.SendTCPMessage(string.Format("STATS {0} {1}", stat.ToString(), parameter));
+            _IRC.SendTCPMessage(string.Format("STATS {0} {1}", stat, parameter));
+            if (StatsCommandEvent != null)
+            {
+                StatsCommandEvent(this, new StatsCommand {Stat = stat.ToString(), Parameter = parameter});
+            }
         }
 
         /// <summary>
@@ -451,11 +588,19 @@ namespace Combot.IRCServices.Commanding
         public void SendLinks(string mask)
         {
             _IRC.SendTCPMessage(string.Format("LINKS {0}", mask));
+            if (LinksCommandEvent != null)
+            {
+                LinksCommandEvent(this, new LinksCommand {Mask = mask});
+            }
         }
 
         public void SendLinks(string server, string mask)
         {
             _IRC.SendTCPMessage(string.Format("LINKS {0} {1}", mask, server));
+            if (LinksCommandEvent != null)
+            {
+                LinksCommandEvent(this, new LinksCommand {Mask = mask, Server = server});
+            }
         }
 
         /// <summary>
@@ -464,11 +609,19 @@ namespace Combot.IRCServices.Commanding
         public void SendTime()
         {
             _IRC.SendTCPMessage("TIME");
+            if (TimeCommandEvent != null)
+            {
+                TimeCommandEvent(this, new TimeCommand());
+            }
         }
 
         public void SendTime(string server)
         {
             _IRC.SendTCPMessage(string.Format("TIME {0}", server));
+            if (TimeCommandEvent != null)
+            {
+                TimeCommandEvent(this, new TimeCommand {Server = server});
+            }
         }
 
         /// <summary>
@@ -478,11 +631,19 @@ namespace Combot.IRCServices.Commanding
         public void SendConnect(string server)
         {
             _IRC.SendTCPMessage(string.Format("CONNECT {0}", server));
+            if (ConnectCommandEvent != null)
+            {
+                ConnectCommandEvent(this, new ConnectCommand {Server = server});
+            }
         }
 
         public void SendConnect(string server, string originator, int port)
         {
             _IRC.SendTCPMessage(string.Format("CONNECT {0} {1} {2}", originator, port, server));
+            if (ConnectCommandEvent != null)
+            {
+                ConnectCommandEvent(this, new ConnectCommand {Server = server, Originator = originator, Port = port});
+            }
         }
 
         /// <summary>
@@ -492,6 +653,10 @@ namespace Combot.IRCServices.Commanding
         public void SendTrace(string target)
         {
             _IRC.SendTCPMessage(string.Format("TRACE {0}", target));
+            if (TraceCommandEvent != null)
+            {
+                TraceCommandEvent(this, new TraceCommand {Target = target});
+            }
         }
 
         /// <summary>
@@ -500,11 +665,19 @@ namespace Combot.IRCServices.Commanding
         public void SendAdmin()
         {
             _IRC.SendTCPMessage("ADMIN");
+            if (AdminCommandEvent != null)
+            {
+                AdminCommandEvent(this, new AdminCommand());
+            }
         }
 
         public void SendAdmin(string host)
         {
             _IRC.SendTCPMessage(string.Format("ADMIN {0}", host));
+            if (AdminCommandEvent != null)
+            {
+                AdminCommandEvent(this, new AdminCommand {Host = host});
+            }
         }
 
         /// <summary>
@@ -514,6 +687,10 @@ namespace Combot.IRCServices.Commanding
         public void SendInfo(string host)
         {
             _IRC.SendTCPMessage(string.Format("INFO {0}", host));
+            if (InfoCommandEvent != null)
+            {
+                InfoCommandEvent(this, new InfoCommand {Host = host});
+            }
         }
 
         /// <summary>
@@ -522,6 +699,10 @@ namespace Combot.IRCServices.Commanding
         public void SendWho()
         {
             _IRC.SendTCPMessage("WHO");
+            if (WhoCommandEvent != null)
+            {
+                WhoCommandEvent(this, new WhoCommand());
+            }
         }
 
         public void SendWho(string host, bool ops = false)
@@ -536,6 +717,10 @@ namespace Combot.IRCServices.Commanding
                 msg = string.Format("WHO {0}", host);
             }
             _IRC.SendTCPMessage(msg);
+            if (WhoCommandEvent != null)
+            {
+                WhoCommandEvent(this, new WhoCommand {Host = host});
+            }
         }
 
         /// <summary>
@@ -545,11 +730,19 @@ namespace Combot.IRCServices.Commanding
         public void SendWhois(string nick)
         {
             _IRC.SendTCPMessage(string.Format("WHOIS {0}", nick));
+            if (WhoisCommandEvent != null)
+            {
+                WhoisCommandEvent(this, new WhoisCommand {Nick = nick});
+            }
         }
 
         public void SendWhois(string nick, string server)
         {
             _IRC.SendTCPMessage(string.Format("WHOIS {0} {1}", server, nick));
+            if (WhoisCommandEvent != null)
+            {
+                WhoisCommandEvent(this, new WhoisCommand {Nick = nick, Server = server});
+            }
         }
 
         /// <summary>
@@ -558,17 +751,29 @@ namespace Combot.IRCServices.Commanding
         /// <param name="nick"></param>
         public void SendWhowas(string nick)
         {
-            _IRC.SendTCPMessage(string.Format("WHOIS {0}", nick));
+            _IRC.SendTCPMessage(string.Format("WHOWAS {0}", nick));
+            if (WhowasCommandEvent != null)
+            {
+                WhowasCommandEvent(this, new WhowasCommand {Nick = nick});
+            }
         }
 
         public void SendWhowas(string nick, int entries)
         {
-            _IRC.SendTCPMessage(string.Format("WHOIS {0} {1}", nick, entries));
+            _IRC.SendTCPMessage(string.Format("WHOWAS {0} {1}", nick, entries));
+            if (WhowasCommandEvent != null)
+            {
+                WhowasCommandEvent(this, new WhowasCommand {Nick = nick, Entries = entries});
+            }
         }
 
         public void SendWhowas(string nick, int entries, string server)
         {
-            _IRC.SendTCPMessage(string.Format("WHOIS {0} {1} {2}", nick, entries, server));
+            _IRC.SendTCPMessage(string.Format("WHOWAS {0} {1} {2}", nick, entries, server));
+            if (WhowasCommandEvent != null)
+            {
+                WhowasCommandEvent(this, new WhowasCommand {Nick = nick, Entries = entries, Server = server});
+            }
         }
 
         /// <summary>
@@ -579,6 +784,10 @@ namespace Combot.IRCServices.Commanding
         public void SendKill(string nick, string comment)
         {
             _IRC.SendTCPMessage(string.Format("KILL {0} {1}", nick, comment));
+            if (KillCommandEvent != null)
+            {
+                KillCommandEvent(this, new KillCommand {Nick = nick, Comment = comment});
+            }
         }
 
         /// <summary>
@@ -588,6 +797,10 @@ namespace Combot.IRCServices.Commanding
         public void SendPing(string recipient)
         {
             _IRC.SendTCPMessage(string.Format("PING {0}", recipient));
+            if (PingCommandEvent != null)
+            {
+                PingCommandEvent(this, new PingCommand {Recipient = recipient});
+            }
         }
 
         /// <summary>
@@ -598,16 +811,28 @@ namespace Combot.IRCServices.Commanding
         public void SendPong()
         {
             _IRC.SendTCPMessage("PONG");
+            if (PongCommandEvent != null)
+            {
+                PongCommandEvent(this, new PongCommand());
+            }
         }
 
         public void SendPong(string message)
         {
             _IRC.SendTCPMessage(string.Format("PONG {0}", message));
+            if (PongCommandEvent != null)
+            {
+                PongCommandEvent(this, new PongCommand());
+            }
         }
 
         public void SendPong(string sender, string recipient)
         {
             _IRC.SendTCPMessage(string.Format("PONG {0} {1}", sender, recipient));
+            if (PongCommandEvent != null)
+            {
+                PongCommandEvent(this, new PongCommand { Sender = sender, Recipient = recipient });
+            }
         }
 
         /// <summary>
@@ -616,6 +841,10 @@ namespace Combot.IRCServices.Commanding
         public void SendAway()
         {
             _IRC.SendTCPMessage("AWAY");
+            if (AwayCommandEvent != null)
+            {
+                AwayCommandEvent(this, new AwayCommand());
+            }
         }
 
         /// <summary>
@@ -625,6 +854,10 @@ namespace Combot.IRCServices.Commanding
         public void SendAway(string message)
         {
             _IRC.SendTCPMessage(string.Format("AWAY {0}", message));
+            if (AwayCommandEvent != null)
+            {
+                AwayCommandEvent(this, new AwayCommand {Message = message});
+            }
         }
 
         /// <summary>
@@ -633,6 +866,10 @@ namespace Combot.IRCServices.Commanding
         public void SendRehash()
         {
             _IRC.SendTCPMessage("REHASH");
+            if (RehashCommandEvent != null)
+            {
+                RehashCommandEvent(this, new RehashCommand());
+            }
         }
 
         /// <summary>
@@ -641,6 +878,10 @@ namespace Combot.IRCServices.Commanding
         public void SendRestart()
         {
             _IRC.SendTCPMessage("RESTART");
+            if (RestartCommandEvent != null)
+            {
+                RestartCommandEvent(this, new RestartCommand());
+            }
         }
 
         /// <summary>
@@ -650,16 +891,28 @@ namespace Combot.IRCServices.Commanding
         public void SendSummon()
         {
             _IRC.SendTCPMessage("SUMMON");
+            if (SummonCommandEvent != null)
+            {
+                SummonCommandEvent(this, new SummonCommand());
+            }
         }
 
         public void SendSummon(string nick)
         {
             _IRC.SendTCPMessage(string.Format("SUMMON {0}", nick));
+            if (SummonCommandEvent != null)
+            {
+                SummonCommandEvent(this, new SummonCommand {Nick = nick});
+            }
         }
 
         public void SendSummon(string nick, string host)
         {
             _IRC.SendTCPMessage(string.Format("SUMMON {0} {1}", nick, host));
+            if (SummonCommandEvent != null)
+            {
+                SummonCommandEvent(this, new SummonCommand {Nick = nick, Host = host});
+            }
         }
 
         /// <summary>
@@ -669,6 +922,10 @@ namespace Combot.IRCServices.Commanding
         public void SendUsers(string server)
         {
             _IRC.SendTCPMessage(string.Format("USERS {0}", server));
+            if (UsersCommandEvent != null)
+            {
+                UsersCommandEvent(this, new UsersCommand {Server = server});
+            }
         }
 
         /// <summary>
@@ -678,6 +935,10 @@ namespace Combot.IRCServices.Commanding
         public void SendWallops(string message)
         {
             _IRC.SendTCPMessage(string.Format("WALLOPS :{0}", message));
+            if (WallopsCommandEvent != null)
+            {
+                WallopsCommandEvent(this, new WallopsCommand {Message = message});
+            }
         }
 
         /// <summary>
@@ -692,6 +953,10 @@ namespace Combot.IRCServices.Commanding
                 message += " " + nick;
             }
             _IRC.SendTCPMessage(string.Format("USERHOST {0}", message.Trim()));
+            if (UserhostCommandEvent != null)
+            {
+                UserhostCommandEvent(this, new UserhostCommand {Nicks = message.Trim()});
+            }
         }
 
         /// <summary>
@@ -706,6 +971,10 @@ namespace Combot.IRCServices.Commanding
                 message += " " + nick;
             }
             _IRC.SendTCPMessage(string.Format("ISON {0}", message.Trim()));
+            if (IsonCommandEvent != null)
+            {
+                IsonCommandEvent(this, new IsonCommand {Nicks = message.Trim()});
+            }
         }
     }
 }
