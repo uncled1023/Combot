@@ -121,7 +121,8 @@
     <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+    <PostBuildEvent>md "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)Combot.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)$(ConfigurationName)\" /y
