@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Runtime.Remoting.Channels;
 using System.Threading;
+using System.Windows;
 using System.Windows.Documents;
 using Combot;
 using Combot.IRCServices.Messaging;
@@ -385,7 +386,7 @@ namespace Interface.ViewModels
                 }
                 if (LocationList.Contains(location))
                 {
-                    App.Current.Dispatcher.Invoke((Action)(() => LocationList.Remove(location)));
+                    Application.Current.Dispatcher.Invoke((Action)(() => LocationList.Remove(location)));
                 }
                 BufferLock.EnterWriteLock();
                 if (BufferList.Exists(buf => buf.Server == SelectedServer && buf.Location == location))
@@ -445,7 +446,7 @@ namespace Interface.ViewModels
             BufferLock.ExitWriteLock();
             if (SelectedServer == server && !LocationList.Contains(location))
             {
-                App.Current.Dispatcher.Invoke((Action) (() => LocationList.Add(location)));
+                Application.Current.Dispatcher.Invoke((Action) (() => LocationList.Add(location)));
             }
             BufferLock.EnterWriteLock();
             BufferInfo buffer = BufferList.Find(buf => buf.Server == server && buf.Location == location);
@@ -460,12 +461,13 @@ namespace Interface.ViewModels
 
         private void ChangeServer()
         {
-            App.Current.Dispatcher.Invoke((Action)(() => LocationList.Clear()));
+            Application.Current.Dispatcher.Invoke((Action)(() => LocationList.Clear()));
             for (int i = 0; i < BufferList.Count; i++)
             {
                 if (BufferList[i].Server == SelectedServer)
                 {
-                    App.Current.Dispatcher.Invoke((Action)(() => LocationList.Add(BufferList[i].Location)));
+                    int index = i;
+                    Application.Current.Dispatcher.Invoke((Action)(() => LocationList.Add(BufferList[index].Location)));
                 }
             }
             if (LocationList.Any())

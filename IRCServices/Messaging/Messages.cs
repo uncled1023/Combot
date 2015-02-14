@@ -445,11 +445,12 @@ namespace Combot.IRCServices.Messaging
                     }
                 }
 
+                string rawMessage = message;
                 await Task.Run(() =>
                 {
                     if (RawMessageEvent != null)
                     {
-                        RawMessageEvent(this, message);
+                        RawMessageEvent(this, rawMessage);
                     }
                 });
             }
@@ -462,7 +463,6 @@ namespace Combot.IRCServices.Messaging
             reply.Match = match;
             ServerReplyEvent += (sender, e) => HandleReply(sender, e, reply);
             reply.Ready.Wait(TimeSpan.FromMilliseconds(5000));
-            ServerReplyEvent -= (obj, e) => HandleReply(obj, e, reply);
             return reply.Result;
         }
 
@@ -473,7 +473,6 @@ namespace Combot.IRCServices.Messaging
             error.Match = match;
             ServerReplyEvent += (sender, e) => HandleError(sender, e, error);
             error.Ready.Wait(TimeSpan.FromMilliseconds(5000));
-            ServerReplyEvent -= (sender, e) => HandleError(sender, e, error);
             return error.Result;
         }
 

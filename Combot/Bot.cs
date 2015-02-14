@@ -505,7 +505,7 @@ namespace Combot
                         Regex whoRegex = new Regex(whoStyle);
                         IRC.Command.SendWho(newCommand.Nick.Nickname);
                         ServerReplyMessage whoReply = IRC.Message.GetServerReply(IRCReplyCode.RPL_WHOREPLY, whoStyle);
-                        if (whoReply.ReplyCode != 0)
+                        if (whoReply != null && whoReply.ReplyCode != 0)
                         {
                             Match whoMatch = whoRegex.Match(whoReply.Message);
 

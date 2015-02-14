@@ -43,14 +43,17 @@ namespace Combot.Modules.Plugins
             XmlNodeList nodes2 = doc2.SelectNodes("/current_observation");
 
             string location = "";
-            if (nodes2.Count > 0)
+            if (nodes2 != null && nodes2.Count > 0)
             {
                 foreach (XmlNode node2 in nodes2)
                 {
                     XmlNodeList sub_node2 = doc2.SelectNodes("/current_observation/display_location");
-                    foreach (XmlNode xn2 in sub_node2)
+                    if (sub_node2 != null)
                     {
-                        location = xn2["full"].InnerText;
+                        foreach (XmlNode xn2 in sub_node2)
+                        {
+                            location = xn2["full"].InnerText;
+                        }
                     }
                 }
             }
