@@ -33,7 +33,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Bin\Modules\Ping Me\Debug\</OutputPath>
+    <OutputPath>..\..\Bin\Debug\Modules\Ping Me\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -41,7 +41,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Bin\Modules\Ping Me\Release\</OutputPath>
+    <OutputPath>..\..\Bin\Release\Modules\Ping Me\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -94,9 +94,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "$(SolutionDir)Bin\Interface\$(ConfigurationName)\Modules\$(TargetName)"
-copy /Y "$(TargetPath)" "$(SolutionDir)Bin\Interface\$(ConfigurationName)\Modules\$(TargetName)"
-copy /Y "$(TargetDir)Module.config" "$(SolutionDir)Bin\Interface\$(ConfigurationName)\Modules\$(TargetName)"</PostBuildEvent>
+    <PostBuildEvent>md "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
+copy /Y "$(TargetPath)" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
+copy /Y "$(TargetDir)Module.config" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

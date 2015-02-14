@@ -275,7 +275,7 @@ namespace Combot.IRCServices.Messaging
                                         {
                                             set = true;
                                         }
-                                        else
+                                        else if (mode.ToString() != string.Empty)
                                         {
                                             UserModeInfo newMode = new UserModeInfo();
                                             newMode.Set = set;

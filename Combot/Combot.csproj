@@ -32,7 +32,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Bin\Combot\Debug\</OutputPath>
+    <OutputPath>..\Bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,7 +40,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Bin\Combot\Release\</OutputPath>
+    <OutputPath>..\Bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -120,6 +120,14 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)Combot.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)System.Windows.Interactivity.dll" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(SolutionDir)Combot.Servers.config" "$(SolutionDir)$(ConfigurationName)\Combot.Servers.config" /y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

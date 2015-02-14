@@ -4,32 +4,36 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{569F61C2-3B06-4313-A299-E643C3786D3D}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{F67D7423-812D-4B8E-A041-B82C448D8A7F}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Channel_Rules</RootNamespace>
-    <AssemblyName>Channel Rules</AssemblyName>
+    <RootNamespace>Console</RootNamespace>
+    <AssemblyName>Combot-CLI</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>ba7e75bd</NuGetPackageImportStamp>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Bin\Debug\Modules\Channel Rules\</OutputPath>
+    <OutputPath>..\Bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Bin\Release\Modules\Channel Rules\</OutputPath>
+    <OutputPath>..\Bin\Console Interface\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Bot.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,38 +45,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Channel_Rules.cs" />
+    <Compile Include="Console_Interface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Combot\Combot.csproj">
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Combot\Combot.csproj">
       <Project>{23e4c371-16e4-4fac-8b11-44288399bb55}</Project>
       <Name>Combot</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\IRCServices\IRCServices.csproj">
+    <ProjectReference Include="..\IRCServices\IRCServices.csproj">
       <Project>{65fcbf1c-8c9e-4688-becc-185d9030899f}</Project>
       <Name>IRCServices</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Module.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
+    <Content Include="Bot.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>md "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
-copy /Y "$(TargetPath)" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
-copy /Y "$(TargetDir)Module.config" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)Combot-CLI.exe" "$(SolutionDir)$(ConfigurationName)\" /y</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

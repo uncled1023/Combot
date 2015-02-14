@@ -36,7 +36,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Bin\Interface\Debug\</OutputPath>
+    <OutputPath>..\Bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,7 +45,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Bin\Interface\Release\</OutputPath>
+    <OutputPath>..\Bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -159,21 +159,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug goto :exit
-
-:release
-
-md "$(SolutionDir)Release\Modules\"
-copy "$(TargetDir)IRCServices.dll" "$(SolutionDir)Release\" /y
-copy "$(TargetDir)Combot.dll" "$(SolutionDir)Release\" /y
-copy "$(TargetDir)Combot-Interface.exe" "$(SolutionDir)Release\" /y
-copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)Release\" /y
-copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)Release\" /y
-copy "$(TargetDir)System.Windows.Interactivity.dll" "$(SolutionDir)Release\" /y
-xcopy "$(TargetDir)Modules" "$(SolutionDir)Release\Modules\" /y /s /e
-copy "$(SolutionDir)Combot.Servers.config" "$(SolutionDir)Release\Combot.Servers.config" /y
-
-:exit</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)Combot-Interface.exe" "$(SolutionDir)$(ConfigurationName)\" /y</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
