@@ -450,7 +450,7 @@ namespace Interface.ViewModels
             }
             BufferLock.EnterWriteLock();
             BufferInfo buffer = BufferList.Find(buf => buf.Server == server && buf.Location == location);
-            if (buffer.Buffer.Count >= 1000)
+            if (buffer.Buffer.Count >= 500)
             {
                 buffer.Buffer.RemoveAt(0);
             }

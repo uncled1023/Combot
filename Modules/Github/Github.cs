@@ -32,21 +32,12 @@ namespace Combot.Modules.Plugins
             try
             {
                 string username = (command.Arguments.ContainsKey("Username")) ? command.Arguments["Username"] : command.Nick.Nickname;
-                GitHubClient github = new GitHubClient(new ProductHeaderValue("CombotIRCBot"));
-                if (GetOptionValue("Username").ToString() != string.Empty && GetOptionValue("Password").ToString() != string.Empty)
+                GitHubClient github = new GitHubClient(new ProductHeaderValue("Combot-IRC-Bot"));
+                if (GetOptionValue("Token").ToString() != string.Empty)
                 {
-                    github.Credentials = new Credentials(GetOptionValue("Username").ToString(), GetOptionValue("Password").ToString());
-                    NewAuthorization newAuth = new NewAuthorization();
-                    newAuth.Note = "Get Git Information";
-                    try
-                    {
-                        Authorization auth = await github.Authorization.Create(newAuth);
-                    }
-                    catch (Octokit.AuthorizationException ex)
-                    {
-                        OnError(ex.Message);
-                        return;
-                    }
+                    string token = GetOptionValue("Token").ToString();
+                    Credentials creds = new Credentials(token);
+                    github.Credentials = creds;
                 }
                 SearchUsersResult foundUser = await github.Search.SearchUsers(new SearchUsersRequest(username));
                 if (foundUser.TotalCount > 0)
@@ -97,20 +88,10 @@ namespace Combot.Modules.Plugins
             try
             {
                 GitHubClient github = new GitHubClient(new ProductHeaderValue("CombotIRCBot"));
-                if (GetOptionValue("Username").ToString() != string.Empty && GetOptionValue("Password").ToString() != string.Empty)
+                if (GetOptionValue("Token").ToString() != string.Empty)
                 {
-                    github.Credentials = new Credentials(GetOptionValue("Username").ToString(), GetOptionValue("Password").ToString());
-                    NewAuthorization newAuth = new NewAuthorization();
-                    newAuth.Note = "Get Git Information";
-                    try
-                    {
-                        Authorization auth = await github.Authorization.Create(newAuth);
-                    }
-                    catch (Octokit.AuthorizationException ex)
-                    {
-                        OnError(ex.Message);
-                        return;
-                    }
+                    string token = GetOptionValue("Token").ToString();
+                    github.Credentials = new Credentials(token);
                 }
                 SearchRepositoryResult foundRepo = await github.Search.SearchRepo(new SearchRepositoriesRequest(command.Arguments["Repository"]));
                 if (foundRepo.TotalCount > 0)
