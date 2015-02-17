@@ -294,6 +294,101 @@ namespace Combot
             return hasAccess;
         }
 
+        /// <summary>
+        /// Checks to see if the first nick has access to perform a command on the second nick
+        /// </summary>
+        /// <param name="channel">Channel the command is being applied on</param>
+        /// <param name="firstNick">The nick applying the command</param>
+        /// <param name="secondNick">The nick the command is being performed on</param>
+        /// <returns></returns>
+        public bool CheckNickAccess(string channel, string firstNick, string secondNick)
+        {
+            bool access = false;
+            Channel foundChannel = IRC.Channels.Find(chan => chan.Name == channel);
+            if (foundChannel != null)
+            {
+                Nick foundFirstNick = foundChannel.Nicks.Find(nick => nick.Nickname == firstNick);
+                Nick foundSecondNick = foundChannel.Nicks.Find(nick => nick.Nickname == secondNick);
+                if (foundFirstNick != null && foundSecondNick != null)
+                {
+                    for (int i = 0; i < foundSecondNick.Privileges.Count; i++)
+                    {
+                        access = foundFirstNick.Privileges.Contains(foundSecondNick.Privileges[i]);
+                        if (foundFirstNick.Privileges.Contains(foundSecondNick.Privileges[i]))
+                        {
+                            access = true;
+                        }
+                        else
+                        {
+                            access = false;
+                        }
+                        switch (foundSecondNick.Privileges[i])
+                        {
+                            case PrivilegeMode.v:
+                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.v) || foundFirstNick.Privileges.Contains(PrivilegeMode.h) || foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                {
+                                    access = true;
+                                }
+                                else
+                                {
+                                    access = false;
+                                }
+                                break;
+                            case PrivilegeMode.h:
+                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.h) || foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                {
+                                    access = true;
+                                }
+                                else
+                                {
+                                    access = false;
+                                }
+                                break;
+                            case PrivilegeMode.o:
+                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                {
+                                    access = true;
+                                }
+                                else
+                                {
+                                    access = false;
+                                }
+                                break;
+                            case PrivilegeMode.a:
+                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                {
+                                    access = true;
+                                }
+                                else
+                                {
+                                    access = false;
+                                }
+                                break;
+                            case PrivilegeMode.q:
+                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                {
+                                    access = true;
+                                }
+                                else
+                                {
+                                    access = false;
+                                }
+                                break;
+                        }
+                    }
+                }
+                if (foundFirstNick != null && ServerConfig.Owners.Contains(firstNick) && foundFirstNick.Modes.Contains(UserMode.r))
+                {
+                    access = true;
+                }
+            } 
+            if (firstNick == IRC.Nickname)
+            {
+                access = true;
+            }
+            return access;
+        }
+
         public void ExecuteCommand(string message, string location, MessageType type)
         {
             ParseCommandMessage(DateTime.Now, message, new Nick { Nickname = IRC.Nickname }, location, type);
@@ -617,7 +712,6 @@ namespace Combot
                         string missingArgument = string.Format("Missing a required argument for \u0002{0}{1}\u0002{2}.  The required arguments are \u0002{3}\u0002.", ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
                         module.SendResponse(messageType, location, sender.Nickname, missingArgument);
                     }
-
                 }
             }
         }

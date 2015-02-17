@@ -247,7 +247,7 @@ namespace Combot.Modules.Plugins
         private void BanNick(bool set, Command curCommand, CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess) && Bot.CheckNickAccess(channel, command.Nick.Nickname, command.Arguments["Nickname"]))
             {
                 string banMask = command.Arguments["Nickname"];
                 Channel foundChannel = Bot.IRC.Channels.Find(chan => chan.Nicks.Exists(nick => nick.Nickname == banMask));
@@ -327,7 +327,7 @@ namespace Combot.Modules.Plugins
         private void KickNick(Command curCommand, CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess))
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess) && Bot.CheckNickAccess(channel, command.Nick.Nickname, command.Arguments["Nickname"]))
             {
                 if (command.Arguments.ContainsKey("Reason"))
                 {
