@@ -91,12 +91,18 @@ namespace Combot.IRCServices.Commanding
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
-                if (PrivateMessageCommandEvent != null)
+                if (subMessage != string.Empty)
                 {
-                    PrivateMessageCommandEvent(this, new PrivateMessageCommand { Message = subMessage.Remove(0, 1), Recipient = recipient });
+                    _IRC.SendTCPMessage(string.Format("PRIVMSG {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                    if (PrivateMessageCommandEvent != null)
+                    {
+                        PrivateMessageCommandEvent(this, new PrivateMessageCommand {Message = subMessage.Remove(0, 1), Recipient = recipient});
+                    }
                 }
-                SendPrivateMessage(recipient, nextMessage);
+                if (nextMessage != string.Empty)
+                {
+                    SendPrivateMessage(recipient, nextMessage);
+                }
             }
             else
             {
@@ -147,12 +153,18 @@ namespace Combot.IRCServices.Commanding
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
                 }
-                _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
-                if (PrivateNoticeCommandEvent != null)
+                if (subMessage != string.Empty)
                 {
-                    PrivateNoticeCommandEvent(this, new PrivateNoticeCommand { Message = subMessage.Remove(0, 1), Recipient = recipient });
+                    _IRC.SendTCPMessage(string.Format("NOTICE {0} :{1}", recipient, subMessage.Remove(0, 1)));
+                    if (PrivateNoticeCommandEvent != null)
+                    {
+                        PrivateNoticeCommandEvent(this, new PrivateNoticeCommand {Message = subMessage.Remove(0, 1), Recipient = recipient});
+                    }
                 }
-                SendNotice(recipient, nextMessage);
+                if (nextMessage != string.Empty)
+                {
+                    SendNotice(recipient, nextMessage);
+                }
             }
             else
             {

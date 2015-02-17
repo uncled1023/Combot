@@ -57,6 +57,7 @@ namespace Combot
             IRC.Message.ChannelModeChangeEvent += HandleChannelModeChangeEvent;
 
             Database = new Database(serverConfig.Database);
+            Database.MysqlErrorEvent += HandleMysqlErrorEvent;
 
             LoadModules();
         }
@@ -189,6 +190,7 @@ namespace Combot
                     Module loadedModule = newModule.CreateInstance(this);
                     if (loadedModule.Loaded)
                     {
+                        loadedModule.ModuleErrorEvent += HandleModuleErrorEvent;
                         Modules.Add(loadedModule);
                         return true;
                     }
@@ -301,16 +303,19 @@ namespace Combot
         {
             bool isCommand = false;
             string[] msgArgs = message.Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries);
-            string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
-            // Find the module that contains the command
-            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
-            if (module != null)
+            if (msgArgs.Any())
             {
-                // Find the command
-                Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
-                if (cmd != null)
+                string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
+                // Find the module that contains the command
+                Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
+                if (module != null)
                 {
-                    isCommand = true;
+                    // Find the command
+                    Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
+                    if (cmd != null)
+                    {
+                        isCommand = true;
+                    }
                 }
             }
             return isCommand;
@@ -614,6 +619,28 @@ namespace Combot
                     }
 
                 }
+            }
+        }
+
+        private void HandleMysqlErrorEvent(object sender, string message)
+        {
+            BotError error = new BotError();
+            error.Message = message;
+            error.Type = ErrorType.MySQL;
+            if (ErrorEvent != null)
+            {
+                ErrorEvent(error);
+            }
+        }
+
+        private void HandleModuleErrorEvent(object sender, string message)
+        {
+            BotError error = new BotError();
+            error.Message = message;
+            error.Type = ErrorType.Module;
+            if (ErrorEvent != null)
+            {
+                ErrorEvent(error);
             }
         }
     }

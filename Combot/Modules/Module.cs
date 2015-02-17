@@ -23,6 +23,8 @@ namespace Combot.Modules
         public List<Command> Commands { get; set; }
         public List<Option> Options { get; set; }
 
+        public event EventHandler<string> ModuleErrorEvent;
+
         public bool Loaded { get; set; }
         public bool ShouldSerializeLoaded()
         {
@@ -94,6 +96,16 @@ namespace Combot.Modules
         virtual public void Initialize() { }
 
         virtual public void ParseCommand(CommandMessage command) { }
+
+        protected void OnError(string e)
+        {
+            string errorMsg = string.Format("[{0}] {1}", Name, e);
+            EventHandler<string> handler = ModuleErrorEvent;
+            if (handler != null)
+            {
+                handler(this, errorMsg);
+            }
+        }
 
         public void SetDefaults()
         {

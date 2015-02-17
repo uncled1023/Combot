@@ -14,7 +14,9 @@ namespace Combot
         Bot = 0,
         TCP = 1,
         IRC = 2,
-        Framework = 3
+        Framework = 3,
+        MySQL = 4,
+        Module = 5
     }
 
     public class BotError

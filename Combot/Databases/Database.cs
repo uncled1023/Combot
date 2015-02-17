@@ -8,6 +8,8 @@ namespace Combot.Databases
 {
     public class Database
     {
+        public event EventHandler<string> MysqlErrorEvent;
+
         private bool Connected { get; set; }
         private MySqlConnection Connection { get; set; }
         private ReaderWriterLockSlim DatabaseLock { get; set; }
@@ -27,17 +29,27 @@ namespace Combot.Databases
             {
                 DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
-                MySqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
+                try
                 {
-                    Dictionary<string, object> row = new Dictionary<string, object>();
-                    for (int i = 0; i < reader.FieldCount; i++)
+                    MySqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
                     {
-                        row.Add(reader.GetName(i), reader.GetValue(i));
+                        Dictionary<string, object> row = new Dictionary<string, object>();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            row.Add(reader.GetName(i), reader.GetValue(i));
+                        }
+                        rows.Add(row);
                     }
-                    rows.Add(row);
+                    reader.Close();
                 }
-                reader.Close();
+                catch (MySqlException exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
                 DatabaseLock.ExitWriteLock();
             }
             return rows;
@@ -49,7 +61,19 @@ namespace Combot.Databases
             {
                 DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
-                object result = cmd.ExecuteScalar();
+                object result = null;
+                try
+                {
+
+                    result = cmd.ExecuteScalar();
+                }
+                catch (MySqlException exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
                 DatabaseLock.ExitWriteLock();
                 return result;
             }
@@ -62,7 +86,18 @@ namespace Combot.Databases
             {
                 DatabaseLock.EnterWriteLock();
                 MySqlCommand cmd = PrepareQuery(query, args);
-                int result = cmd.ExecuteNonQuery();
+                try
+                {
+
+                    int result = cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
                 DatabaseLock.ExitWriteLock();
             }
         }
