@@ -460,13 +460,16 @@ namespace Combot.IRCServices
                         case ChannelMode.a:
                         case ChannelMode.q:
                             Nick changedNick = channel.GetNick(mode.Parameter);
-                            if (mode.Set)
+                            if (changedNick != null)
                             {
-                                changedNick.AddPrivilege((PrivilegeMode)Enum.Parse(typeof(PrivilegeMode), mode.Mode.ToString()));
-                            }
-                            else
-                            {
-                                changedNick.RemovePrivilege((PrivilegeMode)Enum.Parse(typeof(PrivilegeMode), mode.Mode.ToString()));
+                                if (mode.Set)
+                                {
+                                    changedNick.AddPrivilege((PrivilegeMode) Enum.Parse(typeof (PrivilegeMode), mode.Mode.ToString()));
+                                }
+                                else
+                                {
+                                    changedNick.RemovePrivilege((PrivilegeMode) Enum.Parse(typeof (PrivilegeMode), mode.Mode.ToString()));
+                                }
                             }
                             break;
                         case ChannelMode.b:
