@@ -54,20 +54,37 @@ namespace Combot.Modules.Plugins
             Uri searchUrl = new Uri(string.Format(urlTemplate, command.Arguments["Query"]));
             WebClient web = new WebClient();
             web.Encoding = Encoding.UTF8;
-            string page = web.DownloadString(searchUrl);
+            try
+            {
+                string page = web.DownloadString(searchUrl);
 
-            JObject parsed = (JObject)JsonConvert.DeserializeObject(page);
-            if (parsed["data"]["totalItems"].Value<int>() > 0)
-            {
-                string videoID = parsed["data"]["items"].First().Value<string>("id");
-                string vidDescription = GetYoutubeDescription(videoID);
-                string youtubeMessage = string.Format("{0} - {1}", vidDescription, string.Format("http://youtu.be/{0}", videoID));
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, youtubeMessage);
+                JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
+                if (parsed["data"]["totalItems"].Value<int>() > 0)
+                {
+                    string videoID = parsed["data"]["items"].First().Value<string>("id");
+                    string vidDescription = GetYoutubeDescription(videoID);
+                    string youtubeMessage = string.Format("{0} - {1}", vidDescription, string.Format("http://youtu.be/{0}", videoID));
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, youtubeMessage);
+                }
+                else
+                {
+                    string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
+                }
             }
-            else
+            catch (WebException ex)
             {
-                string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
+                if (ex.Response != null)
+                {
+                    int code = (int)((HttpWebResponse)ex.Response).StatusCode;
+                    string errorCode = string.Format("Unable to search for \u0002{0}\u000F.  Youtube returned status code \u0002{1}\u000F.", command.Arguments["Query"], code);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
+                }
+                else
+                {
+                    string errorCode = string.Format("Unable to search for \u0002{0}\u000F.", command.Arguments["Query"]);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
+                }
             }
         }
 
@@ -79,43 +96,50 @@ namespace Combot.Modules.Plugins
             Uri searchUrl = new Uri(string.Format(urlTemplate, ID));
             WebClient web = new WebClient();
             web.Encoding = Encoding.UTF8;
-            string page = web.DownloadString(searchUrl);
-
-            JObject parsed = (JObject)JsonConvert.DeserializeObject(page);
-            var data = parsed["data"];
-
-            description = string.Format("\u0002{0}\u000F", data["title"]);
-
-            if (data["duration"] == null)
+            try
             {
-                return description;
+                string page = web.DownloadString(searchUrl);
+
+                JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
+                var data = parsed["data"];
+
+                description = string.Format("\u0002{0}\u000F", data["title"]);
+
+                if (data["duration"] == null)
+                {
+                    return description;
+                }
+
+                TimeSpan duration = TimeSpan.FromSeconds(data["duration"].Value<double>());
+                description += string.Format(" | Length: \u0002{0}\u000F", duration.ToString("g"));
+
+                if (data["ratingCount"] != null)
+                {
+                    int likes = data["likeCount"].Value<int>();
+                    string pluralLikes = (likes > 1) ? "s" : string.Empty;
+                    int dislikes = data["ratingCount"].Value<int>() - likes;
+                    string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
+                    double percent = 100.0*((double) likes/data["ratingCount"].Value<int>());
+                    description += string.Format(" | Rating: {0} Like{1}, {2} Dislike{3} (\u0002{4}\u000F%)", likes, pluralLikes, dislikes, pluralDislikes, Math.Round(percent, 1));
+                }
+
+                if (data["viewCount"] != null)
+                {
+                    description += string.Format(" | Views: \u0002{0}\u000F", data["viewCount"].Value<int>());
+                }
+
+                DateTime uploadDate = Convert.ToDateTime(data["uploaded"].Value<string>());
+
+                description += string.Format(" | Uploaded By: \u0002{0}\u000F on \u0002{1}\u000F", data["uploader"].Value<string>(), uploadDate.ToString("R"));
+
+                if (data["contentRating"] != null)
+                {
+                    description += " | \u0002NSFW\u000F";
+                }
             }
-
-            TimeSpan duration = TimeSpan.FromSeconds(data["duration"].Value<double>());
-            description += string.Format(" | Length: \u0002{0}\u000F", duration.ToString("g"));
-
-            if (data["ratingCount"] != null)
+            catch (WebException ex)
             {
-                int likes = data["likeCount"].Value<int>();
-                string pluralLikes = (likes > 1) ? "s" : string.Empty;
-                int dislikes = data["ratingCount"].Value<int>() - likes;
-                string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
-                double percent = 100.0 * ((double)likes / data["ratingCount"].Value<int>());
-                description += string.Format(" | Rating: {0} Like{1}, {2} Dislike{3} (\u0002{4}\u000F%)", likes, pluralLikes, dislikes, pluralDislikes, Math.Round(percent, 1));
-            }
-
-            if (data["viewCount"] != null)
-            {
-                description += string.Format(" | Views: \u0002{0}\u000F", data["viewCount"].Value<int>());
-            }
-
-            DateTime uploadDate = Convert.ToDateTime(data["uploaded"].Value<string>());
-
-            description += string.Format(" | Uploaded By: \u0002{0}\u000F on \u0002{1}\u000F", data["uploader"].Value<string>(), uploadDate.ToString("R"));
-
-            if (data["contentRating"] != null)
-            {
-                description += " | \u0002NSFW\u000F";
+                description = string.Empty;
             }
 
             return description;

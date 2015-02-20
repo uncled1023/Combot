@@ -35,31 +35,48 @@ namespace Combot.Modules.Plugins
             Uri searchUrl = new Uri(string.Format(urlTemplate, command.Arguments["Query"]));
             WebClient web = new WebClient();
             web.Encoding = Encoding.UTF8;
-            string page = web.DownloadString(searchUrl);
-
-            JObject parsed = (JObject)JsonConvert.DeserializeObject(page);
-            int responseCode = parsed.Value<int>("responseStatus");
-            if (responseCode < 300 && responseCode >= 200)
+            try
             {
-                if (parsed["responseData"]["results"].Any())
+                string page = web.DownloadString(searchUrl);
+
+                JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
+                int responseCode = parsed.Value<int>("responseStatus");
+                if (responseCode < 300 && responseCode >= 200)
                 {
-                    var result = parsed["responseData"]["results"][0];
-                    string url = result.Value<string>("unescapedUrl");
-                    string title = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("titleNoFormatting"))));
-                    string content = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("content"))));
-                    string resultMessage = string.Format("[{0}] \u0002{1}\u000F: {2}.", url, title, content);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
+                    if (parsed["responseData"]["results"].Any())
+                    {
+                        var result = parsed["responseData"]["results"][0];
+                        string url = result.Value<string>("unescapedUrl");
+                        string title = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("titleNoFormatting"))));
+                        string content = HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(result.Value<string>("content"))));
+                        string resultMessage = string.Format("[{0}] \u0002{1}\u000F: {2}.", url, title, content);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
+                    }
+                    else
+                    {
+                        string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
+                    }
                 }
                 else
                 {
-                    string noResults = string.Format("No results found for \u0002{0}\u000F.", command.Arguments["Query"]);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noResults);
+                    string errorCode = string.Format("Unable to search for \u0002{0}\u000F.  Google returned status code \u0002{1}\u000F.", command.Arguments["Query"], responseCode);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
                 }
             }
-            else
+            catch (WebException ex)
             {
-                string errorCode = string.Format("Unable to search for \u0002{0}\u000F.  Google returned status code \u0002{1}\u000F.", command.Arguments["Query"], responseCode);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
+                if (ex.Response != null)
+                {
+                    int code = (int)((HttpWebResponse)ex.Response).StatusCode;
+                    string errorCode = string.Format("Unable to search for \u0002{0}\u000F.  Google returned status code \u0002{1}\u000F.", command.Arguments["Query"], code);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
+                }
+                else
+                {
+                    string errorCode = string.Format("Unable to search for \u0002{0}\u000F.", command.Arguments["Query"]);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorCode);
+                }
             }
         }
 
