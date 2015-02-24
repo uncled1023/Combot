@@ -365,7 +365,7 @@ namespace Combot
                 }
                 else
                 {
-                    return false;
+                    return (foundFirstNick != null);
                 }
             }
             else
