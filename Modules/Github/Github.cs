@@ -43,22 +43,29 @@ namespace Combot.Modules.Plugins
                 if (foundUser.TotalCount > 0)
                 {
                     User user = await github.User.Get(foundUser.Items.First().Login);
-                    if (command.Arguments.ContainsKey("Repository ID"))
+                    if (command.Arguments.ContainsKey("Repository"))
                     {
-                        string repo = command.Arguments["Repository ID"];
-                        Repository foundRepo = await github.Repository.Get(user.Login, repo);
-                        if (foundRepo != null)
+                        string repo = command.Arguments["Repository"];
+                        try
                         {
-                            string repoMessage = string.Format("\u0002{0}\u0002 | Created On \u0002{1}\u0002 | \u0002{2}\u0002 Open Issues | \u0002{3}\u0002 Forks | \u0002{4}\u0002 Stargazers | {5}", foundRepo.FullName, foundRepo.CreatedAt.ToString("d"), foundRepo.OpenIssuesCount, foundRepo.ForksCount, foundRepo.StargazersCount, foundRepo.HtmlUrl);
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, repoMessage);
-                            if (foundRepo.Description != string.Empty)
+                            Repository foundRepo = await github.Repository.Get(user.Login, repo);
+                            if (foundRepo != null)
                             {
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, foundRepo.Description);
+                                string repoMessage = string.Format("\u0002{0}\u0002 | Created On \u0002{1}\u0002 | \u0002{2}\u0002 Open Issues | \u0002{3}\u0002 Forks | \u0002{4}\u0002 Stargazers | {5}", foundRepo.FullName, foundRepo.CreatedAt.ToString("d"), foundRepo.OpenIssuesCount, foundRepo.ForksCount, foundRepo.StargazersCount, foundRepo.HtmlUrl);
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, repoMessage);
+                                if (foundRepo.Description != string.Empty)
+                                {
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, foundRepo.Description);
+                                }
+                            }
+                            else
+                            {
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Invalid Repository Name");
                             }
                         }
-                        else
+                        catch (Octokit.NotFoundException ex)
                         {
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Invalid Repository ID");
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Invalid Repository Name");
                         }
                     }
                     else
@@ -79,7 +86,6 @@ namespace Combot.Modules.Plugins
             catch (Octokit.ApiValidationException ex)
             {
                 OnError(ex.Message);
-                return;
             }
         }
 

@@ -32,9 +32,9 @@ namespace Combot.Modules.Plugins
                         {
                             SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are already identified as an owner.");
                         }
-                        for (int i = 0; i < Bot.IRC.Channels.Count; i++)
+                        foreach (Channel chan in Bot.IRC.Channels)
                         {
-                            Nick foundNick = Bot.IRC.Channels[i].Nicks.Find(nick => nick.Nickname == command.Nick.Nickname);
+                            Nick foundNick = chan.Nicks.Find(nick => nick.Nickname == command.Nick.Nickname);
                             if (foundNick != null)
                             {
                                 foundNick.AddMode(UserMode.r);
