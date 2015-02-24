@@ -27,14 +27,25 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 * Nick Last Seen
 * SED
 
+## Requirements
+
+* MySQL v5.5 or greater
+* .NET Framework v4.5.1
+
 ## Installation - Windows
 
 1) Download the Release.zip from the latest release in https://github.com/uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
-2) Run Combot-Interface.exe
+2) Edit Combot.Servers.config to configure the bot for the correct servers, channels, owner information, and MySQL database.
+3) If the database has not been created yet, import Database.sql from the master branch into the database.
+4) Run Combot-Interface.exe
 
 ## Installation - Linux
 
-This is currently untested and not supported.  Due to the interface using WPF, Mono is unable to run the current interface on Linux machines.  In the future I may make an interface that does not utilize WPF for those on Linux.
+This is currently untested and not supported.  If you would like to venture into the realm of unreliability and errors, you can try running the Console Interface in Mono. 
+
+## Building
+
+To fully maximise the potential of Combot's ease of development, Visual Studios 13 should be installed.  If you have Visual Studios installed, you can add **Module Template.zip** to your project templates to easily create new modules.  If you do not want to use a template, you can copy an existing module and work from there.
 
 ## Bugs/Feature Requests
 
