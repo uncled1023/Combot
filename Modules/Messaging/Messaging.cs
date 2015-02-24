@@ -85,7 +85,7 @@ namespace Combot.Modules.Plugins
             }
             else
             {
-                string maxMessage = string.Format("You already have sent the maximum number of messages to \u0002{0}\u0002.  Wait until they have read their messages before sending another.");
+                string maxMessage = string.Format("You already have sent the maximum number of messages to \u0002{0}\u0002.  Wait until they have read their messages before sending another.", command.Arguments["Nickname"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, maxMessage);
             }
         }
