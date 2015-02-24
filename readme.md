@@ -35,8 +35,8 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 ## Installation - Windows
 
 1) Download the Release.zip from the latest release in https://github.com/uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
-2) Edit Combot.Servers.config to configure the bot for the correct servers, channels, owner information, and MySQL database.
-3) If the database has not been created yet, import Database.sql from the master branch into the database.
+2) Edit Combot.Servers.config to configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
+3) If the database has not been created yet, import Database.sql from the master branch into the database.<br>
 4) Run Combot-Interface.exe
 
 ## Installation - Linux
