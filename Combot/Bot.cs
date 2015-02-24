@@ -222,10 +222,18 @@ namespace Combot
 
         public bool CheckChannelAccess(string channel, string nickname, AccessType access)
         {
+            if (nickname == IRC.Nickname)
+            {
+                return true;
+            }
             Channel foundChannel = IRC.Channels.Find(chan => chan.Name == channel);
             if (foundChannel != null)
             {
                 Nick foundNick = foundChannel.Nicks.Find(nick => nick.Nickname == nickname);
+                if (foundNick != null && ServerConfig.Owners.Contains(nickname) && foundNick.Modes.Contains(UserMode.r))
+                {
+                    return true;
+                }
                 if (foundNick != null)
                 {
                     for (int i = 0; i < foundNick.Privileges.Count; i++)
@@ -303,90 +311,68 @@ namespace Combot
         /// <returns></returns>
         public bool CheckNickAccess(string channel, string firstNick, string secondNick)
         {
-            bool access = false;
+            if (firstNick == IRC.Nickname)
+            {
+                return true;
+            }
             Channel foundChannel = IRC.Channels.Find(chan => chan.Name == channel);
             if (foundChannel != null)
             {
                 Nick foundFirstNick = foundChannel.Nicks.Find(nick => nick.Nickname == firstNick);
                 Nick foundSecondNick = foundChannel.Nicks.Find(nick => nick.Nickname == secondNick);
+                if (foundFirstNick != null && ServerConfig.Owners.Contains(firstNick) && foundFirstNick.Modes.Contains(UserMode.r))
+                {
+                    return true;
+                }
                 if (foundFirstNick != null && foundSecondNick != null)
                 {
                     for (int i = 0; i < foundSecondNick.Privileges.Count; i++)
                     {
-                        access = foundFirstNick.Privileges.Contains(foundSecondNick.Privileges[i]);
-                        if (foundFirstNick.Privileges.Contains(foundSecondNick.Privileges[i]))
-                        {
-                            access = true;
-                        }
-                        else
-                        {
-                            access = false;
-                        }
                         switch (foundSecondNick.Privileges[i])
                         {
                             case PrivilegeMode.v:
-                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.v) || foundFirstNick.Privileges.Contains(PrivilegeMode.h) || foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                if (!foundFirstNick.Privileges.Contains(PrivilegeMode.v) && !foundFirstNick.Privileges.Contains(PrivilegeMode.h) && !foundFirstNick.Privileges.Contains(PrivilegeMode.o) && !foundFirstNick.Privileges.Contains(PrivilegeMode.a) && !foundFirstNick.Privileges.Contains(PrivilegeMode.q))
                                 {
-                                    access = true;
-                                }
-                                else
-                                {
-                                    access = false;
+                                    return false;
                                 }
                                 break;
                             case PrivilegeMode.h:
-                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.h) || foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                if (!foundFirstNick.Privileges.Contains(PrivilegeMode.h) && !foundFirstNick.Privileges.Contains(PrivilegeMode.o) && !foundFirstNick.Privileges.Contains(PrivilegeMode.a) && !foundFirstNick.Privileges.Contains(PrivilegeMode.q))
                                 {
-                                    access = true;
-                                }
-                                else
-                                {
-                                    access = false;
+                                    return false;
                                 }
                                 break;
                             case PrivilegeMode.o:
-                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.o) || foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                if (!foundFirstNick.Privileges.Contains(PrivilegeMode.o) && !foundFirstNick.Privileges.Contains(PrivilegeMode.a) && !foundFirstNick.Privileges.Contains(PrivilegeMode.q))
                                 {
-                                    access = true;
-                                }
-                                else
-                                {
-                                    access = false;
+                                    return false;
                                 }
                                 break;
                             case PrivilegeMode.a:
-                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.a) || foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                if (!foundFirstNick.Privileges.Contains(PrivilegeMode.a) && !foundFirstNick.Privileges.Contains(PrivilegeMode.q))
                                 {
-                                    access = true;
-                                }
-                                else
-                                {
-                                    access = false;
+                                    return false;
                                 }
                                 break;
                             case PrivilegeMode.q:
-                                if (foundFirstNick.Privileges.Contains(PrivilegeMode.q))
+                                if (!foundFirstNick.Privileges.Contains(PrivilegeMode.q))
                                 {
-                                    access = true;
-                                }
-                                else
-                                {
-                                    access = false;
+                                    return false;
                                 }
                                 break;
                         }
                     }
                 }
-                if (foundFirstNick != null && ServerConfig.Owners.Contains(firstNick) && foundFirstNick.Modes.Contains(UserMode.r))
+                else
                 {
-                    access = true;
+                    return false;
                 }
-            } 
-            if (firstNick == IRC.Nickname)
-            {
-                access = true;
             }
-            return access;
+            else
+            {
+                return false;
+            }
+            return true;
         }
 
         public void ExecuteCommand(string message, string location, MessageType type)
