@@ -57,6 +57,11 @@ namespace Combot.Modules.Plugins
                                                 x.Encoding = Encoding.UTF8;
                                                 string source = x.DownloadString(urlMatch.ToString());
                                                 string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
+                                                int maxTitle = Convert.ToInt32(GetOptionValue("Max Title"));
+                                                if (title.Length > (int)maxTitle)
+                                                {
+                                                    title = string.Format("{0}...", title.Substring(0, (int)maxTitle));
+                                                }
                                                 Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
                                             }
                                             break;
