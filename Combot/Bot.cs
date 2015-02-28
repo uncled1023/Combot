@@ -32,6 +32,7 @@ namespace Combot
 
         private bool GhostSent;
         private int CurNickChoice;
+        private int PreNickChoice;
         private int RetryCount;
         private bool RetryAllowed;
 
@@ -40,6 +41,7 @@ namespace Combot
             Modules = new List<Module>();
             GhostSent = false;
             CurNickChoice = 0;
+            PreNickChoice = -1;
             RetryCount = 0;
             ServerConfig = serverConfig;
             LoadTime = DateTime.Now;
@@ -460,11 +462,11 @@ namespace Combot
                     case IRCReplyCode.RPL_WELCOME:
                         // If the reply is Welcome, that means we are fully connected to the server.
                         LoggedIn = true;
-                        if (!GhostSent && IRC.Nickname != ServerConfig.Nicknames[CurNickChoice])
+                        if (!GhostSent && PreNickChoice >= 0 && IRC.Nickname != ServerConfig.Nicknames[PreNickChoice])
                         {
-                            IRC.Command.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nicknames[CurNickChoice], ServerConfig.Password));
+                            IRC.Command.SendPrivateMessage("NickServ", string.Format("GHOST {0} {1}", ServerConfig.Nicknames[PreNickChoice], ServerConfig.Password));
                             Thread.Sleep(1000);
-                            IRC.Command.SendNick(ServerConfig.Nicknames[CurNickChoice]);
+                            IRC.Command.SendNick(ServerConfig.Nicknames[PreNickChoice]);
                             GhostSent = true;
                         }
                         // Identify to NickServ if need be
@@ -497,7 +499,9 @@ namespace Combot
                             string nick = string.Empty;
                             if (IRC.Nickname == ServerConfig.Nicknames[CurNickChoice] && ServerConfig.Nicknames.Count > CurNickChoice + 1)
                             {
+                                GhostSent = false;
                                 CurNickChoice++;
+                                PreNickChoice++;
                                 nick = ServerConfig.Nicknames[CurNickChoice];
                             }
                             else
