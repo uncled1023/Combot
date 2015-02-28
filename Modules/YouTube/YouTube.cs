@@ -14,7 +14,6 @@ namespace Combot.Modules.Plugins
         public override void Initialize()
         {
             Bot.CommandReceivedEvent += HandleCommandEvent;
-            Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessage;
         }
 
         public override void ParseCommand(CommandMessage command)
@@ -26,25 +25,6 @@ namespace Combot.Modules.Plugins
                 case "YouTube Search":
                     YoutubeSearch(command);
                     break;
-            }
-        }
-
-        private void HandleChannelMessage(object sender, ChannelMessage message)
-        {
-            if (Enabled
-                && !Bot.ServerConfig.ChannelBlacklist.Contains(message.Channel)
-                && !Bot.ServerConfig.NickBlacklist.Contains(message.Sender.Nickname)
-                && !ChannelBlacklist.Contains(message.Channel)
-                && !NickBlacklist.Contains(message.Sender.Nickname)
-                && !Bot.IsCommand(message.Message))
-            {
-                Regex urlRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-                if (urlRegex.IsMatch(message.Message))
-                {
-                    Match urlMatch = urlRegex.Match(message.Message);
-                    string youtubeMessage = GetYoutubeDescription(urlMatch.Groups["ID"].Value);
-                    Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
-                }
             }
         }
 

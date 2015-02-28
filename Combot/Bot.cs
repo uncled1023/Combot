@@ -93,7 +93,7 @@ namespace Combot
                         }
                         i++;
                     }
-                    catch (SocketException ex)
+                    catch (SocketException)
                     {
                         break;
                     }
@@ -280,7 +280,6 @@ namespace Combot
                                 break;
                             case AccessType.Owner:
                                 return true;
-                                break;
                         }
                     }
                 }
@@ -437,14 +436,7 @@ namespace Combot
                     switch (mode.Mode)
                     {
                         case ChannelMode.k:
-                            if (mode.Set)
-                            {
-                                channel.Key = mode.Parameter;
-                            }
-                            else
-                            {
-                                channel.Key = string.Empty;
-                            }
+                            channel.Key = (mode.Set) ? mode.Parameter : string.Empty;
                             ServerConfig.Save();
                             break;
                     }
@@ -496,7 +488,7 @@ namespace Combot
                     case IRCErrorCode.ERR_NICKNAMEINUSE:
                         if (LoggedIn == false)
                         {
-                            string nick = string.Empty;
+                            string nick;
                             if (IRC.Nickname == ServerConfig.Nicknames[CurNickChoice] && ServerConfig.Nicknames.Count > CurNickChoice + 1)
                             {
                                 GhostSent = false;
