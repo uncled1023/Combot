@@ -29,6 +29,7 @@ namespace Combot.Modules.Plugins
                         case "edit":
                             EditIntroduction(command);
                             break;
+                        case "delete":
                         case "del":
                             DeleteIntroduction(command);
                             break;
