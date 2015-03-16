@@ -14,12 +14,28 @@ namespace Combot.Modules.Plugins
 
         public override void ParseCommand(CommandMessage command)
         {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             Command foundCommand = Commands.Find(c => c.Triggers.Contains(command.Command));
             switch (foundCommand.Name)
             {
-                case "Rules":
-                    string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
-                    if (command.Arguments.ContainsKey("Action"))
+                case "Rules Display":
+                    List<Dictionary<string, object>> foundRules = GetRuleList(channel);
+                    if (foundRules.Any())
+                    {
+                        int index = 1;
+                        foundRules.ForEach(rule =>
+                        {
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("Rule \u0002#{0}\u0002: {1}", index, rule["rule"]));
+                            index++;
+                        });
+                    }
+                    else
+                    {
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("There are no rules for \u0002{0}\u0002", channel));
+                    }
+                    break;
+                case "Rules Modification":
+                    if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, command.Access))
                     {
                         string action = command.Arguments["Action"].ToString();
                         switch (action.ToLower())
@@ -37,20 +53,8 @@ namespace Combot.Modules.Plugins
                     }
                     else
                     {
-                        List<Dictionary<string, object>> foundRules = GetRuleList(channel);
-                        if (foundRules.Any())
-                        {
-                            int index = 1;
-                            foundRules.ForEach(rule =>
-                            {
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("Rule \u0002#{0}\u0002: {1}", index, rule["rule"]));
-                                index++;
-                            });
-                        }
-                        else
-                        {
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("There are no rules for \u0002{0}\u0002", channel));
-                        }
+                        string noAccessMessage = string.Format("You do not have access to \u0002{0}\u000F on \u0002{1}\u000F.", command.Command, channel);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
                     }
                     break;
             }

@@ -50,6 +50,13 @@ namespace Combot.Databases
                         MysqlErrorEvent(this, exception.Message);
                     }
                 }
+                catch (Exception exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
                 DatabaseLock.ExitWriteLock();
             }
             return rows;
@@ -74,6 +81,13 @@ namespace Combot.Databases
                         MysqlErrorEvent(this, exception.Message);
                     }
                 }
+                catch (Exception exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
                 DatabaseLock.ExitWriteLock();
                 return result;
             }
@@ -92,6 +106,13 @@ namespace Combot.Databases
                     int result = cmd.ExecuteNonQuery();
                 }
                 catch (MySqlException exception)
+                {
+                    if (MysqlErrorEvent != null)
+                    {
+                        MysqlErrorEvent(this, exception.Message);
+                    }
+                }
+                catch (Exception exception)
                 {
                     if (MysqlErrorEvent != null)
                     {

@@ -571,15 +571,34 @@ namespace Combot
                     CommandMessage newCommand = new CommandMessage();
                     newCommand.Nick.Copy(sender);
                     bool nickFound = false;
-                    IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
+                    if (messageType == MessageType.Channel)
                     {
-                        if (nick.Nickname == newCommand.Nick.Nickname)
+                        Channel foundChannel = IRC.Channels.Find(chan => chan.Name == location);
+                        if (foundChannel != null)
                         {
-                            nickFound = true;
-                            newCommand.Nick.AddModes(nick.Modes);
-                            newCommand.Nick.AddPrivileges(nick.Privileges);
+                            foundChannel.Nicks.ForEach(nick =>
+                            {
+                                if (nick.Nickname == newCommand.Nick.Nickname)
+                                {
+                                    nickFound = true;
+                                    newCommand.Nick.AddModes(nick.Modes);
+                                    newCommand.Nick.AddPrivileges(nick.Privileges);
+                                }
+                            });
                         }
-                    }));
+                    }
+                    else
+                    {
+                        IRC.Channels.ForEach(channel => channel.Nicks.ForEach(nick =>
+                        {
+                            if (nick.Nickname == newCommand.Nick.Nickname)
+                            {
+                                nickFound = true;
+                                newCommand.Nick.AddModes(nick.Modes);
+                                newCommand.Nick.AddPrivileges(nick.Privileges);
+                            }
+                        }));
+                    }
                     // Nickname has not been found, so need to run a query for nick's modes
                     if (!nickFound)
                     {
