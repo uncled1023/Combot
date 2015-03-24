@@ -324,6 +324,39 @@ namespace Combot.Modules.Plugins
             listLock.ExitWriteLock();
         }
 
+
+        private void TimedUnvoice(Command curCommand, CommandMessage command)
+        {
+            double timeout;
+            if (double.TryParse(command.Arguments["Time"], out timeout))
+            {
+                ModifyUserPrivilege(false, command, ChannelMode.v);
+                Timer revoice_trigger = new Timer();
+                revoice_trigger.Interval = (timeout * 1000.0);
+                revoice_trigger.Enabled = true;
+                revoice_trigger.AutoReset = false;
+                revoice_trigger.Elapsed += (sender, e) => TimedRevoice(sender, e, curCommand, command);
+                listLock.EnterWriteLock();
+                revoiceTimers.Add(revoice_trigger);
+                listLock.ExitWriteLock();
+            }
+            else
+            {
+                string notValid = "Please enter a valid time.";
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notValid);
+            }
+        }
+
+        private void TimedRevoice(object sender, EventArgs e, Command curCommand, CommandMessage command)
+        {
+            Timer revoiceTimer = (Timer)sender;
+            revoiceTimer.Enabled = false;
+            ModifyUserPrivilege(true, command, ChannelMode.v);
+            listLock.EnterWriteLock();
+            revoiceTimers.Remove(revoiceTimer);
+            listLock.ExitWriteLock();
+        }
+
         private void KickNick(Command curCommand, CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
