@@ -24,7 +24,7 @@ namespace Combot.Modules.Plugins
                 && !NickBlacklist.Contains(message.Sender.Nickname))
             {
                 AddChannel(message.Channel);
-                AddNick(message.Sender.Nickname);
+                AddNick(message.Sender);
                 string query = "INSERT INTO `channelmessages` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
@@ -39,7 +39,7 @@ namespace Combot.Modules.Plugins
         {
             if (!NickBlacklist.Contains(message.Sender.Nickname))
             {
-                AddNick(message.Sender.Nickname);
+                AddNick(message.Sender);
                 string query = "INSERT INTO `privatemessages` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2}), " +
@@ -55,7 +55,7 @@ namespace Combot.Modules.Plugins
                 && !NickBlacklist.Contains(info.Nick.Nickname))
             {
                 AddChannel(info.Channel);
-                AddNick(info.Nick.Nickname);
+                AddNick(info.Nick);
                 string query = "INSERT INTO `channeljoins` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
@@ -71,7 +71,7 @@ namespace Combot.Modules.Plugins
                 && !NickBlacklist.Contains(info.Nick.Nickname))
             {
                 AddChannel(info.Channel);
-                AddNick(info.Nick.Nickname);
+                AddNick(info.Nick);
                 string query = "INSERT INTO `channelparts` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
@@ -87,8 +87,8 @@ namespace Combot.Modules.Plugins
                 && !NickBlacklist.Contains(info.KickedNick.Nickname))
             {
                 AddChannel(info.Channel);
-                AddNick(info.Nick.Nickname);
-                AddNick(info.KickedNick.Nickname);
+                AddNick(info.Nick);
+                AddNick(info.KickedNick);
                 string query = "INSERT INTO `channelkicks` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
@@ -104,7 +104,7 @@ namespace Combot.Modules.Plugins
         {
             if (!NickBlacklist.Contains(info.Nick.Nickname))
             {
-                AddNick(info.Nick.Nickname);
+                AddNick(info.Nick);
                 string query = "INSERT INTO `quits` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2}), " +

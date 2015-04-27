@@ -67,7 +67,7 @@ namespace Combot.Modules.Plugins
             if (results.Count < Convert.ToInt32(GetOptionValue("Max Introductions")))
             {
                 AddChannel(channel);
-                AddNick(command.Nick.Nickname);
+                AddNick(command.Nick);
                 string query = "INSERT INTO `introductions` SET " +
                                 "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                 "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
@@ -173,7 +173,7 @@ namespace Combot.Modules.Plugins
                     for (int i = 0; i < results.Count; i++)
                     {
                         string introMessage = string.Format("Introduction #\u0002{0}\u0002: {1}", i + 1, results[i]["message"]);
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage, true);
                     }
                 }
                 else
