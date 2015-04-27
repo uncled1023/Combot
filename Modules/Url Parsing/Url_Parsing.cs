@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -51,28 +53,6 @@ namespace Combot.Modules.Plugins
                                     long contentLength = webResponse.ContentLength;
                                     switch (contentType)
                                     {
-                                        case "text":
-                                            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-                                            if (ytRegex.IsMatch(urlMatch.ToString()))
-                                            {
-                                                Match ytMatch = ytRegex.Match(urlMatch.ToString());
-                                                string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
-                                            }
-                                            else
-                                            {
-                                                WebClient x = new WebClient();
-                                                x.Encoding = Encoding.UTF8;
-                                                string source = x.DownloadString(urlMatch.ToString());
-                                                string title = Regex.Match(source, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups["Title"].Value;
-                                                int maxTitle = Convert.ToInt32(GetOptionValue("Max Title"));
-                                                if (title.Length > (int)maxTitle)
-                                                {
-                                                    title = string.Format("{0}...", title.Substring(0, (int)maxTitle));
-                                                }
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
-                                            }
-                                            break;
                                         case "image":
                                             Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
                                             break;
@@ -84,6 +64,19 @@ namespace Combot.Modules.Plugins
                                             break;
                                         case "audio":
                                             Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                            break;
+                                        default:
+                                            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+                                            if (ytRegex.IsMatch(urlMatch.ToString()))
+                                            {
+                                                Match ytMatch = ytRegex.Match(urlMatch.ToString());
+                                                string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
+                                            }
+                                            else
+                                            {
+                                                ParseTitle(message, urlMatch.ToString());
+                                            }
                                             break;
                                     }
                                 }
@@ -103,10 +96,76 @@ namespace Combot.Modules.Plugins
                         }
                         catch (OutOfMemoryException ex)
                         {
-                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Site content was too large ({0})", url.Host));
+                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] \u0002Site content was too large\u0002 ({0})", url.Host));
                         }
                     }
                 }
+            }
+        }
+
+        public void ParseTitle(ChannelMessage message, string urlString)
+        {
+            string title = string.Empty;
+            bool startTagFound = false;
+            Uri url = new Uri(urlString);
+
+            HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(urlString);
+            StreamReader streamReader = new StreamReader(req.GetResponse().GetResponseStream());
+
+            Char[] buf = new Char[256];
+            int count = streamReader.Read(buf, 0, 256);
+
+            var stopwatch = Stopwatch.StartNew();
+            TimeSpan timeout = new TimeSpan(0, 0, 15);
+            while (count > 0 && stopwatch.Elapsed < timeout)
+            {
+                String outputData = new String(buf, 0, count);
+
+                if (!startTagFound)
+                {
+                    // check for a full match
+                    Match fullMatch = Regex.Match(outputData, @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase);
+                    if (fullMatch.Success)
+                    {
+                        title = fullMatch.Groups["Title"].Value;
+                        break;
+                    }
+                }
+
+                string pattern = string.Empty;
+                if (startTagFound)
+                {
+                    pattern = @"^(?<Title>[\s\S]*?)\</title\>";
+                    Match match = Regex.Match(outputData, pattern, RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        title += match.Groups["Title"].Value;
+                        break;
+                    }
+                    title += outputData;
+                }
+                else
+                {
+                    pattern = @"\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)$";
+                    Match match = Regex.Match(outputData, pattern, RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        title = match.Groups["Title"].Value;
+                        startTagFound = true;
+                    }
+                }
+                count = streamReader.Read(buf, 0, 256);
+            }
+            streamReader.Close();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                int maxTitle = Convert.ToInt32(GetOptionValue("Max Title"));
+                if (title.Length > (int)maxTitle)
+                {
+                    title = string.Format("{0}...", title.Substring(0, (int)maxTitle));
+                }
+                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
             }
         }
 
