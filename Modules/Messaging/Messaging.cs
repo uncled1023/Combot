@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Combot.Databases;
+using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
 
 namespace Combot.Modules.Plugins
@@ -65,17 +66,27 @@ namespace Combot.Modules.Plugins
 
         private void AddMessage(CommandMessage command, bool anonymous = false)
         {
-            List<Dictionary<string, object>> currentMessages = GetSentMessages(command.Arguments["Nickname"]);
-            int numMessages = currentMessages.Select(msg => GetNickname((int) msg["nick_id"]) == command.Nick.Nickname).Count();
+            List<Dictionary<string, object>> currentMessages = GetSentMessages(command.Arguments["Nickname"], command.Nick.Nickname);
+            int numMessages = currentMessages.Count();
             int maxMessages = Convert.ToInt32(GetOptionValue("Max Messages"));
             if (numMessages < maxMessages)
             {
-                AddNick(command.Nick.Nickname);
-                AddNick(command.Arguments["Nickname"]);
+                AddNick(command.Nick);
+                Nick newNick = new Nick();
+                Channel foundChannel = Bot.IRC.Channels.Find(chan => chan.Nicks.Exists(nick => nick.Nickname == command.Arguments["Nickname"]));
+                if (foundChannel != null)
+                {
+                    newNick = foundChannel.GetNick(command.Arguments["Nickname"]);
+                }
+                else
+                {
+                    newNick.Nickname = command.Arguments["Nickname"];
+                }
+                AddNick(newNick);
                 string query = "INSERT INTO `messages` SET " +
                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
-                               "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2}), " +
-                               "`sender_nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4}), " +
+                               "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nicks`.`nickname` = {2}), " +
+                               "`sender_nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nicks`.`nickname` = {4}), " +
                                "`message` = {5}, " +
                                "`anonymous` = {6}, " +
                                "`date_posted` = {7}";
@@ -116,15 +127,13 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private List<Dictionary<string, object>> GetSentMessages(string nick)
+        private List<Dictionary<string, object>> GetSentMessages(string nick, string sender)
         {
-            string search = "SELECT `messages`.`message`, `messages`.`nick_id`, `messages`.`date_posted`, `messages`.`anonymous` FROM `messages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `messages`.`sender_nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `messages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1}";
-            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nick });
+            string search = "SELECT `messages`.`message`, `messages`.`nick_id`, `messages`.`date_posted`, `messages`.`anonymous` FROM `messages` WHERE " +
+                            "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
+                            "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2}) AND " +
+                            "`sender_nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4})";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, nick, Bot.ServerConfig.Name, sender });
         }
 
         private List<Dictionary<string, object>> GetReceivedMessages(string nick)
