@@ -28,7 +28,7 @@ namespace Combot.Modules.Plugins
 
             if (foundCommand.Name == "Version Check")
             {
-                string nick = command.Arguments["Nickname"].ToString();
+                string nick = (command.Arguments.ContainsKey("Nickname")) ? command.Arguments["Nickname"].ToString() : command.Nick.Nickname;
                 List<string> nickList = nick.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 for (int i = 0; i < nickList.Count; i++)
                 {
