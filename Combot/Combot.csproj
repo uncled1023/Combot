@@ -86,6 +86,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Combot.Servers.Default.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +130,7 @@ copy "$(TargetDir)Combot.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)System.Windows.Interactivity.dll" "$(SolutionDir)$(ConfigurationName)\" /y
-copy "$(SolutionDir)Combot.Servers.config" "$(SolutionDir)$(ConfigurationName)\Combot.Servers.config" /y</PostBuildEvent>
+copy "$(TargetDir)Combot.Servers.Default.json" "$(SolutionDir)$(ConfigurationName)\" /y</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

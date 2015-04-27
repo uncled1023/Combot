@@ -1,31 +1,31 @@
 ﻿{
-  "Name": "YouTube",
-  "ClassName": "YouTube",
+  "Name": "Version",
+  "ClassName": "Version",
   "Enabled": true,
   "ChannelBlacklist": [],
   "NickBlacklist": [],
   "Commands": [
     {
-      "Name": "YouTube Search",
-      "Description": "Searches YouTube for a video that is relevant to your query.",
+      "Name": "Version Check",
+      "Description": "Sends a version CTCP request and displays the response.",
       "Enabled": true,
       "ChannelBlacklist": [],
       "NickBlacklist": [],
       "Triggers": [
-        "yt",
-        "youtube"
+        "version",
+        "ver"
       ],
       "Arguments": [
         {
-          "Name": "Query",
-          "Description": "The query you want to search for.",
+          "Name": "Nickname",
+          "Description": "The nickname you want to query for version information.",
           "AllowedValues": [],
           "MessageTypes": [
             0,
             1,
             2
           ],
-          "Required": true
+          "Required": false
         }
       ],
       "AllowedMessageTypes": [
@@ -46,5 +46,11 @@
       "SpamCheck": true
     }
   ],
-  "Options": []
+  "Options": [
+    {
+      "Name": "Machine Reply",
+      "Description": "The machine you want a version reply to say the bot is running on.",
+      "Value": "Windows 11"
+    }
+  ]
 }
