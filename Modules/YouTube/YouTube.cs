@@ -30,8 +30,8 @@ namespace Combot.Modules.Plugins
 
         private void YoutubeSearch(CommandMessage command)
         {
-            string urlTemplate = "http://gdata.youtube.com/feeds/api/videos?v=2&alt=jsonc&max-results=1&q={0}";
-            Uri searchUrl = new Uri(string.Format(urlTemplate, command.Arguments["Query"]));
+            string urlTemplate = "https://www.googleapis.com/youtube/v3/search?part=snippet&q={0}&key={1}";
+            Uri searchUrl = new Uri(string.Format(urlTemplate, command.Arguments["Query"], GetOptionValue("API Key")));
             WebClient web = new WebClient();
             web.Encoding = Encoding.UTF8;
             try
@@ -39,9 +39,9 @@ namespace Combot.Modules.Plugins
                 string page = web.DownloadString(searchUrl);
 
                 JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
-                if (parsed["data"]["totalItems"].Value<int>() > 0)
+                if (parsed["items"].Any())
                 {
-                    string videoID = parsed["data"]["items"].First().Value<string>("id");
+                    string videoID = parsed["items"].First()["id"].Value<string>("videoId");
                     string vidDescription = GetYoutubeDescription(videoID);
                     string youtubeMessage = string.Format("{0} - {1}", vidDescription, string.Format("http://youtu.be/{0}", videoID));
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, youtubeMessage);
