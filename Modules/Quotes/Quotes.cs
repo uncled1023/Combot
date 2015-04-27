@@ -39,7 +39,7 @@ namespace Combot.Modules.Plugins
             {
                 Random randNum = new Random();
                 int index = randNum.Next(results.Count - 1);
-                Dictionary<string, object> quote = results[index];
+                Dictionary<string, object> quote = GetQuote(Convert.ToInt32(results[index]["id"])).First();
                 string quoteMessage = string.Format("[{0}] {1}", quote["nickname"], quote["message"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, quoteMessage);
             }
@@ -60,9 +60,7 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetQuoteList(string channel)
         {
-            string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
+            string search = "SELECT `channelmessages`.`id` FROM `channelmessages` " +
                             "INNER JOIN `channels` " +
                             "ON `channelmessages`.`channel_id` = `channels`.`id` " +
                             "INNER JOIN `servers` " +
@@ -73,7 +71,7 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetQuoteList(string channel, string nickname)
         {
-            string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
+            string search = "SELECT `channelmessages`.`id` FROM `channelmessages` " +
                             "INNER JOIN `nicks` " +
                             "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
                             "INNER JOIN `channels` " +
@@ -82,6 +80,15 @@ namespace Combot.Modules.Plugins
                             "ON `channelmessages`.`server_id` = `servers`.`id` " +
                             "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+        }
+
+        private List<Dictionary<string, object>> GetQuote(int id)
+        {
+            string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
+                            "INNER JOIN `nicks` " +
+                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
+                            "WHERE `channelmessages`.`id` = {0}";
+            return Bot.Database.Query(search, new object[] { id });
         }
     }
 }
