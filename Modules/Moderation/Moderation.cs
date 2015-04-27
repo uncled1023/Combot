@@ -256,11 +256,11 @@ namespace Combot.Modules.Plugins
                     Nick foundNick = foundChannel.Nicks.Find(nick => nick.Nickname == banMask);
                     if (foundNick.Host != string.Empty && foundNick.Username != null)
                     {
-                        banMask = string.Format("{0}!*{1}@{2}", foundNick.Nickname, foundNick.Username, foundNick.Host);
+                        banMask = string.Format("*!*{0}@{1}", foundNick.Username, foundNick.Host);
                     }
                     else if (foundNick.Host != string.Empty)
                     {
-                        banMask = string.Format("{0}!*@{1}", foundNick.Nickname, foundNick.Host);
+                        banMask = string.Format("*!*@{0}", foundNick.Host);
                     }
                     else if (foundNick.Username != string.Empty)
                     {
