@@ -31,11 +31,12 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 
 * MySQL v5.5 or greater
 * .NET Framework v4.5.1
+* Git (If using the GitVersionTask Nuget Package)
 
 ## Installation - Windows
 
 1) Download the Release.zip from the latest release in https://github.com/uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
-2) Edit Combot.Servers.config to configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
+2) Edit Combot.Servers.json to configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
 3) If the database has not been created yet, import Database.sql from the master branch into the database.<br>
 4) Run Combot-Interface.exe
 
@@ -46,6 +47,8 @@ This is currently untested and not supported.  If you would like to venture into
 ## Building
 
 To fully maximise the potential of Combot's ease of development, Visual Studios 13 should be installed.  If you have Visual Studios installed, you can add **Module Template.zip** to your project templates to easily create new modules.  If you do not want to use a template, you can copy an existing module and work from there.
+
+If you do not have git installed on your machine, or do not want to add the git versioning, then go to the Nuget Package Manager within Visual Studios and Uninstall the **GitVersionTask** package.
 
 ## Bugs/Feature Requests
 
