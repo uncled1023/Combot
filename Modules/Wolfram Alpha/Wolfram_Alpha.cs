@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text;
 using System.Web;
 using System.Xml;
@@ -45,6 +46,11 @@ namespace Combot.Modules.Plugins
             {
                 string queryMessage = string.Format("Result for: {0}", xnList[0]["subpod"]["plaintext"].InnerText);
                 string resultMessage = xnList[1]["subpod"]["plaintext"].InnerText;
+                int maxResults = Convert.ToInt32(GetOptionValue("Max Response Length"));
+                if (resultMessage.Length > (int)maxResults)
+                {
+                    resultMessage = string.Format("{0}...", resultMessage.Substring(0, (int)maxResults));
+                }
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, queryMessage);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
             }

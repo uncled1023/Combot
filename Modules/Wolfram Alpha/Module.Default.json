@@ -49,7 +49,12 @@
     {
       "Name": "API",
       "Description": "The API key for Wolfram Alpha.",
-      "Value": "892JG5-XVQVU5JUEW"
+      "Value": ""
+    },
+    {
+      "Name": "Max Response Length",
+      "Description": "The maximum length for the response to be.",
+      "Value": 400
     }
   ]
 }
