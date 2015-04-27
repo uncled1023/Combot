@@ -53,9 +53,9 @@ namespace Combot.Modules.Plugins
                                     {
                                         case "text":
                                             Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-                                            if (ytRegex.IsMatch(message.Message))
+                                            if (ytRegex.IsMatch(urlMatch.ToString()))
                                             {
-                                                Match ytMatch = ytRegex.Match(message.Message);
+                                                Match ytMatch = ytRegex.Match(urlMatch.ToString());
                                                 string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
                                                 Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
                                             }
@@ -100,6 +100,10 @@ namespace Combot.Modules.Plugins
                                 int code = (int) ((HttpWebResponse) ex.Response).StatusCode;
                                 Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
                             }
+                        }
+                        catch (OutOfMemoryException ex)
+                        {
+                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Site content was too large ({0})", url.Host));
                         }
                     }
                 }
