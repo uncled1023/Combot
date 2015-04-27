@@ -50,7 +50,7 @@ namespace Combot.Configurations
             if (!Servers.Exists(server => server.Name == config.Name))
             {
                 config.ModifyEvent += SaveServers;
-                config.LoadEvent += LoadServers;
+                config.LoadEvent += UpdateServers;
                 Servers.Add(config);
             }
             ConfigRWLock.ExitWriteLock();
@@ -66,7 +66,7 @@ namespace Combot.Configurations
             ConfigRWLock.ExitReadLock();
 
             // Save config to file
-            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.config");
+            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.json");
             using (StreamWriter streamWriter = new StreamWriter(ConfigPath, false))
             {
                 streamWriter.Write(configContents);
@@ -78,7 +78,17 @@ namespace Combot.Configurations
         public void LoadServers()
         {
             ConfigFileRWLock.EnterReadLock();
-            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.config");
+            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.json");
+
+            if (!File.Exists(ConfigPath))
+            {
+                string defaultPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.Default.json");
+                if (File.Exists(defaultPath))
+                {
+                    File.Copy(defaultPath, ConfigPath);
+                }
+            }
+
             if (File.Exists(ConfigPath))
             {
                 string configContents;
@@ -94,6 +104,7 @@ namespace Combot.Configurations
                 for (int i = 0; i < Servers.Count; i++)
                 {
                     Servers[i].ModifyEvent += SaveServers;
+                    Servers[i].LoadEvent += UpdateServers;
                 }
                 ConfigRWLock.ExitWriteLock();
             }
@@ -103,7 +114,17 @@ namespace Combot.Configurations
         public void UpdateServers()
         {
             ConfigFileRWLock.EnterReadLock();
-            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.config");
+            string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.json");
+
+            if (!File.Exists(ConfigPath))
+            {
+                string defaultPath = Path.Combine(Directory.GetCurrentDirectory(), @"Combot.Servers.Default.json");
+                if (File.Exists(defaultPath))
+                {
+                    File.Copy(defaultPath, ConfigPath);
+                }
+            }
+
             if (File.Exists(ConfigPath))
             {
                 string configContents;
@@ -116,15 +137,15 @@ namespace Combot.Configurations
                 ConfigRWLock.EnterWriteLock();
                 List<ServerConfig> newConfigs = JsonConvert.DeserializeObject<List<ServerConfig>>(configContents, JsonSettings);
 
-                for (int i = 0; i < newConfigs.Count; i++)
+                foreach (ServerConfig newConfig in newConfigs)
                 {
-                    if (Servers.Count > i)
+                    if (Servers.Exists(server => server.Name == newConfig.Name))
                     {
-                        Servers[i].Copy(newConfigs[i]);
+                        Servers.Find(server => server.Name == newConfig.Name).Copy(newConfig);
                     }
                     else
                     {
-                        Servers.Add(newConfigs[i]);
+                        Servers.Add(newConfig);
                     }
                 }
                 ConfigRWLock.ExitWriteLock();

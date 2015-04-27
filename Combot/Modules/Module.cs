@@ -75,7 +75,7 @@ namespace Combot.Modules
                 {
                     nickAccessTypes.Add(Bot.PrivilegeModeMapping[privilege]);
                 }
-                if ((Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Contains(UserMode.r)) || command.Nick.Nickname == Bot.IRC.Nickname)
+                if ((Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Exists(mode => mode == UserMode.r || mode == UserMode.o)) || command.Nick.Nickname == Bot.IRC.Nickname)
                 {
                     nickAccessTypes.Add(AccessType.Owner);
                 }
@@ -201,7 +201,7 @@ namespace Combot.Modules
             ConfigRWLock.ExitReadLock();
 
             // Save config to file
-            string path = Path.Combine(ConfigPath, "Module.config");
+            string path = Path.Combine(ConfigPath, "Module.json");
             using (StreamWriter streamWriter = new StreamWriter(path, false))
             {
                 streamWriter.Write(configContents);
@@ -213,7 +213,17 @@ namespace Combot.Modules
         public void LoadConfig()
         {
             ConfigFileRWLock.EnterReadLock();
-            string path = Path.Combine(ConfigPath, "Module.config");
+            string path = Path.Combine(ConfigPath, "Module.json");
+
+            if (!File.Exists(path))
+            {
+                string defaultPath = Path.Combine(ConfigPath, "Module.Default.json");
+                if (File.Exists(defaultPath))
+                {
+                    File.Copy(defaultPath, path);
+                }
+            }
+
             if (File.Exists(path))
             {
                 string configContents;
@@ -261,19 +271,72 @@ namespace Combot.Modules
             }
         }
 
-        public void AddNick(string nickname)
+        public void AddNick(Nick nick)
         {
             string search = "SELECT * FROM `nicks` WHERE " +
                             "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
                             "`nickname` = {1}";
-            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nick.Nickname });
 
             if (!results.Any())
             {
                 string insert = "INSERT INTO `nicks` SET " +
                                 "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                 "`nickname` = {1}";
-                Bot.Database.Execute(insert, new object[] { Bot.ServerConfig.Name, nickname });
+                Bot.Database.Execute(insert, new object[] { Bot.ServerConfig.Name, nick.Nickname });
+            }
+            AddNickInfo(nick);
+        }
+
+        public void AddNickInfo(Nick nickInfo)
+        {
+            int argIndex = 2;
+            string search = "SELECT * FROM `nickinfo` WHERE " +
+                            "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `nicks`.`server_id` = `servers`.`id` WHERE `nicks`.`nickname` = {0} AND `servers`.`name` = {1})";
+            List<object> argList = new List<object>() { nickInfo.Nickname, Bot.ServerConfig.Name };
+            if (!string.IsNullOrEmpty(nickInfo.Username))
+            {
+                search += " AND `username` = {" + argIndex + "}";
+                argList.Add(nickInfo.Username);
+                argIndex++;
+            }
+            if (!string.IsNullOrEmpty(nickInfo.Realname))
+            {
+                search += " AND `realname` = {" + argIndex + "}";
+                argList.Add(nickInfo.Realname);
+                argIndex++;
+            }
+            if (!string.IsNullOrEmpty(nickInfo.Host))
+            {
+                search += " AND `host` = {" + argIndex + "}";
+                argList.Add(nickInfo.Host);
+            }
+            List<Dictionary<string, object>> results = Bot.Database.Query(search, argList.ToArray());
+
+            if (!results.Any())
+            {
+                argIndex = 2;
+                string insert = "INSERT INTO `nickinfo` SET " +
+                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `nicks`.`server_id` = `servers`.`id` WHERE `nicks`.`nickname` = {0} AND `servers`.`name` = {1})";
+                argList = new List<object>() { nickInfo.Nickname, Bot.ServerConfig.Name };
+                if (!string.IsNullOrEmpty(nickInfo.Username))
+                {
+                    insert += ", `username` = {" + argIndex + "}";
+                    argList.Add(nickInfo.Username);
+                    argIndex++;
+                }
+                if (!string.IsNullOrEmpty(nickInfo.Realname))
+                {
+                    insert += ", `realname` = {" + argIndex + "}";
+                    argList.Add(nickInfo.Realname);
+                    argIndex++;
+                }
+                if (!string.IsNullOrEmpty(nickInfo.Host))
+                {
+                    insert += ", `host` = {" + argIndex + "}";
+                    argList.Add(nickInfo.Host);
+                }
+                Bot.Database.Execute(insert, argList.ToArray());
             }
         }
 
@@ -290,12 +353,19 @@ namespace Combot.Modules
             return nickname;
         }
 
-        public void SendResponse(MessageType messageType, string location, string nickname, string message)
+        public void SendResponse(MessageType messageType, string location, string nickname, string message, bool silent = false)
         {
             switch (messageType)
             {
                 case MessageType.Channel:
-                    Bot.IRC.Command.SendPrivateMessage(location, message);
+                    if (silent)
+                    {
+                        Bot.IRC.Command.SendNotice(nickname, message);
+                    }
+                    else
+                    {
+                        Bot.IRC.Command.SendPrivateMessage(location, message);
+                    }
                     break;
                 case MessageType.Query:
                     Bot.IRC.Command.SendPrivateMessage(nickname, message);
