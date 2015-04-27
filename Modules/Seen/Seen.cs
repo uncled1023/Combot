@@ -66,7 +66,7 @@ namespace Combot.Modules.Plugins
             {
                 DateTime quitTime = (DateTime)quitList.First()["date_added"];
                 TimeSpan difference = DateTime.Now.Subtract(quitTime);
-                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago quiting.", command.Arguments["Nickname"], ConvertToDifference(difference));
+                string message = string.Format("I last saw \u0002{0}\u0002 {1} ago quitting.", command.Arguments["Nickname"], ConvertToDifference(difference));
                 lastSeenList.Add(new Dictionary<DateTime, string>() { { quitTime, message } });
             }
 
