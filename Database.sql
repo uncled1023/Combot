@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 26, 2015 at 09:21 PM
+-- Generation Time: Apr 26, 2015 at 10:14 PM
 -- Server version: 5.6.11-log
 -- PHP Version: 5.4.15
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `channeljoins` (
   `nick_id` int(11) NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=77774 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `channelkicks` (
   `reason` varchar(500) CHARACTER SET utf8mb4 NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1442 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `channelmessages` (
   `message` text NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=624233 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `channelparts` (
   `nick_id` int(11) NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3446 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `channelrules` (
   `rule` text CHARACTER SET utf8mb4 NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=62 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   `server_id` int(11) NOT NULL,
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=96 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `introductions` (
   `message` text CHARACTER SET utf8mb4 NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=609 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `anonymous` tinyint(1) NOT NULL,
   `date_posted` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=719 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -153,12 +153,12 @@ CREATE TABLE IF NOT EXISTS `messages` (
 CREATE TABLE IF NOT EXISTS `nickinfo` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nick_id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `realname` varchar(50) NOT NULL,
-  `host` varchar(100) NOT NULL,
-  `date_added` datetime NOT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `realname` varchar(50) DEFAULT NULL,
+  `host` varchar(100) DEFAULT NULL,
+  `date_added` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `nicks` (
   `server_id` int(11) NOT NULL,
   `nickname` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9134 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS `privatemessages` (
   `message` text CHARACTER SET utf8mb4 NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1185 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS `quits` (
   `message` varchar(500) CHARACTER SET utf8mb4 NOT NULL,
   `date_added` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=53934 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS `servers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
