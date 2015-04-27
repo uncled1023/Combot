@@ -23,7 +23,7 @@ namespace Combot.IRCServices
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
         public string Nickname;
-        public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q } };
+        public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q }, { "!", PrivilegeMode.q } };
 
         private int ReadTimeout;
         private int AllowedFailedReads;
@@ -247,8 +247,6 @@ namespace Combot.IRCServices
                 {
                     TCPMessageEvent(response);
                 }
-
-                Thread.Sleep(10);
             }
         }
 
