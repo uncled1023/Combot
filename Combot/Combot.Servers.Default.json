@@ -9,22 +9,32 @@
     "Owners": [],
     "ChannelBlacklist": [],
     "NickBlacklist": [],
-    "Hosts": [],
-    "Channels": [],
+    "Hosts": [
+      {
+        "Host": "",
+        "Port": 6667
+      }
+    ],
+    "Channels": [
+      {
+        "Name": "",
+        "Key": ""
+      }
+    ],
     "Database": {
       "Server": "",
-      "Port": 0,
+      "Port": 3306,
       "Database": "",
       "Username": "",
       "Password": ""
     },
-    "ModuleLocation": "",
+    "ModuleLocation": "Modules",
     "AutoConnect": true,
     "Reconnect": true,
-    "AutoRegister": true,
-    "CommandPrefix": "",
-    "JoinDelay": 0,
-    "MaxMessageLength": 0,
-    "MessageSendDelay": 0
+    "AutoRegister": false,
+    "CommandPrefix": ".",
+    "JoinDelay": 100,
+    "MaxMessageLength": 400,
+    "MessageSendDelay": 100
   }
 ]
