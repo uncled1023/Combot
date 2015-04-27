@@ -102,7 +102,6 @@ namespace Combot.Databases
                 MySqlCommand cmd = PrepareQuery(query, args);
                 try
                 {
-
                     int result = cmd.ExecuteNonQuery();
                 }
                 catch (MySqlException exception)
