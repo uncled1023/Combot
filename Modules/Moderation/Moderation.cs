@@ -250,35 +250,51 @@ namespace Combot.Modules.Plugins
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess) && Bot.CheckNickAccess(channel, command.Nick.Nickname, command.Arguments["Nickname"]))
             {
                 string banMask = command.Arguments["Nickname"];
-                Channel foundChannel = Bot.IRC.Channels.Find(chan => chan.Nicks.Exists(nick => nick.Nickname == banMask));
-                if (foundChannel != null)
+                if (!banMask.Contains("@") || !banMask.Contains("!"))
                 {
-                    Nick foundNick = foundChannel.Nicks.Find(nick => nick.Nickname == banMask);
-                    if (foundNick.Host != string.Empty && foundNick.Username != null)
+                    string search = "SELECT `nickinfo`.`username`, `nickinfo`.`host`, `nicks`.`nickname` FROM `nickinfo` " +
+                                    "INNER JOIN `nicks` " +
+                                    "ON `nickinfo`.`nick_id` = `nicks`.`id` " +
+                                    "INNER JOIN `servers` " +
+                                    "ON `nicks`.`server_id` = `servers`.`id` " +
+                                    "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1}";
+                    List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] {Bot.ServerConfig.Name, banMask});
+
+                    if (results.Any())
                     {
-                        banMask = string.Format("*!*{0}@{1}", foundNick.Username, foundNick.Host);
-                    }
-                    else if (foundNick.Host != string.Empty)
-                    {
-                        banMask = string.Format("*!*@{0}", foundNick.Host);
-                    }
-                    else if (foundNick.Username != string.Empty)
-                    {
-                        banMask = string.Format("{0}!*{1}@*", foundNick.Nickname, foundNick.Username);
+                        foreach (Dictionary<string, object> result in results)
+                        {
+                            var nickname = result["nickname"].ToString();
+                            var host = result["host"].ToString();
+                            var username = result["username"].ToString();
+                            if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(username))
+                            {
+                                banMask = string.Format("*!*{0}@{1}", username, host);
+                            }
+                            else if (!string.IsNullOrEmpty(host))
+                            {
+                                banMask = string.Format("*!*@{0}", host);
+                            }
+                            else if (!string.IsNullOrEmpty(username))
+                            {
+                                banMask = string.Format("{0}!*{1}@*", nickname, username);
+                            }
+                            else
+                            {
+                                banMask = string.Format("{0}!*@*", nickname);
+                            }
+                            SetMode(set, channel, ChannelMode.b, banMask);
+                        }
                     }
                     else
                     {
-                        banMask = string.Format("{0}!*@*", foundNick.Nickname);
+                        SetMode(set, channel, ChannelMode.b, string.Format("{0}!*@*", banMask));
                     }
                 }
                 else
                 {
-                    if (!banMask.Contains("@") || !banMask.Contains("!"))
-                    {
-                        banMask = string.Format("{0}!*@*", banMask);
-                    }
+                    SetMode(set, channel, ChannelMode.b, banMask);
                 }
-                SetMode(set, channel, ChannelMode.b, banMask);
             }
             else
             {

@@ -16,6 +16,7 @@ namespace Combot.Modules.Plugins
             Bot.IRC.Message.PartChannelEvent += LogChannelPart;
             Bot.IRC.Message.KickEvent += LogChannelKick;
             Bot.IRC.Message.QuitEvent += LogQuit;
+            Bot.IRC.Message.NickChangeEvent += LogNickChange;
         }
 
         private void LogChannelMessage(object sender, ChannelMessage message)
@@ -111,6 +112,14 @@ namespace Combot.Modules.Plugins
                                "`message` = {3}, " +
                                "`date_added` = {4}";
                 Bot.Database.Execute(query, new object[] {Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Nick.Nickname, info.Message, info.TimeStamp});
+            }
+        }
+
+        private void LogNickChange(object sender, NickChangeInfo info)
+        {
+            if (!NickBlacklist.Contains(info.OldNick.Nickname) && !NickBlacklist.Contains(info.NewNick.Nickname))
+            {
+                AddNick(info.NewNick);
             }
         }
     }

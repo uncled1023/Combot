@@ -312,7 +312,7 @@ namespace Combot.IRCServices.Messaging
                             case "NICK":
                                 NickChangeInfo nickMsg = new NickChangeInfo();
                                 nickMsg.OldNick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
-                                nickMsg.NewNick = new Nick() { Nickname = recipient.TrimStart(':') };
+                                nickMsg.NewNick = new Nick() { Nickname = recipient.TrimStart(':'), Realname = senderRealname, Host = senderHost};
 
                                 await Task.Run(() =>
                                 {
