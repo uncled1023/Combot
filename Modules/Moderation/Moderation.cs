@@ -311,7 +311,7 @@ namespace Combot.Modules.Plugins
         private void TimedBan(Command curCommand, CommandMessage command)
         {
             double timeout;
-            if (double.TryParse(command.Arguments["Time"], out timeout))
+            if (double.TryParse(command.Arguments["Time"], out timeout) && timeout >= 0)
             {
                 BanNick(true, curCommand, command);
                 Timer unban_trigger = new Timer();

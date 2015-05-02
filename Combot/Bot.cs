@@ -381,6 +381,11 @@ namespace Combot
             ParseCommandMessage(DateTime.Now, message, new Nick { Nickname = IRC.Nickname }, location, type);
         }
 
+        public void ExecuteCommand(string message, string location, MessageType type, Nick nick)
+        {
+            ParseCommandMessage(DateTime.Now, message, nick, location, type);
+        }
+
         public bool IsCommand(string message)
         {
             bool isCommand = false;

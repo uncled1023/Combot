@@ -1,0 +1,62 @@
+﻿{
+    "Name": "Timer",
+    "ClassName": "Timer",
+    "Enabled": true,
+    "ChannelBlacklist": [ ],
+    "NickBlacklist": [ ],
+    "Commands": [
+        {
+            "Name": "Timer",
+            "Description": "Adds a timer for the specified message.",
+            "Enabled": true,
+            "ChannelBlacklist": [ ],
+            "NickBlacklist": [ ],
+            "Triggers": [
+                "t",
+                "timer"
+            ],
+            "Arguments": [
+                {
+                    "Name": "Time",
+                    "Description": "The time you want the timer set to in seconds.",
+                    "AllowedValues": [ ],
+                    "DependentArguments": [ ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
+                    "Name": "Message",
+                    "Description": "The message you want said to you when the timer expires.",
+                    "AllowedValues": [ ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": false
+                }
+            ],
+            "AllowedMessageTypes": [
+                0,
+                1,
+                2
+            ],
+            "AllowedAccess": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "ShowHelp": true,
+            "SpamCheck": true
+        }
+    ],
+  "Options": []
+}
