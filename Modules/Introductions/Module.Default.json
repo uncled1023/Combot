@@ -33,6 +33,7 @@
             "Add",
             "Edit",
             "Del",
+            "Delete",
             "View"
           ],
           "MessageTypes": [
@@ -51,7 +52,8 @@
               "Name": "Method",
               "Values": [
                 "Edit",
-                "Del"
+                "Del",
+                "Delete"
               ]
             }
           ],
