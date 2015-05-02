@@ -66,6 +66,7 @@
     <Compile Include="AccessType.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="Configurations\DatabaseConfig.cs" />
+    <Compile Include="Controller.cs" />
     <Compile Include="Databases\Database.cs" />
     <Compile Include="MessageType.cs" />
     <Compile Include="Modules\Command.cs" />

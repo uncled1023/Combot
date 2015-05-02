@@ -12,17 +12,12 @@ using System.Windows;
 using System.Windows.Documents;
 using Combot;
 using Combot.IRCServices.Messaging;
-using Combot.Configurations;
-using Combot.IRCServices;
 using Combot.IRCServices.Commanding;
 
 namespace Interface.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        public List<Bot> CombotSessions = new List<Bot>();
-        public Config Config = new Config();
-
         public string ApplicationTitle { get; set; }
 
         private string _CurrentBuffer = string.Empty;
@@ -148,15 +143,15 @@ namespace Interface.ViewModels
         public MainViewModel()
         {
             ApplicationTitle = "Combot";
-            Config.LoadServers();
             ServerList = new ObservableCollection<string>();
             LocationList = new ObservableCollection<string>();
             BufferLock = new ReaderWriterLockSlim();
 
-            foreach (ServerConfig server in Config.Servers)
+            Controller.Instance.Load();
+
+            foreach (Bot Combot in Controller.Instance.Bots)
             {
-                ServerList.Add(server.Name);
-                Bot Combot = new Bot(server);
+                ServerList.Add(Combot.ServerConfig.Name);
 
                 Combot.ErrorEvent += e => BotErrorHandler(e, Combot.ServerConfig.Name);
 
@@ -179,14 +174,10 @@ namespace Interface.ViewModels
                 Combot.IRC.DisconnectEvent += () => DisconnectHandler(Combot.ServerConfig.Name);
                 Combot.IRC.TCPErrorEvent += e => TCPErrorHandler(e, Combot.ServerConfig.Name);
 
-                CombotSessions.Add(Combot);
-                SelectedServer = server.Name;
-
-                if (server.AutoConnect)
-                {
-                    Combot.Connect();
-                }
+                SelectedServer = Combot.ServerConfig.Name;
             }
+
+            Controller.Instance.AutoConnect();
 
             ToggleConnection = new DelegateCommand(ExecuteToggleConnection, CanToggleConnection);
             SubmitText = new DelegateCommand(ExecuteSubmitText, CanSubmitText);
@@ -264,7 +255,7 @@ namespace Interface.ViewModels
         private void PrivateMessageCommandHandler(object sender, PrivateMessageCommand message, string server)
         {
             string curNick = string.Empty;
-            Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+            Bot session = Controller.Instance.GetBot(SelectedServer);
             if (session != null)
             {
                 curNick = session.IRC.Nickname;
@@ -275,7 +266,7 @@ namespace Interface.ViewModels
         private void PrivateNoticeCommandHandler(object sender, PrivateNoticeCommand message, string server)
         {
             string curNick = string.Empty;
-            Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+            Bot session = Controller.Instance.GetBot(SelectedServer);
             if (session != null)
             {
                 curNick = session.IRC.Nickname;
@@ -321,7 +312,7 @@ namespace Interface.ViewModels
 
         private void ExecuteSubmitText()
         {
-            Bot botInstance = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+            Bot botInstance = Controller.Instance.GetBot(SelectedServer);
             if (botInstance != null && botInstance.Connected)
             {
                 string message = InputBoxText;
@@ -378,7 +369,7 @@ namespace Interface.ViewModels
 
                 if (location.StartsWith("#") || location.StartsWith("&"))
                 {
-                    Bot botInstance = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+                    Bot botInstance = Controller.Instance.GetBot(SelectedServer);
                     if (botInstance.IRC.Channels.Exists(chan => chan.Name == location))
                     {
                         botInstance.IRC.Command.SendPart(location);
@@ -421,12 +412,12 @@ namespace Interface.ViewModels
 
         private void Connect(string server)
         {
-            CombotSessions.Find(bot => bot.ServerConfig.Name == server).Connect();
+            Controller.Instance.GetBot(server).Connect();
         }
 
         private void Disconnect(string server)
         {
-            CombotSessions.Find(bot => bot.ServerConfig.Name == server).Disconnect();
+            Controller.Instance.GetBot(server).Disconnect();
         }
 
         private void AddToBuffer(string server, string location, string message)
@@ -490,7 +481,7 @@ namespace Interface.ViewModels
                 }
                 CurrentBuffer = string.Join(Environment.NewLine, BufferList.Find(buf => buf.Server == SelectedServer && buf.Location == SelectedLocation).Buffer);
                 BufferLock.ExitWriteLock();
-                Bot session = CombotSessions.Find(bot => bot.ServerConfig.Name == SelectedServer);
+                Bot session = Controller.Instance.GetBot(SelectedServer);
                 if (session != null)
                 {
                     Connected = session.Connected;

@@ -143,7 +143,20 @@ namespace Combot.Modules.Plugins
                             SendResponse(command.MessageType, command.Location, command.Nick.Nickname, channelMessage);
                             break;
                         case "servers":
-                            // TODO Add server list
+                            string serverList = string.Empty;
+                            foreach (Bot bot in Controller.Instance.Bots)
+                            {
+                                if (bot.Connected)
+                                {
+                                    serverList = string.Join(", ", serverList, bot.ServerConfig.Name);
+                                }
+                            }
+                            if (string.IsNullOrEmpty(serverList))
+                            {
+                                serverList = "None Connected";
+                            }
+                            string serverMessage = string.Format("I am connected to the following servers: \u0002{0}\u000F", serverList.TrimStart(',').Trim());
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, serverMessage);
                             break;
                         case "modules":
                             string moduleList = string.Join(", ", Bot.Modules.Select(module => module.Name));
