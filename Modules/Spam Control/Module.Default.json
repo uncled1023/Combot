@@ -43,12 +43,12 @@
         },
         {
             "Name": "Devoice Time",
-            "Description": "How long to be devoiced due to spam.",
+            "Description": "How long to be devoiced due to spam in seconds.",
             "Value": 60
         },
         {
             "Name": "Unban Time",
-            "Description": "How long to be banned due to spam.",
+            "Description": "How long to be banned due to spam in seconds.",
             "Value": 60
         }
     ]
