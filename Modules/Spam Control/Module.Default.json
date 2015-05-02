@@ -1,25 +1,55 @@
 ﻿{
-  "Name": "Spam Control",
-  "ClassName": "Spam_Control",
-  "Enabled": true,
-  "ChannelBlacklist": [],
-  "NickBlacklist": [],
-  "Commands": [],
-  "Options": [
-    {
-      "Name": "Max Messages",
-      "Description": "The maximum number of messages allowed per time alotted.",
-      "Value": 5
-    },
-    {
-      "Name": "Max Highlights",
-      "Description": "The maximum number of highlights allowed in a set period of time.",
-      "Value": 5
-    },
-    {
-      "Name": "Time Threshold",
-      "Description": "The minimum time allowed for a set of messages in milliseconds.",
-      "Value": 5000
-    }
-  ]
+    "Name": "Spam Control",
+    "ClassName": "Spam_Control",
+    "Enabled": true,
+    "ChannelBlacklist": [ ],
+    "NickBlacklist": [ ],
+    "Commands": [ ],
+    "Options": [
+        {
+            "Name": "Max Messages",
+            "Description": "The maximum number of messages allowed per time alotted.",
+            "Value": 5
+        },
+        {
+            "Name": "Max Highlights",
+            "Description": "The maximum number of highlights allowed in a set period of time.",
+            "Value": 5
+        },
+        {
+            "Name": "Time Threshold",
+            "Description": "The minimum time allowed for a set of messages in milliseconds.",
+            "Value": 5000
+        },
+        {
+            "Name": "Voice Response",
+            "Description": "Whether the nick should be devoiced on spam.",
+            "Value": true
+        },
+        {
+            "Name": "Kick Response",
+            "Description": "Whether the nick should be kicked on spam.",
+            "Value": true
+        },
+        {
+            "Name": "Ban Response",
+            "Description": "Whether the nick should be banned on spam.",
+            "Value": true
+        },
+        {
+            "Name": "Unban Response",
+            "Description": "Whether the nick should be unbanned after being banned.",
+            "Value": true
+        },
+        {
+            "Name": "Devoice Time",
+            "Description": "How long to be devoiced due to spam.",
+            "Value": 60
+        },
+        {
+            "Name": "Unban Time",
+            "Description": "How long to be banned due to spam.",
+            "Value": 60
+        }
+    ]
 }
