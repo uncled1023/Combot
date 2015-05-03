@@ -65,8 +65,8 @@ namespace Combot.IRCServices.Messaging
                     string args = match.Groups["Args"].Value;
                     Match senderMatch = senderRegex.Match(sender);
                     string senderNick = sender;
-                    string senderRealname = sender;
-                    string senderHost = sender;
+                    string senderRealname = null;
+                    string senderHost = null;
                     if (senderMatch.Success)
                     {
                         senderNick = senderMatch.Groups["Nick"].Value;
