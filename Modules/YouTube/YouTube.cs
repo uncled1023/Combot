@@ -71,9 +71,8 @@ namespace Combot.Modules.Plugins
         private string GetYoutubeDescription(string ID)
         {
             string description = string.Empty;
-
-            string urlTemplate = "http://gdata.youtube.com/feeds/api/videos/{0}?v=2&alt=jsonc";
-            Uri searchUrl = new Uri(string.Format(urlTemplate, ID));
+            string urlTemplate = "https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id={0}&key={1}";
+            Uri searchUrl = new Uri(string.Format(urlTemplate, ID, GetOptionValue("API Key")));
             WebClient web = new WebClient();
             web.Encoding = Encoding.UTF8;
             try
@@ -81,38 +80,53 @@ namespace Combot.Modules.Plugins
                 string page = web.DownloadString(searchUrl);
 
                 JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
-                var data = parsed["data"];
+                var data = parsed["items"].First();
 
-                description = string.Format("\u0002{0}\u000F", data["title"]);
+                description = string.Format("\u0002{0}\u000F", data["snippet"]["title"]);
 
-                if (data["duration"] == null)
+                if (data["contentDetails"]["duration"] == null)
                 {
                     return description;
                 }
 
-                TimeSpan duration = TimeSpan.FromSeconds(data["duration"].Value<double>());
+                string length = data["contentDetails"]["duration"].Value<string>();
+
+                Regex lengthRegex = new Regex(@"PT((?<Days>[0-9]+)D)?((?<Hours>[0-9]+)H)?((?<Minutes>[0-9]+)M)?((?<Seconds>[0-9]+)S)?");
+                Match lengthMatch = lengthRegex.Match(length);
+                double totalTime = 0;
+
+                if (lengthMatch.Groups["Days"].Success)
+                    totalTime += 86400.0 * Convert.ToDouble(lengthMatch.Groups["Days"].Value);
+
+                if (lengthMatch.Groups["Hours"].Success)
+                    totalTime += 3600.0 * Convert.ToDouble(lengthMatch.Groups["Hours"].Value);
+
+                if (lengthMatch.Groups["Minutes"].Success)
+                    totalTime += 60.0 * Convert.ToDouble(lengthMatch.Groups["Minutes"].Value);
+
+                if (lengthMatch.Groups["Seconds"].Success)
+                    totalTime += Convert.ToDouble(lengthMatch.Groups["Seconds"].Value);
+
+                TimeSpan duration = TimeSpan.FromSeconds(totalTime);
                 description += string.Format(" | Length: \u0002{0}\u000F", duration.ToString("g"));
 
-                if (data["ratingCount"] != null)
+                if (data["statistics"] != null)
                 {
-                    int likes = data["likeCount"].Value<int>();
+                    int likes = data["statistics"]["likeCount"].Value<int>();
                     string pluralLikes = (likes > 1) ? "s" : string.Empty;
-                    int dislikes = data["ratingCount"].Value<int>() - likes;
+                    int dislikes = data["statistics"]["dislikeCount"].Value<int>();
                     string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
-                    double percent = 100.0*((double) likes/data["ratingCount"].Value<int>());
+                    double percent = 100.0*((double) likes/(likes + dislikes));
                     description += string.Format(" | Rating: {0} Like{1}, {2} Dislike{3} (\u0002{4}\u000F%)", likes, pluralLikes, dislikes, pluralDislikes, Math.Round(percent, 1));
+
+                    description += string.Format(" | Views: \u0002{0}\u000F", data["statistics"]["viewCount"].Value<int>());
                 }
 
-                if (data["viewCount"] != null)
-                {
-                    description += string.Format(" | Views: \u0002{0}\u000F", data["viewCount"].Value<int>());
-                }
+                DateTime uploadDate = Convert.ToDateTime(data["snippet"]["publishedAt"].Value<string>());
 
-                DateTime uploadDate = Convert.ToDateTime(data["uploaded"].Value<string>());
+                description += string.Format(" | Uploaded By: \u0002{0}\u000F on \u0002{1}\u000F", data["snippet"]["channelTitle"].Value<string>(), uploadDate.ToString("R"));
 
-                description += string.Format(" | Uploaded By: \u0002{0}\u000F on \u0002{1}\u000F", data["uploader"].Value<string>(), uploadDate.ToString("R"));
-
-                if (data["contentRating"] != null)
+                if (data["contentDetails"]["contentRating"] != null)
                 {
                     description += " | \u0002NSFW\u000F";
                 }

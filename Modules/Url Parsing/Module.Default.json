@@ -10,6 +10,11 @@
       "Name": "Max Title",
       "Description": "The maximum number of characters to display for a title",
       "Value": 140
+    },
+    {
+      "Name": "API Key",
+      "Description": "The API key that will be used for youtube url parsing",
+      "Value": ""
     }
   ]
 }
