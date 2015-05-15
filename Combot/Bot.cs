@@ -386,23 +386,34 @@ namespace Combot
             ParseCommandMessage(DateTime.Now, message, nick, location, type);
         }
 
-        public bool IsCommand(string message)
+        public string GetCommand(string message)
         {
-            bool isCommand = false;
+            string command = string.Empty;
+            
             string[] msgArgs = message.Split(new[] {' '}, 2, StringSplitOptions.RemoveEmptyEntries);
             if (msgArgs.Any())
             {
-                string command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
-                // Find the module that contains the command
-                Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
-                if (module != null)
+                if (msgArgs[0].StartsWith(ServerConfig.CommandPrefix))
                 {
-                    // Find the command
-                    Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
-                    if (cmd != null)
-                    {
-                        isCommand = true;
-                    }
+                    command = msgArgs[0].Remove(0, ServerConfig.CommandPrefix.Length);
+                }
+            }
+            return command;
+        }
+
+        public bool IsCommand(string message)
+        {
+            bool isCommand = false;
+            string command = GetCommand(message);
+            // Find the module that contains the command
+            Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
+            if (module != null)
+            {
+                // Find the command
+                Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
+                if (cmd != null)
+                {
+                    isCommand = true;
                 }
             }
             return isCommand;
