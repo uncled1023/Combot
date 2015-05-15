@@ -372,7 +372,7 @@ namespace Combot.IRCServices.Messaging
                                 kickMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
                                 string[] argSplit = args.Split(new char[] { ' ' }, StringSplitOptions.None);
 
-                                kickMsg.KickedNick = new Nick() { Nickname = argSplit[0], Realname = argSplit[0], Host = argSplit[0] };
+                                kickMsg.KickedNick = new Nick() { Nickname = argSplit[0] };
 
                                 List<string> reasonArgs = argSplit.ToList<string>();
                                 reasonArgs.RemoveAt(0);
