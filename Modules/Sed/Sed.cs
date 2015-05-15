@@ -58,23 +58,14 @@ namespace Combot.Modules.Plugins
                         mysqlCase = "CAST(`channelmessages`.`message` AS BINARY)";
                     }
                     string mysqlMatch = match.Replace(@"\s", "[:space:]").Replace(@"\", @"\\");
-                    List<Dictionary<string, object>> resultList = GetMessageList(message.Channel, message.Sender.Nickname, mysqlMatch, mysqlCase);
+                    List<Dictionary<string, object>> resultList = GetMessageList(message.Channel, message.Sender.Nickname, mysqlMatch, mysqlCase, message.Message);
                     if (resultList.Any())
                     {
-                        IEnumerable<Dictionary<string, object>> validList = resultList.Where(item => item["message"].ToString() != message.Message);
-                        if (validList.Any())
-                        {
-                            string oldMessage = validList.First()["message"].ToString();
-                            Regex messageRegex = new Regex(match, matchOptions);
-                            string newMessage = messageRegex.Replace(oldMessage, replace, replaceNum);
-                            string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
-                            SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
-                        }
-                        else
-                        {
-                            string noMatch = string.Format("You do not have any previous messages that match \u0002{0}\u0002.", match);
-                            SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, noMatch);
-                        }
+                        string oldMessage = resultList.First()["message"].ToString();
+                        Regex messageRegex = new Regex(match, matchOptions);
+                        string newMessage = messageRegex.Replace(oldMessage, replace, replaceNum);
+                        string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
+                        SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
                     }
                     else
                     {
@@ -85,7 +76,7 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private List<Dictionary<string, object>> GetMessageList(string channel, string nickname, string regex, string caseString)
+        private List<Dictionary<string, object>> GetMessageList(string channel, string nickname, string regex, string caseString, string originalMessage)
         {
             Database database = new Database(Bot.ServerConfig.Database);
             string search = "SELECT `channelmessages`.`message`, `channelmessages`.`date_added` FROM `channelmessages` " +
@@ -95,9 +86,10 @@ namespace Combot.Modules.Plugins
                             "ON `channelmessages`.`channel_id` = `channels`.`id` " +
                             "INNER JOIN `servers` " +
                             "ON `channelmessages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} AND " + caseString + " REGEXP {3} " +
-                            "ORDER BY date_added DESC";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname, regex });
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} AND `channelmessages`.`message` != {3} AND " + caseString + " REGEXP {4} " +
+                            "ORDER BY date_added DESC " +
+                            "LIMIT 1";
+            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname, originalMessage, regex });
         }
     }
 }

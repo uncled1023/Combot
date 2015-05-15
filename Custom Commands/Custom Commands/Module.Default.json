@@ -1,0 +1,9 @@
+﻿{
+  "Name": "Custom Commands",
+  "ClassName": "Custom_Commands",
+  "Enabled": true,
+  "ChannelBlacklist": [],
+  "NickBlacklist": [],
+  "Commands": [],
+  "Options": []
+}
