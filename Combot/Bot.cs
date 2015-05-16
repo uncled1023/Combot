@@ -688,7 +688,7 @@ namespace Combot
                                     return argString;
                                 })));
                                 string invalidMessage = string.Format("Invalid value for \u0002{0}\u0002 in \u0002{1}{2}\u0002{3}.  Valid options are \u0002{4}\u0002.", validArguments[i].Name, ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments[i].AllowedValues));
-                                module.SendResponse(messageType, location, sender.Nickname, invalidMessage);       
+                                module.SendResponse(messageType, location, sender.Nickname, invalidMessage, true);       
                                 break;
                             }
                         }
@@ -727,7 +727,7 @@ namespace Combot
                             return argString;
                         })));
                         string missingArgument = string.Format("Missing a required argument for \u0002{0}{1}\u0002{2}.  The required arguments are \u0002{3}\u0002.", ServerConfig.CommandPrefix, command, argHelp, string.Join(", ", validArguments.Where(arg => arg.Required).Select(arg => arg.Name)));
-                        module.SendResponse(messageType, location, sender.Nickname, missingArgument);
+                        module.SendResponse(messageType, location, sender.Nickname, missingArgument, true);
                     }
                 }
             }
