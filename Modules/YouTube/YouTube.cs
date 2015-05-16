@@ -80,6 +80,12 @@ namespace Combot.Modules.Plugins
                 string page = web.DownloadString(searchUrl);
 
                 JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
+
+                if (!parsed["items"].Any())
+                {
+                    return "\u0002No Results\u0002";
+                }
+
                 var data = parsed["items"].First();
 
                 description = string.Format("\u0002{0}\u000F", data["snippet"]["title"]);
