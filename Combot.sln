@@ -75,7 +75,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timer", "Modules\Timer\Time
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Whois", "Modules\Whois\Whois.csproj", "{A6EDD673-A10D-48BC-81D9-506D08AEC083}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Custom Commands", "Custom Commands\Custom Commands\Custom Commands.csproj", "{B84A8D1B-C10A-4879-912A-83725A1638D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Custom Commands", "Modules\Custom Commands\Custom Commands.csproj", "{B84A8D1B-C10A-4879-912A-83725A1638D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
