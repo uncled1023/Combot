@@ -52,7 +52,7 @@ namespace Combot.Modules.Plugins
                         case "view":
                             if (command.Arguments.ContainsKey("Trigger"))
                             {
-                                ViewTrigger(command, command.Arguments["trigger"]);
+                                ViewTrigger(command, command.Arguments["Trigger"]);
                             }
                             else
                             {
@@ -166,7 +166,7 @@ namespace Combot.Modules.Plugins
                 List<Dictionary<string, object>> currentCommands = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
                 if (currentCommands.Count < maxTriggers)
                 {
-                    List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, permission, channels, nicknames, trigger, true);
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, null, channels, nicknames, trigger, false);
                     if (!foundTriggers.Any())
                     {
                         AddNick(command.Nick);
@@ -186,7 +186,7 @@ namespace Combot.Modules.Plugins
                     }
                     else
                     {
-                        string errorMessage = string.Format("You already have a command set for \u0002{0}\u0002.", trigger);
+                        string errorMessage = string.Format("\u0002{0}\u0002 is already set as a command you can access.", trigger);
                         SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage, true);
                     }
                 }
@@ -279,7 +279,7 @@ namespace Combot.Modules.Plugins
 
         private void ViewTrigger(CommandMessage command, string trigger)
         {
-            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, null, string.Empty, string.Empty, trigger);
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, null, command.Location, command.Nick.Nickname, trigger);
             if (foundTriggers.Any())
             {
                 foreach (Dictionary<string, object> foundTrigger in foundTriggers)
@@ -399,7 +399,7 @@ namespace Combot.Modules.Plugins
                     SendResponse(messageType, location, nick.Nickname, message);
                     break;
                 case "command":
-                    Bot.ExecuteCommand(message, location, messageType, nick);
+                    Bot.ExecuteCommand(Bot.ServerConfig.CommandPrefix + message, location, messageType, nick);
                     break;
                 case "list":
                     // todo handle list commands

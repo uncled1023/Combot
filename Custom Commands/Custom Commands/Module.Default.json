@@ -56,7 +56,6 @@
                     "Description": "The type of command it will be.",
                     "AllowedValues": [
                         "Response",
-                        "List",
                         "Command"
                     ],
                     "DependentArguments": [
