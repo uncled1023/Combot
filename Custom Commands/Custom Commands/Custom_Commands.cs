@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
 
@@ -27,18 +29,25 @@ namespace Combot.Modules.Plugins
                     switch (action.ToLower())
                     {
                         case "add":
+                            string addType = command.Arguments["Type"];
+                            string addPermission = command.Arguments["Permission"];
+                            string addChannels = (command.Arguments.ContainsKey("Channels")) ? command.Arguments["Channels"] : string.Empty;
+                            string addNicknames = (command.Arguments.ContainsKey("Nicknames")) ? command.Arguments["Nicknames"] : string.Empty;
                             string addTrigger = command.Arguments["Trigger"];
                             string addResponse = command.Arguments["Response"];
-                            AddCommand(command, addTrigger, addResponse);
+                            AddCommand(command, addType, addPermission, addChannels, addNicknames, addTrigger, addResponse);
                             break;
                         case "del":
-                            string delTrigger = command.Arguments["Trigger"];
-                            DeleteCommand(command, delTrigger);
+                            DeleteCommand(command);
                             break;
                         case "edit":
+                            string editType = command.Arguments["Type"];
+                            string editPermission = command.Arguments["Permission"];
+                            string editChannels = (command.Arguments.ContainsKey("Channels")) ? command.Arguments["Channels"] : string.Empty;
+                            string editNicknames = (command.Arguments.ContainsKey("Nicknames")) ? command.Arguments["Nicknames"] : string.Empty;
                             string editTrigger = command.Arguments["Trigger"];
                             string editResponse = command.Arguments["Response"];
-                            EditCommand(command, editTrigger, editResponse);
+                            EditCommand(command, editType, editPermission, editChannels, editNicknames, editTrigger, editResponse);
                             break;
                         case "view":
                             if (command.Arguments.ContainsKey("Trigger"))
@@ -62,10 +71,13 @@ namespace Combot.Modules.Plugins
                 string command = Bot.GetCommand(message.Message);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    Dictionary<string, object> foundTrigger = GetTrigger(message.Sender, command);
-                    if (foundTrigger != null)
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(message.Sender, null, message.Channel, message.Sender.Nickname, command);
+                    if (foundTriggers.Any())
                     {
-                        ExecuteCommand(MessageType.Channel, message.Channel, message.Sender, foundTrigger);
+                        foreach (Dictionary<string, object> foundTrigger in foundTriggers)
+                        {
+                            ExecuteCommand(MessageType.Channel, message.Channel, message.Sender, foundTrigger);
+                        }
                     }
                 }
             }
@@ -78,10 +90,13 @@ namespace Combot.Modules.Plugins
                 string command = Bot.GetCommand(message.Message);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    Dictionary<string, object> foundTrigger = GetTrigger(message.Sender, command);
-                    if (foundTrigger != null)
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(message.Sender, null, null, message.Sender.Nickname, command);
+                    if (foundTriggers.Any())
                     {
-                        ExecuteCommand(MessageType.Query, message.Sender.Nickname, message.Sender, foundTrigger);
+                        foreach (Dictionary<string, object> foundTrigger in foundTriggers)
+                        {
+                            ExecuteCommand(MessageType.Query, message.Sender.Nickname, message.Sender, foundTrigger);
+                        }
                     }
                 }
             }
@@ -94,10 +109,13 @@ namespace Combot.Modules.Plugins
                 string command = Bot.GetCommand(message.Message);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    Dictionary<string, object> foundTrigger = GetTrigger(message.Sender, command);
-                    if (foundTrigger != null)
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(message.Sender, null, message.Channel, null, command);
+                    if (foundTriggers.Any())
                     {
-                        ExecuteCommand(MessageType.Notice, message.Channel, message.Sender, foundTrigger);
+                        foreach (Dictionary<string, object> foundTrigger in foundTriggers)
+                        {
+                            ExecuteCommand(MessageType.Notice, message.Channel, message.Sender, foundTrigger);
+                        }
                     }
                 }
             }
@@ -110,34 +128,59 @@ namespace Combot.Modules.Plugins
                 string command = Bot.GetCommand(message.Message);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    Dictionary<string, object> foundTrigger = GetTrigger(message.Sender, command);
-                    if (foundTrigger != null)
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(message.Sender, null, null, message.Sender.Nickname, command);
+                    if (foundTriggers.Any())
                     {
-                        ExecuteCommand(MessageType.Notice, message.Sender.Nickname, message.Sender, foundTrigger);
+                        foreach (Dictionary<string, object> foundTrigger in foundTriggers)
+                        {
+                            ExecuteCommand(MessageType.Notice, message.Sender.Nickname, message.Sender, foundTrigger);
+                        }
                     }
                 }
             }
         }
 
-        private void AddCommand(CommandMessage command, string trigger, string response)
+        /* Returns the parsed ID field if valid, otherwise returns 0 */
+        private int HasValidCommandID(CommandMessage command)
+        {
+            int num = 0;
+            int ret = 0;
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
+
+            if (int.TryParse(command.Arguments["ID"], out num))
+            {
+                if (foundTriggers.Count >= num && num > 0)
+                {
+                    ret = num;
+                }
+            }
+
+            return ret;
+        }
+
+        private void AddCommand(CommandMessage command, string type, string permission, string channels, string nicknames, string trigger, string response)
         {
             if (!Bot.IsCommand(trigger))
             {
                 int maxTriggers = Convert.ToInt32(GetOptionValue("Max Commands"));
-                List<Dictionary<string, object>> currentCommands = GetTriggers(command.Nick);
+                List<Dictionary<string, object>> currentCommands = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
                 if (currentCommands.Count < maxTriggers)
                 {
-                    Dictionary<string, object> foundTrigger = GetTrigger(command.Nick, trigger);
-                    if (foundTrigger == null)
+                    List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, permission, channels, nicknames, trigger, true);
+                    if (!foundTriggers.Any())
                     {
                         AddNick(command.Nick);
                         string query = "INSERT INTO `customcommands` SET " +
                                        "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
                                        "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nicks`.`nickname` = {2}), " +
-                                       "`trigger` = {3}, " +
-                                       "`response` = {4}, " +
-                                       "`date_added` = {5}";
-                        Bot.Database.Execute(query, new object[] {Bot.ServerConfig.Name, Bot.ServerConfig.Name, command.Nick.Nickname, trigger, response, command.TimeStamp});
+                                       "`type` = {3}, " +
+                                       "`permission` = {4}, " +
+                                       "`channels` = {5}, " +
+                                       "`nicknames` = {6}, " +
+                                       "`trigger` = {7}, " +
+                                       "`response` = {8}, " +
+                                       "`date_added` = {9}";
+                        Bot.Database.Execute(query, new object[] {Bot.ServerConfig.Name, Bot.ServerConfig.Name, command.Nick.Nickname, type, permission, channels, nicknames, trigger, response, command.TimeStamp});
                         string message = string.Format("You now have \u0002{0}\u0002 custom commands set.", currentCommands.Count + 1);
                         SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
                     }
@@ -160,113 +203,207 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private void DeleteCommand(CommandMessage command, string trigger)
+        private void DeleteCommand(CommandMessage command)
         {
-            Dictionary<string, object> foundTrigger = GetTrigger(command.Nick, trigger);
-            if (foundTrigger != null)
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
+            int triggerIndex = HasValidCommandID(command);
+            if (triggerIndex > 0)
             {
                 string query = "DELETE FROM `customcommands` " +
-                               "WHERE `id` = {0}";
-                Bot.Database.Execute(query, new object[] { foundTrigger["id"] });
-                string message = string.Format("\u0002{0}\u0002 has been deleted.", trigger);
+                                "WHERE `id` = {0}";
+                Bot.Database.Execute(query, new object[] { foundTriggers[triggerIndex - 1]["id"] });
+                string message = string.Format("Command \u0002{0}\u0002 has been deleted.", triggerIndex);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
             }
             else
             {
-                string errorMessage = string.Format("You do not have a command set for \u0002{0}\u0002.", trigger);
+                string errorMessage = string.Format("\u0002{0}\u0002 is not a valid command number.", command.Arguments["ID"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage, true);
             }
         }
 
-        private void EditCommand(CommandMessage command, string trigger, string response)
+        private void EditCommand(CommandMessage command, string type, string permission, string channels, string nicknames, string trigger, string response)
         {
-            Dictionary<string, object> foundTrigger = GetTrigger(command.Nick, trigger);
-            if (foundTrigger != null)
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
+            int triggerIndex = HasValidCommandID(command);
+            if (triggerIndex > 0)
             {
                 string query = "UPDATE `customcommands` SET " +
-                                "`response` = {0} " +
-                                "WHERE `id` = {1}";
-                Bot.Database.Execute(query, new object[] { response, foundTrigger["id"] });
+                                "`type` = {0}, " +
+                                "`permission` = {1}, " +
+                                "`channels` = {2}, " +
+                                "`nicknames` = {3}, " +
+                                "`trigger` = {4}, " +
+                                "`response` = {5} " +
+                                "WHERE `id` = {6}";
+                Bot.Database.Execute(query, new object[] { type, permission, channels, nicknames, trigger, response, foundTriggers[triggerIndex - 1]["id"] });
                 string message = string.Format("\u0002{0}\u0002 now has the response: {1}", trigger, response);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
             }
             else
             {
-                string errorMessage = string.Format("You do not have a command set for \u0002{0}\u0002.", trigger);
+                string errorMessage = string.Format("\u0002{0}\u0002 is not a valid command number.", command.Arguments["ID"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage, true);
             }
         }
 
         private void ViewTriggers(CommandMessage command)
         {
-            List<Dictionary<string, object>> foundTriggers = GetTriggers(command.Nick);
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, "Self", string.Empty, string.Empty, null, true);
             if (foundTriggers.Any())
             {
                 int index = 1;
                 foreach (Dictionary<string, object> foundTrigger in foundTriggers)
                 {
-                    string response = string.Format("Command #{0} \u0002{1}{2}\u0002: {3}", index, Bot.ServerConfig.CommandPrefix, foundTrigger["trigger"], foundTrigger["response"]);
+                    string allowed = string.Empty;
+                    switch (foundTrigger["permission"].ToString().ToLower())
+                    {
+                        case "channels":
+                            allowed = " " + foundTrigger["channels"];
+                            break;
+                        case "nicks":
+                            allowed = " " + foundTrigger["nicknames"];
+                            break;
+                    }
+                    string response = string.Format("Command #{0} [{1}{2}] \u0002{3}{4}\u0002: {5}", index, foundTrigger["permission"], allowed, Bot.ServerConfig.CommandPrefix, foundTrigger["trigger"], foundTrigger["response"]);
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, response, true);
                     index++;
                 }
             }
             else
             {
-                string errorMessage = "You do not have any custom commands.";
+                string errorMessage = "There are no custom commands for you.";
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage, true);
             }
         }
 
         private void ViewTrigger(CommandMessage command, string trigger)
         {
-            Dictionary<string, object> foundTrigger = GetTrigger(command.Nick, trigger);
-            if (foundTrigger != null)
+            List<Dictionary<string, object>> foundTriggers = GetTrigger(command.Nick, null, string.Empty, string.Empty, trigger);
+            if (foundTriggers.Any())
             {
-                string response = string.Format("\u0002{0}{1}\u0002: {2}", Bot.ServerConfig.CommandPrefix, foundTrigger["trigger"], foundTrigger["response"]);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, response, true);
+                foreach (Dictionary<string, object> foundTrigger in foundTriggers)
+                {
+                    string allowed = string.Empty;
+                    switch (foundTrigger["permission"].ToString().ToLower())
+                    {
+                        case "channels":
+                            allowed = " " + foundTrigger["channels"];
+                            break;
+                        case "nicks":
+                            allowed = " " + foundTrigger["nicknames"];
+                            break;
+                    }
+                    string response = string.Format("[{0}{1}] \u0002{2}{3}\u0002: {4}", foundTrigger["permission"], allowed, Bot.ServerConfig.CommandPrefix, foundTrigger["trigger"], foundTrigger["response"]);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, response, true);
+                }
             }
             else
             {
-                string errorMessage = string.Format("You do not have a command set for \u0002{0}\u0002.", trigger);
+                string errorMessage = string.Format("\u0002{0}\u0002 is not set as a custom command for that search.", trigger);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, errorMessage, true);
             }
         }
 
-        private List<Dictionary<string, object>> GetTriggers(Nick caller)
+        private List<Dictionary<string, object>> GetTrigger(Nick caller, string permission, string channels, string nicknames, string trigger = null, bool edit = false)
         {
             string search = "SELECT * FROM `customcommands`" +
-                           " WHERE" +
-                           " `server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0})" +
-                           " AND " +
-                           " `nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2})";
-            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, caller.Nickname });
-        }
+                            " WHERE" +
+                            " `server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0})";
+            int argCount = 1;
+            List<object> arguments = new List<object>();
+            arguments.Add(Bot.ServerConfig.Name);
+            if (!string.IsNullOrEmpty(trigger))
+            {
+                search += " AND `trigger` = {" + argCount++ + "}";
+                arguments.Add(trigger);
+            }
+            search += " AND ";
+            string combine = "AND";
+            if (string.IsNullOrEmpty(permission))
+            {
+                search += "(";
+                combine = "OR";
+            }
 
-        private Dictionary<string, object> GetTrigger(Nick caller, string trigger)
-        {
-            string search = "SELECT * FROM `customcommands`" +
-                           " WHERE" +
-                           " `server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0})" +
-                           " AND " +
-                           " `nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {1} && `nickname` = {2})" +
-                           " AND `trigger` = {3}";
-            List<Dictionary<string, object>> results = Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, caller.Nickname, trigger });
-            if (results.Any())
-                return results.First();
-            return null;
+            if (!string.IsNullOrEmpty(channels) && (string.IsNullOrEmpty(permission) || permission.ToLower() == "channels"))
+            {
+                Regex channelRegex = new Regex(@"(?<Prefix>[\#]+)?(?<Prefix>[\&]+)?(?<Channel>[^\#|^\&|^,]+)");
+                MatchCollection matches = channelRegex.Matches(channels);
+                if (matches.Count > 0)
+                {
+                    search += "(";
+                    foreach (Match match in matches)
+                    {
+                        if (match.Success)
+                        {
+                            search += "`channels` REGEXP {" + argCount++ + "} OR ";
+                            arguments.Add(string.Format(@"{0}[[:<:]]{1}[[:>:]]", string.Join(@"\\", match.Groups["Prefix"].ToString().ToCharArray()), match.Groups["Channel"]));
+                        }
+                    }
+                    search += "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {" + argCount++ + "} && `nickname` = {" + argCount++ + "})";
+                    search += (edit) ? ")" : " OR `permission` = 'all')";
+                    arguments.Add(Bot.ServerConfig.Name);
+                    arguments.Add(caller.Nickname);
+                }
+            }
+            if (!string.IsNullOrEmpty(nicknames) && (string.IsNullOrEmpty(permission) || permission.ToLower() == "nicks"))
+            {
+                if (!string.IsNullOrEmpty(channels) && string.IsNullOrEmpty(permission))
+                    search += " " + combine + " ";
+                
+                Regex nickRegex = new Regex(@"(?<Nickname>[^,]+)");
+                MatchCollection matches = nickRegex.Matches(nicknames);
+                if (matches.Count > 0)
+                {
+                    search += "(";
+                    foreach (Match match in matches)
+                    {
+                        if (match.Success)
+                        {
+                            search += "`nicknames` REGEXP {" + argCount++ + "} OR ";
+                            arguments.Add(string.Format(@"[[:<:]]{0}[[:>:]]", match.Groups["Nickname"]));
+                        }
+                    }
+                    search += "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {" + argCount++ + "} && `nickname` = {" + argCount++ + "})";
+                    search += (edit) ? ")" : " OR `permission` = 'all')";
+                    arguments.Add(Bot.ServerConfig.Name);
+                    arguments.Add(caller.Nickname);
+                }
+            }
+            if (string.IsNullOrEmpty(permission) || permission.ToLower() == "self")
+            {
+                if (!string.IsNullOrEmpty(channels) || !string.IsNullOrEmpty(nicknames))
+                    search += " " + combine + " ";
+                search += "(`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {" + argCount++ + "} && `nickname` = {" + argCount++ + "})";
+                search += (edit) ? ")" : " OR `permission` = 'all')";
+                arguments.Add(Bot.ServerConfig.Name);
+                arguments.Add(caller.Nickname);
+            }
+            if (string.IsNullOrEmpty(permission))
+            {
+                search += ")";
+            }
+
+            return Bot.Database.Query(search, arguments.ToArray());
         }
 
         private void ExecuteCommand(MessageType messageType, string location, Nick nick, Dictionary<string, object> trigger)
         {
+            string type = trigger["type"].ToString();
             string message = trigger["response"].ToString();
-            if (message.StartsWith(Bot.ServerConfig.CommandPrefix))
+            switch (type.ToLower())
             {
-                Bot.ExecuteCommand(message, location, messageType, nick);
-            }
-            else
-            {
-                message = "\u200B" + message;
-                SendResponse(messageType, location, nick.Nickname, message);
+                case "response":
+                    message = "\u200B" + message;
+                    SendResponse(messageType, location, nick.Nickname, message);
+                    break;
+                case "command":
+                    Bot.ExecuteCommand(message, location, messageType, nick);
+                    break;
+                case "list":
+                    // todo handle list commands
+                    break;
             }
         }
     }

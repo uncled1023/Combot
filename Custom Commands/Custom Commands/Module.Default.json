@@ -32,6 +32,113 @@
                     "Required": true
                 },
                 {
+                    "Name": "ID",
+                    "Description": "The ID of the command you want to modify.",
+                    "AllowedValues": [ ],
+                    "DependentArguments": [
+                        {
+                            "Name": "Action",
+                            "Values": [
+                                "Edit",
+                                "Del"
+                            ]
+                        }
+                    ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
+                    "Name": "Type",
+                    "Description": "The type of command it will be.",
+                    "AllowedValues": [
+                        "Response",
+                        "List",
+                        "Command"
+                    ],
+                    "DependentArguments": [
+                        {
+                            "Name": "Action",
+                            "Values": [
+                                "Add",
+                                "Edit"
+                            ]
+                        }
+                    ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
+                    "Name": "Permission",
+                    "Description": "Who has permission to use this command.",
+                    "AllowedValues": [
+                        "All",
+                        "Channels",
+                        "Nicks",
+                        "Self"
+                    ],
+                    "DependentArguments": [
+                        {
+                            "Name": "Action",
+                            "Values": [
+                                "Add",
+                                "Edit"
+                            ]
+                        }
+                    ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
+                    "Name": "Channels",
+                    "Description": "The channels you want to be able to use this command. Separate multiple channels with a comma.",
+                    "AllowedValues": [ ],
+                    "DependentArguments": [
+                        {
+                            "Name": "Permission",
+                            "Values": [
+                                "Channels"
+                            ]
+                        }
+                    ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
+                    "Name": "Nicknames",
+                    "Description": "The nicknames you want to be able to use this command. Separate multiple nicknames with a comma.",
+                    "AllowedValues": [ ],
+                    "DependentArguments": [
+                        {
+                            "Name": "Permission",
+                            "Values": [
+                                "Nicks"
+                            ]
+                        }
+                    ],
+                    "MessageTypes": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "Required": true
+                },
+                {
                     "Name": "Trigger",
                     "Description": "The trigger for the command.",
                     "AllowedValues": [ ],
@@ -40,8 +147,7 @@
                             "Name": "Action",
                             "Values": [
                                 "Add",
-                                "Edit",
-                                "Del"
+                                "Edit"
                             ]
                         }
                     ],
