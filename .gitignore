@@ -216,3 +216,4 @@ Combot.Servers.Release.config
 Packages.dgml
 Release/
 Combot.zip
+.vs/config/applicationhost.config
