@@ -70,7 +70,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string noMatch = string.Format("You do not have any previous messages that match \u0002{0}\u0002.", match);
-                        SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, noMatch);
+                        SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, noMatch, true);
                     }
                 }
             }

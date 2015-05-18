@@ -32,7 +32,7 @@ namespace Combot.Modules.Plugins
                             string cmd = message.Split(new [] { ' ' }, StringSplitOptions.RemoveEmptyEntries).First();
                             if (foundCommand.Triggers.Contains(cmd.TrimStart(Bot.ServerConfig.CommandPrefix.ToCharArray())))
                             {
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Recursion is bad.");
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "Recursion is bad.", true);
                                 break;
                             }
                         }
@@ -50,7 +50,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string notValid = "Please enter a valid time.";
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notValid);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notValid, true);
                     }
                     break;
             }

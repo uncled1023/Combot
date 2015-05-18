@@ -27,17 +27,17 @@ namespace Combot.Modules.Plugins
                         if (nicksList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "nicks"))
                         {
                             string nicksFound = string.Format("\u0002{0}\u0002 has been seen as: \u0002{1}\u0002", mask, string.Join(", ", nicksList));
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, nicksFound);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, nicksFound, true);
                         }
                         if (hostList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "hosts"))
                         {
                             string hostsFound = string.Format("\u0002{0}\u0002 has used the following hosts: \u0002{1}\u0002", mask, string.Join(", ", hostList));
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, hostsFound);
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, hostsFound, true);
                         }
                     }
                     else
                     {
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("I have no information about \u0002{0}\u0002", mask));
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("I have no information about \u0002{0}\u0002", mask), true);
                     }
                     break;
             }

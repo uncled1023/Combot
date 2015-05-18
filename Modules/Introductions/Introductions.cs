@@ -82,7 +82,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string maxMessage = "You already have the maximum number of introductions for this channel.  Delete one before trying to add another.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, maxMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, maxMessage, true);
             }
         }
 
@@ -123,7 +123,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string invalid = "Invalid introduction ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
             }
         }
 
@@ -144,7 +144,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string invalid = "Invalid introduction ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
             }
         }
 
@@ -164,7 +164,7 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string invalid = "Invalid introduction ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 }
             }
             else
@@ -180,7 +180,7 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string invalid = "You do not have any introductions set.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 }
             }
         }

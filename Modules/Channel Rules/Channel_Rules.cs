@@ -25,13 +25,13 @@ namespace Combot.Modules.Plugins
                         int index = 1;
                         foundRules.ForEach(rule =>
                         {
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("Rule \u0002#{0}\u0002: {1}", index, rule["rule"]));
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("Rule \u0002#{0}\u0002: {1}", index, rule["rule"]), true);
                             index++;
                         });
                     }
                     else
                     {
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("There are no rules for \u0002{0}\u0002", channel));
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("There are no rules for \u0002{0}\u0002", channel), true);
                     }
                     break;
                 case "Rules Modification":
@@ -54,7 +54,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string noAccessMessage = string.Format("You do not have access to \u0002{0}\u000F on \u0002{1}\u000F.", command.Command, channel);
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
                     }
                     break;
             }
@@ -96,13 +96,13 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string invalid = "Invalid Rule ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 }
             }
             else
             {
                 string invalid = "Invalid Rule ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
             }
         }
 
@@ -125,13 +125,13 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string invalid = "Invalid Rule ID.";
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 }
             }
             else
             {
                 string invalid = "Invalid Rule ID.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
             }
         }
 

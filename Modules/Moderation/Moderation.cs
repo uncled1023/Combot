@@ -131,7 +131,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to set mode \u0002+{0}\u000F for \u0002{1}\u000F on \u0002{2}\u000F.", mode, command.Arguments["Nickname"], channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to \u0002{0}\u000F \u0002{1}\u000F to the \u0002{2}\u000F list on \u0002{3}\u000F.", command.Arguments["Option"].ToLower(), command.Arguments["Nickname"], optionCommand, channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -197,13 +197,13 @@ namespace Combot.Modules.Plugins
                 else
                 {
                     string noAccessMessage = string.Format("You do not have access to set mode \u0002+{0}\u000F on \u0002{1}\u000F.", mode, channel);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
                 }
             }
             else
             {
                 string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F on \u0002{1}\u000F.", command.Command, channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -226,7 +226,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to change the topic on \u0002{0}\u000F.", channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -240,7 +240,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to invite someone to \u0002{0}\u000F.", channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -304,7 +304,7 @@ namespace Combot.Modules.Plugins
                     banMessage = "unban";
                 }
                 string noAccessMessage = string.Format("You do not have access to {0} \u0002{1}\u000F on \u0002{2}\u000F.", banMessage, command.Arguments["Nickname"], channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -326,7 +326,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string notValid = "Please enter a valid time.";
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notValid);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notValid, true);
             }
         }
 
@@ -357,7 +357,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to kick \u0002{0}\u000F from \u0002{1}\u000F.", command.Arguments["Nickname"], channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
 
@@ -384,7 +384,7 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to clear \u0002{0}\u000F on \u0002{1}\u000F.", command.Arguments["Target"], channel);
-                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
     }

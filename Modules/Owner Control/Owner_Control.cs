@@ -26,11 +26,11 @@ namespace Combot.Modules.Plugins
                         if (!Bot.ServerConfig.Owners.Contains(command.Nick.Nickname))
                         {
                             Bot.ServerConfig.Owners.Add(command.Nick.Nickname);
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are now identified as an owner.");
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are now identified as an owner.", true);
                         }
                         else
                         {
-                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are already identified as an owner.");
+                            SendResponse(command.MessageType, command.Location, command.Nick.Nickname, "You are already identified as an owner.", true);
                         }
                         foreach (Channel chan in Bot.IRC.Channels)
                         {
@@ -68,7 +68,7 @@ namespace Combot.Modules.Plugins
                     else
                     {
                         string message = string.Format("I am not in \u0002{0}\u000F.", channel);
-                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message, true);
                     }
                     break;
                 case "Speak":
@@ -105,7 +105,7 @@ namespace Combot.Modules.Plugins
                             else
                             {
                                 string message = string.Format("I am not in \u0002{0}\u000F.", cycleChannel);
-                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message);
+                                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, message, true);
                             }
                             break;
                         case "server":
