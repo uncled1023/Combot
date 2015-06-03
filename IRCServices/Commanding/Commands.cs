@@ -51,15 +51,11 @@ namespace Combot.IRCServices.Commanding
 
         private IRC _IRC;
         private int MaxMessageLength;
-        private int MessageSendDelay;
-        private DateTime LastMessageSend;
 
         public Commands(IRC irc, int maxMessageLength, int messageSendDelay)
         {
             _IRC = irc;
-            LastMessageSend = DateTime.Now;
             MaxMessageLength = maxMessageLength;
-            MessageSendDelay = messageSendDelay;
         }
 
         /// <summary>
@@ -69,12 +65,6 @@ namespace Combot.IRCServices.Commanding
         /// <param name="message"></param>
         public void SendPrivateMessage(string recipient, string message)
         {
-            TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
-            if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
-            {
-                Thread.Sleep((int)(MessageSendDelay - sinceLastMessage.TotalMilliseconds));
-            }
-            LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)
             {
                 List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -131,12 +121,6 @@ namespace Combot.IRCServices.Commanding
         /// <param name="message"></param>
         public void SendNotice(string recipient, string message)
         {
-            TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
-            if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
-            {
-                Thread.Sleep((int)(MessageSendDelay - sinceLastMessage.TotalMilliseconds));
-            }
-            LastMessageSend = DateTime.Now;
             if (message.Length > MaxMessageLength)
             {
                 List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -413,10 +397,35 @@ namespace Combot.IRCServices.Commanding
 
         public void SendMode(string channel, List<ChannelModeInfo> modeInfos)
         {
+            string modeList = string.Empty;
+            string setList = string.Empty;
+            bool lastSet = true;
+            int modeIndex = 1;
             foreach (ChannelModeInfo modeInfo in modeInfos)
             {
-                SendMode(channel, modeInfo);
+                if ((setList.Length + modeList.Length + channel.Length + modeInfo.Parameter.Length + 8 + ((modeInfo.Set != lastSet) ? 1 : 0)) > MaxMessageLength || modeIndex > 4)
+                {
+                    _IRC.SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, setList, modeList));
+                    setList = string.Empty;
+                    modeList = string.Empty;
+                    lastSet = true;
+                    modeIndex = 1;
+                }
+                if (modeInfo.Set != lastSet)
+                    setList += modeInfo.Set ? "+" : "-";
+
+                setList += modeInfo.Mode;
+                modeList += modeInfo.Parameter + " ";
+
+                lastSet = modeInfo.Set;
+                modeIndex++;
+                if (ChannelModeCommandEvent != null)
+                {
+                    ChannelModeCommandEvent(this, new ChannelModeCommand { Channel = channel, Mode = modeInfo });
+                }
             }
+            if (!string.IsNullOrEmpty(setList) && !string.IsNullOrEmpty(modeList))
+                _IRC.SendTCPMessage(string.Format("MODE {0} {1} {2}", channel, setList, modeList));
         }
 
         public void SendMode(string nick, UserModeInfo modeInfo)
