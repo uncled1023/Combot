@@ -53,9 +53,10 @@ namespace Combot.Modules.Plugins
                 }
                 char[] tails = {';', ' '};
                 resultMessage = resultMessage
-                    .Replace(Environment.NewLine, "; ")
+                    .Replace("\r\n", "; ")
+                    .Replace("\n", "; ")
                     .Replace("  |  ", ", ")
-                    .Replace(" | ", "; ")
+                    .Replace(" | ", ": ")
                     .TrimEnd(tails);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, queryMessage);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
