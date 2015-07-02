@@ -27,35 +27,40 @@ namespace Combot.IRCServices
 
         private int ReadTimeout;
         private int AllowedFailedReads;
+        private int MessageSendDelay;
         private Thread TCPReader;
         private Thread KeepAlive;
+        private DateTime LastMessageSend;
         private event Action<string> TCPMessageEvent;
         private readonly TCPInterface _TCP;
         private readonly ReaderWriterLockSlim ChannelRWLock;
 
         public IRC(int maxMessageLength, int messageSendDelay = 0, int readTimeout = 5000, int allowedFailedReads = 0)
         {
-            _TCP = new TCPInterface();
+            Nickname            = string.Empty;
+            ChannelRWLock       = new ReaderWriterLockSlim();
+            ReadTimeout         = readTimeout;
+            AllowedFailedReads  = allowedFailedReads;
+            LastMessageSend     = DateTime.Now;
+            MessageSendDelay    = messageSendDelay;
+
+            _TCP    = new TCPInterface();
             Message = new Messages(this);
             Command = new Commands(this, maxMessageLength, messageSendDelay);
-            Nickname = string.Empty;
-            ChannelRWLock = new ReaderWriterLockSlim();
-            ReadTimeout = readTimeout;
-            AllowedFailedReads = allowedFailedReads;
 
-            TCPMessageEvent += Message.ParseTCPMessage;
-            _TCP.TCPConnectionEvent += HandleTCPConnection;
-            _TCP.TCPErrorEvent += HandleTCPError;
-            Message.ErrorMessageEvent += HandleErrorMessage;
-            Message.PingEvent += HandlePing;
-            Message.ServerReplyEvent += HandleReply;
-            Message.ChannelModeChangeEvent += HandleChannelModeChange;
-            Message.UserModeChangeEvent += HandleUserModeChange;
-            Message.NickChangeEvent += HandleNickChange;
-            Message.JoinChannelEvent += HandleJoin;
-            Message.PartChannelEvent += HandlePart;
-            Message.KickEvent += HandleKick;
-            Message.QuitEvent += HandleQuit;
+            TCPMessageEvent                 += Message.ParseTCPMessage;
+            _TCP.TCPConnectionEvent         += HandleTCPConnection;
+            _TCP.TCPErrorEvent              += HandleTCPError;
+            Message.ErrorMessageEvent       += HandleErrorMessage;
+            Message.PingEvent               += HandlePing;
+            Message.ServerReplyEvent        += HandleReply;
+            Message.ChannelModeChangeEvent  += HandleChannelModeChange;
+            Message.UserModeChangeEvent     += HandleUserModeChange;
+            Message.NickChangeEvent         += HandleNickChange;
+            Message.JoinChannelEvent        += HandleJoin;
+            Message.PartChannelEvent        += HandlePart;
+            Message.KickEvent               += HandleKick;
+            Message.QuitEvent               += HandleQuit;
         }
 
         /// <summary>
@@ -263,6 +268,12 @@ namespace Combot.IRCServices
         {
             if (_TCP.Connected)
             {
+                TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
+                if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
+                {
+                    Thread.Sleep((int)(MessageSendDelay - sinceLastMessage.TotalMilliseconds));
+                }
+                LastMessageSend = DateTime.Now;
                 string replaceWith = string.Empty;
                 string parsedMessage = message.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
                 _TCP.Write(parsedMessage);

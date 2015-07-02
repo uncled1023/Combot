@@ -254,6 +254,7 @@ namespace Combot.Modules.Plugins
 
                 if (results.Any())
                 {
+                    List<string> banMasks = new List<string>();
                     foreach (Dictionary<string, object> result in results)
                     {
                         var nickname = result["nickname"].ToString();
@@ -275,8 +276,9 @@ namespace Combot.Modules.Plugins
                         {
                             banMask = string.Format("{0}!*@*", nickname);
                         }
-                        SetMode(set, message.Channel, ChannelMode.b, banMask);
+                        banMasks.Add(banMask);
                     }
+                    SetMode(set, message.Channel, ChannelMode.b, banMasks);
                 }
                 else
                 {
@@ -292,6 +294,20 @@ namespace Combot.Modules.Plugins
             modeInfo.Parameter = nickname;
             modeInfo.Set = set;
             Bot.IRC.Command.SendMode(channel, modeInfo);
+        }
+
+        private void SetMode(bool set, string channel, ChannelMode mode, List<string> nicknames)
+        {
+            List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
+            foreach (var nickname in nicknames)
+            {
+                ChannelModeInfo modeInfo = new ChannelModeInfo();
+                modeInfo.Mode = mode;
+                modeInfo.Parameter = nickname;
+                modeInfo.Set = set;
+                modeInfos.Add(modeInfo);
+            }
+            Bot.IRC.Command.SendMode(channel, modeInfos);
         }
     }
 }
