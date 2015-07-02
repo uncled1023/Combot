@@ -51,6 +51,12 @@ namespace Combot.Modules.Plugins
                 {
                     resultMessage = string.Format("{0}...", resultMessage.Substring(0, (int)maxResults));
                 }
+                char[] tails = {';', ' '};
+                resultMessage = resultMessage
+                    .Replace(Environment.NewLine, "; ")
+                    .Replace("  |  ", ", ")
+                    .Replace(" | ", "; ")
+                    .TrimEnd(tails);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, queryMessage);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, resultMessage);
             }
