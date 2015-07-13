@@ -34,11 +34,13 @@ namespace Combot.IRCServices
         private event Action<string> TCPMessageEvent;
         private readonly TCPInterface _TCP;
         private readonly ReaderWriterLockSlim ChannelRWLock;
+        private readonly ReaderWriterLockSlim MessageSendLock;
 
         public IRC(int maxMessageLength, int messageSendDelay = 0, int readTimeout = 5000, int allowedFailedReads = 0)
         {
             Nickname            = string.Empty;
             ChannelRWLock       = new ReaderWriterLockSlim();
+            MessageSendLock     = new ReaderWriterLockSlim();
             ReadTimeout         = readTimeout;
             AllowedFailedReads  = allowedFailedReads;
             LastMessageSend     = DateTime.Now;
@@ -268,6 +270,7 @@ namespace Combot.IRCServices
         {
             if (_TCP.Connected)
             {
+                MessageSendLock.EnterWriteLock();
                 TimeSpan sinceLastMessage = (DateTime.Now - LastMessageSend);
                 if (sinceLastMessage.TotalMilliseconds < MessageSendDelay)
                 {
@@ -277,6 +280,7 @@ namespace Combot.IRCServices
                 string replaceWith = string.Empty;
                 string parsedMessage = message.Replace("\r\n", replaceWith).Replace("\n", replaceWith).Replace("\r", replaceWith);
                 _TCP.Write(parsedMessage);
+                MessageSendLock.ExitWriteLock();
             }
         }
 
