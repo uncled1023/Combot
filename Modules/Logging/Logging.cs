@@ -13,6 +13,7 @@ namespace Combot.Modules.Plugins
             Bot.IRC.Message.ChannelMessageReceivedEvent += LogChannelMessage;
             Bot.IRC.Message.PrivateMessageReceivedEvent += LogPrivateMessage;
             Bot.IRC.Message.JoinChannelEvent += LogChannelJoin;
+            Bot.IRC.Message.InviteChannelEvent += LogChannelInvite;
             Bot.IRC.Message.PartChannelEvent += LogChannelPart;
             Bot.IRC.Message.KickEvent += LogChannelKick;
             Bot.IRC.Message.QuitEvent += LogQuit;
@@ -63,6 +64,24 @@ namespace Combot.Modules.Plugins
                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nicks`.`nickname` = {4}), " +
                                "`date_added` = {5}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Nick.Nickname, info.TimeStamp });
+            }
+        }
+
+        private void LogChannelInvite(object sender, InviteChannelInfo info)
+        {
+            if (!ChannelBlacklist.Contains(info.Channel)
+                && !NickBlacklist.Contains(info.Requester.Nickname))
+            {
+                AddChannel(info.Channel);
+                AddNick(info.Requester);
+                AddNick(info.Recipient);
+                string query = "INSERT INTO `channelinvites` SET " +
+                               "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
+                               "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
+                               "`requester_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nicks`.`nickname` = {4}), " +
+                               "`recipient_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {5} && `nicks`.`nickname` = {6}), " +
+                               "`date_invited` = {7}";
+                Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Requester.Nickname, Bot.ServerConfig.Name, info.Recipient.Nickname, info.TimeStamp });
             }
         }
 
