@@ -129,7 +129,7 @@ namespace Combot.Modules.Plugins
             Channel channel = Bot.IRC.Channels.Find(chan => chan.Name == message.Channel);
             if (channel != null)
             {
-                List<string> foundNicks = splitMessage.FindAll(msg => channel.Nicks.Exists(nick => msg.Contains(nick.Nickname)));
+                List<string> foundNicks = splitMessage.FindAll(msg => channel.Nicks.Exists(nick => msg.Equals(nick.Nickname, StringComparison.InvariantCultureIgnoreCase)));
                 if (foundNicks.Any())
                 {
                     if (!SpamHighlightList.Exists(msg => msg.Channel == message.Channel && msg.Nick == message.Sender.Nickname))
