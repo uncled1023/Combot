@@ -27,6 +27,9 @@ namespace Combot.Configurations
         public int JoinDelay { get; set; }
         public int MaxMessageLength { get; set; }
         public int MessageSendDelay { get; set; }
+        public SpamSourceType SpamSourceType { get; set; }
+        public int SpamCountMax { get; set; }
+        public TimeSpan SpamSessionTime { get; set; }
 
         public ServerConfig()
         {
@@ -47,6 +50,9 @@ namespace Combot.Configurations
             JoinDelay = 0;
             MaxMessageLength = 400;
             MessageSendDelay = 0;
+            SpamSourceType = SpamSourceType.Nick;
+            SpamCountMax = 5;
+            SpamSessionTime = new TimeSpan(0, 0, 1);
             ModuleLocation = string.Empty;
             Owners = new List<string>();
             ChannelBlacklist = new List<string>();
@@ -74,6 +80,9 @@ namespace Combot.Configurations
             JoinDelay = config.JoinDelay;
             MaxMessageLength = config.MaxMessageLength;
             MessageSendDelay = config.MessageSendDelay;
+            SpamSourceType = config.SpamSourceType;
+            SpamCountMax = config.SpamCountMax;
+            SpamSessionTime = config.SpamSessionTime;
             ModuleLocation = config.ModuleLocation;
             Owners = new List<string>();
             for (int i = 0; i < config.Owners.Count; i++)

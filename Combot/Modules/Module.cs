@@ -83,12 +83,16 @@ namespace Combot.Modules
                 // If they have the correct access for the command, send it
                 if (cmd.AllowedAccess.Exists(access => nickAccessTypes.Contains(access)))
                 {
-                    ParseCommand(command);
+                    // Make sure that the command isn't being spammed
+                    if (Bot.SpamCheck(Bot.IRC.Channels.Find(chan => chan.Name == command.Location), command.Nick, this, cmd))
+                    {
+                        ParseCommand(command);
+                    }
                 }
                 else
                 {
                     string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F.", command.Command);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
                 }
             }
         }
