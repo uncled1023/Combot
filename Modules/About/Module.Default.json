@@ -118,7 +118,7 @@
     {
       "Name": "Source Code",
       "Description": "The location of the source code for the bot.",
-      "Value": "https://github.com/uncled1023/Combot"
+      "Value": "https://git.teknik.io/Uncled1023/Combot"
     }
   ]
 }
