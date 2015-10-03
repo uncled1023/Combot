@@ -13,7 +13,7 @@
     },
     {
       "Name": "Max Log Size",
-      "Description": "The maximum log size before it rolls to a new file (in KB)",
+      "Description": "The maximum log size before it rolls to a new file (in Bytes)",
       "Value": 400000
     },
     {

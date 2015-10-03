@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Combot.Databases;
 using Combot.IRCServices.Messaging;
@@ -181,7 +182,9 @@ namespace Combot.Modules.Plugins
             if (doLog)
             {
                 logLock.EnterWriteLock();
-                string logDir = Path.Combine(GetOptionValue("Log Path").ToString(), Bot.ServerConfig.Name, location);
+                string pattern = "[^a-zA-Z0-9-_.+#]"; //regex pattern
+                string parsedLocation = Regex.Replace(location, pattern, "_");
+                string logDir = Path.Combine(GetOptionValue("Log Path").ToString(), Bot.ServerConfig.Name, parsedLocation);
                 if (!Directory.Exists(logDir))
                     Directory.CreateDirectory(logDir);
 
