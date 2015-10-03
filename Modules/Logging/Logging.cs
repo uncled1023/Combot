@@ -23,6 +23,8 @@ namespace Combot.Modules.Plugins
             logLock = new ReaderWriterLockSlim();
 
             Bot.IRC.ConnectEvent += AddServer;
+            Bot.IRC.Message.CTCPMessageReceivedEvent += LogCTCPMessage;
+            Bot.IRC.Message.CTCPNoticeReceivedEvent += LogCTCPNotice;
             Bot.IRC.Message.ChannelMessageReceivedEvent += LogChannelMessage;
             Bot.IRC.Message.PrivateMessageReceivedEvent += LogPrivateMessage;
             Bot.IRC.Message.ChannelNoticeReceivedEvent += LogChannelNotice;
@@ -76,6 +78,16 @@ namespace Combot.Modules.Plugins
         private void LogPrivateNotice(object sender, PrivateNotice notice)
         {
             LogToFile(SERVERLOGNAME, notice.TimeStamp, string.Format("<{0}> {1}", notice.Sender.Nickname, notice.Message));
+        }
+
+        private void LogCTCPMessage(object sender, CTCPMessage message)
+        {
+            LogToFile(SERVERLOGNAME, message.TimeStamp, string.Format("<{0}> CTCP {1} {2}", message.Sender.Nickname, message.Command, message.Arguments));
+        }
+
+        private void LogCTCPNotice(object sender, CTCPMessage notice)
+        {
+            LogToFile(SERVERLOGNAME, notice.TimeStamp, string.Format("<{0}> CTCP {1} {2}", notice.Sender.Nickname, notice.Command, notice.Arguments));
         }
 
         private void LogChannelJoin(object sender, JoinChannelInfo info)
