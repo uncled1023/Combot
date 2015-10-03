@@ -2,8 +2,24 @@
   "Name": "Logging",
   "ClassName": "Logging",
   "Enabled": true,
-  "ChannelBlacklist": [],
-  "NickBlacklist": [],
-  "Commands": [],
-  "Options": []
+  "ChannelBlacklist": [ ],
+  "NickBlacklist": [ ],
+  "Commands": [ ],
+  "Options": [
+    {
+      "Name": "Log To File",
+      "Description": "Log all channel content to a file as well as the database",
+      "Value": false
+    },
+    {
+      "Name": "Max Log Size",
+      "Description": "The maximum log size before it rolls to a new file (in KB)",
+      "Value": 400000
+    },
+    {
+      "Name": "Log Path",
+      "Description": "The path to the directory where the logs wil be stored",
+      "Value": ""
+    }
+  ]
 }

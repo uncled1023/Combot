@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Threading;
 using Combot.Databases;
 using Combot.IRCServices.Messaging;
 
@@ -7,11 +11,21 @@ namespace Combot.Modules.Plugins
 {
     public class Logging : Module
     {
+        private const string SERVERLOGNAME = "--server--";
+        private const string LOGFILENAME = "chat";
+        private const string LOGFILEEXT = ".log";
+
+        private static ReaderWriterLockSlim logLock;
+
         public override void Initialize()
         {
+            logLock = new ReaderWriterLockSlim();
+
             Bot.IRC.ConnectEvent += AddServer;
             Bot.IRC.Message.ChannelMessageReceivedEvent += LogChannelMessage;
             Bot.IRC.Message.PrivateMessageReceivedEvent += LogPrivateMessage;
+            Bot.IRC.Message.ChannelNoticeReceivedEvent += LogChannelNotice;
+            Bot.IRC.Message.PrivateNoticeReceivedEvent += LogPrivateNotice;
             Bot.IRC.Message.JoinChannelEvent += LogChannelJoin;
             Bot.IRC.Message.InviteChannelEvent += LogChannelInvite;
             Bot.IRC.Message.PartChannelEvent += LogChannelPart;
@@ -35,6 +49,7 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {6}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, message.Channel, Bot.ServerConfig.Name, message.Sender.Nickname, message.Message, message.TimeStamp });
             }
+            LogToFile(message.Channel, message.TimeStamp, string.Format("<{0}> {1}", message.Sender.Nickname, message.Message));
         }
 
         private void LogPrivateMessage(object sender, PrivateMessage message)
@@ -49,6 +64,17 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {4}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, message.Sender.Nickname, message.Message, message.TimeStamp });
             }
+            LogToFile(message.Sender.Nickname, message.TimeStamp, message.Message);
+        }
+
+        private void LogChannelNotice(object sender, ChannelNotice notice)
+        {
+            LogToFile(notice.Channel, notice.TimeStamp, string.Format("<{0}> {1}", notice.Sender.Nickname, notice.Message));
+        }
+
+        private void LogPrivateNotice(object sender, PrivateNotice notice)
+        {
+            LogToFile(SERVERLOGNAME, notice.TimeStamp, string.Format("<{0}> {1}", notice.Sender.Nickname, notice.Message));
         }
 
         private void LogChannelJoin(object sender, JoinChannelInfo info)
@@ -65,6 +91,7 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {5}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Nick.Nickname, info.TimeStamp });
             }
+            LogToFile(info.Channel, info.TimeStamp, string.Format("{0} has joined the channel.", info.Nick.Nickname));
         }
 
         private void LogChannelInvite(object sender, InviteChannelInfo info)
@@ -83,6 +110,7 @@ namespace Combot.Modules.Plugins
                                "`date_invited` = {7}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Requester.Nickname, Bot.ServerConfig.Name, info.Recipient.Nickname, info.TimeStamp });
             }
+            LogToFile(info.Channel, info.TimeStamp, string.Format("{0} has invited {1} to the channel.", info.Requester.Nickname, info.Recipient.Nickname));
         }
 
         private void LogChannelPart(object sender, PartChannelInfo info)
@@ -99,6 +127,7 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {5}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Nick.Nickname, info.TimeStamp });
             }
+            LogToFile(info.Channel, info.TimeStamp, string.Format("{0} has left the channel.", info.Nick.Nickname));
         }
 
         private void LogChannelKick(object sender, KickInfo info)
@@ -118,6 +147,7 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {8}";
                 Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Channel, Bot.ServerConfig.Name, info.Nick.Nickname, Bot.ServerConfig.Name, info.KickedNick.Nickname, info.Reason, info.TimeStamp });
             }
+            LogToFile(info.Channel, info.TimeStamp, string.Format("{0} kicked {1} [{2}]", info.Nick.Nickname, info.KickedNick.Nickname, info.Reason));
         }
 
         private void LogQuit(object sender, QuitInfo info)
@@ -132,6 +162,7 @@ namespace Combot.Modules.Plugins
                                "`date_added` = {4}";
                 Bot.Database.Execute(query, new object[] {Bot.ServerConfig.Name, Bot.ServerConfig.Name, info.Nick.Nickname, info.Message, info.TimeStamp});
             }
+            LogToFile(SERVERLOGNAME, info.TimeStamp, string.Format("{0} has Quit.", info.Nick.Nickname));
         }
 
         private void LogNickChange(object sender, NickChangeInfo info)
@@ -139,6 +170,52 @@ namespace Combot.Modules.Plugins
             if (!NickBlacklist.Contains(info.OldNick.Nickname) && !NickBlacklist.Contains(info.NewNick.Nickname))
             {
                 AddNick(info.NewNick);
+            }
+            LogToFile(SERVERLOGNAME, info.TimeStamp, string.Format("{0} is now known as {1}", info.OldNick.Nickname, info.NewNick.Nickname));
+        }
+
+        private void LogToFile(string location, DateTime date, string log)
+        {
+            bool doLog = false;
+            Boolean.TryParse(GetOptionValue("Log To File").ToString(), out doLog);
+            if (doLog)
+            {
+                logLock.EnterWriteLock();
+                string logDir = Path.Combine(GetOptionValue("Log Path").ToString(), Bot.ServerConfig.Name, location);
+                if (!Directory.Exists(logDir))
+                    Directory.CreateDirectory(logDir);
+
+                string logFile = Path.Combine(logDir, LOGFILENAME + LOGFILEEXT);
+                // Check to see if we need to create a new log
+                if (File.Exists(logFile))
+                {
+                    TrimLogFile(logDir);
+                }
+                // Write the log to the main log file
+                StreamWriter logWriter = File.AppendText(logFile);
+                logWriter.WriteLine(string.Format("[{0}] {1}", date.ToString("G"), log));
+                logWriter.Close();
+                logLock.ExitWriteLock();
+            }
+        }
+
+        private void TrimLogFile(string logDir)
+        {
+            string logFile = Path.Combine(logDir, LOGFILENAME + LOGFILEEXT);
+            int maxSize = 0;
+            Int32.TryParse(GetOptionValue("Max Log Size").ToString(), out maxSize);
+            FileInfo file = new FileInfo(logFile);
+            long fileSize = file.Length;
+            if (fileSize > maxSize)
+            {
+                // The file is too large, we need to increment the file names of the log files
+                string[] files = Directory.GetFiles(logDir);
+                for (int i = files.GetUpperBound(0) - 1; i >= 0; i--)
+                {
+                    string newFileName = LOGFILENAME + "_" + (i + 1) + LOGFILEEXT;
+                    string newFile = Path.Combine(logDir, newFileName);
+                    File.Move(files[i], newFile);
+                }
             }
         }
     }
