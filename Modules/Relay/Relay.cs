@@ -18,6 +18,8 @@ namespace Combot.Modules.Plugins
             Bot.IRC.Message.PrivateMessageReceivedEvent += RelayPrivateMessage;
             Bot.IRC.Message.ChannelNoticeReceivedEvent += RelayChannelNotice;
             Bot.IRC.Message.PrivateNoticeReceivedEvent += RelayPrivateNotice;
+            Bot.IRC.Message.ChannelModeChangeEvent += RelayChannelMode;
+            Bot.IRC.Message.UserModeChangeEvent += RelayUserMode;
             Bot.IRC.Message.JoinChannelEvent += RelayChannelJoin;
             Bot.IRC.Message.InviteChannelEvent += RelayChannelInvite;
             Bot.IRC.Message.PartChannelEvent += RelayChannelPart;
@@ -284,27 +286,40 @@ namespace Combot.Modules.Plugins
 
         private void RelayQuit(object sender, QuitInfo e)
         {
-            string msg = string.Format("{0} has quit.");
+            string msg = string.Format("{0} has quit. ({1})", e.Nick.Nickname, e.Message);
             ProcessRelay(e.Nick.Nickname, RelayType.Quit, msg);
         }
 
         private void RelayChannelKick(object sender, KickInfo e)
         {
-            string msg = string.Format("{0} has kicked {1} from {2} ({3})", e.Nick.Nickname, e.KickedNick.Nickname, e.Channel, e.Reason);
+            string msg = string.Format("[{0}] {1} has kicked {2} ({3})", e.Channel, e.Nick.Nickname, e.KickedNick.Nickname, e.Reason);
             ProcessRelay(e.Channel, RelayType.Kick, msg);
         }
 
         private void RelayChannelPart(object sender, PartChannelInfo e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] {1} has left.", e.Channel, e.Nick.Nickname);
+            ProcessRelay(e.Channel, RelayType.Part, msg);
         }
 
         private void RelayChannelInvite(object sender, InviteChannelInfo e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] {1} invited {2}", e.Channel, e.Requester.Nickname, e.Recipient.Nickname);
+            ProcessRelay(e.Channel, RelayType.Part, msg);
         }
 
         private void RelayChannelJoin(object sender, JoinChannelInfo e)
+        {
+            string msg = string.Format("[{0}] {1} ({2}) has joined.", e.Channel, e.Nick.Nickname, e.Nick.Host);
+            ProcessRelay(e.Channel, RelayType.Part, msg);
+        }
+
+        private void RelayUserMode(object sender, UserModeChangeInfo e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayChannelMode(object sender, ChannelModeChangeInfo e)
         {
             throw new NotImplementedException();
         }
