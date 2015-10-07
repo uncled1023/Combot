@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Combot.IRCServices.Messaging;
 
 namespace Combot.Modules.Plugins
 {
@@ -10,6 +11,18 @@ namespace Combot.Modules.Plugins
         public override void Initialize()
         {
             Bot.CommandReceivedEvent += HandleCommandEvent;
+
+            Bot.IRC.Message.CTCPMessageReceivedEvent += CTCPRelayHandler;
+            Bot.IRC.Message.CTCPNoticeReceivedEvent += CTCPRelayHandler;
+            Bot.IRC.Message.ChannelMessageReceivedEvent += RelayChannelMessage;
+            Bot.IRC.Message.PrivateMessageReceivedEvent += RelayPrivateMessage;
+            Bot.IRC.Message.ChannelNoticeReceivedEvent += RelayChannelNotice;
+            Bot.IRC.Message.PrivateNoticeReceivedEvent += RelayPrivateNotice;
+            Bot.IRC.Message.JoinChannelEvent += RelayChannelJoin;
+            Bot.IRC.Message.InviteChannelEvent += RelayChannelInvite;
+            Bot.IRC.Message.PartChannelEvent += RelayChannelPart;
+            Bot.IRC.Message.KickEvent += RelayChannelKick;
+            Bot.IRC.Message.QuitEvent += RelayQuit;
         }
 
         public override void ParseCommand(CommandMessage command)
@@ -200,7 +213,6 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetRelayList(string nickname)
         {
-            // Check to see if they have reached the max number of introductions
             string search = "SELECT `relays`.`id`, `relays`.`source`, `relays`.`target`, `relays`.`type`, `relays`.`modes` FROM `relays` " +
                             "INNER JOIN `nicks` " +
                             "ON `relays`.`nick_id` = `nicks`.`id` " +
@@ -208,6 +220,15 @@ namespace Combot.Modules.Plugins
                             "ON `nicks`.`server_id` = `servers`.`id` " +
                             "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1}";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
+        }
+
+        private List<Dictionary<string, object>> GetRelayList(string source, RelayType type)
+        {
+            string search = "SELECT `relays`.`target`, `relays`.`modes` FROM `relays` " +
+                            "INNER JOIN `servers` " +
+                            "ON `relays`.`server_id` = `servers`.`id` " +
+                            "WHERE `servers`.`name` = {0} AND `relays`.`source` = {1} AND `relays`.`type` = {2}";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, source, (int)type });
         }
 
         private bool CheckAccess(string source, string nick, List<AccessType> types)
@@ -251,6 +272,66 @@ namespace Combot.Modules.Plugins
             }
 
             return ret;
+        }
+
+        private void ProcessRelay(string source, RelayType type, string message)
+        {
+            switch (type)
+            {
+
+            }
+        }
+
+        private void RelayQuit(object sender, QuitInfo e)
+        {
+            string msg = string.Format("{0} has quit.");
+            ProcessRelay(e.Nick.Nickname, RelayType.Quit, msg);
+        }
+
+        private void RelayChannelKick(object sender, KickInfo e)
+        {
+            string msg = string.Format("{0} has kicked {1} from {2} ({3})", e.Nick.Nickname, e.KickedNick.Nickname, e.Channel, e.Reason);
+            ProcessRelay(e.Channel, RelayType.Kick, msg);
+        }
+
+        private void RelayChannelPart(object sender, PartChannelInfo e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayChannelInvite(object sender, InviteChannelInfo e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayChannelJoin(object sender, JoinChannelInfo e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayPrivateNotice(object sender, PrivateNotice e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayChannelNotice(object sender, ChannelNotice e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayPrivateMessage(object sender, PrivateMessage e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RelayChannelMessage(object sender, ChannelMessage e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CTCPRelayHandler(object sender, CTCPMessage e)
+        {
+            throw new NotImplementedException();
         }
     }
 }
