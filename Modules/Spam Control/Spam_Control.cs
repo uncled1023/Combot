@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
@@ -125,7 +126,9 @@ namespace Combot.Modules.Plugins
             bool unbanResponse = Convert.ToBoolean(GetOptionValue("Unban Response"));
 
             // Check for highlight spam
-            List<string> splitMessage = message.Message.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            Regex regEx = new Regex(@"[^a-zA-Z0-9_\-\[\]`\^|\\]");
+            string cleanMessage = regEx.Replace(message.Message, " ");
+            List<string> splitMessage = cleanMessage.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
             Channel channel = Bot.IRC.Channels.Find(chan => chan.Name == message.Channel);
             if (channel != null)
             {
