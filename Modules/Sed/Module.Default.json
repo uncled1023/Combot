@@ -5,5 +5,21 @@
   "ChannelBlacklist": [],
   "NickBlacklist": [],
   "Commands": [],
-  "Options": []
+  "Options": [
+    {
+      "Name": "Nickname Enabled",
+      "Description": "Use sed for nicknames.",
+      "Value": true
+    },
+    {
+      "Name": "Channel Enabled",
+      "Description": "Use sed for channels.",
+      "Value": true
+    },
+    {
+      "Name": "Max Messages",
+      "Description": "The number of messages to store for processing of sed.",
+      "Value": 10
+    }
+  ]
 }

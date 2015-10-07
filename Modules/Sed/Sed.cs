@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Combot.Databases;
 using Combot.IRCServices.Messaging;
 
@@ -9,8 +10,12 @@ namespace Combot.Modules.Plugins
 {
     public class Sed : Module
     {
+        private Dictionary<string, List<string>> LastMessages;
+        private readonly ReaderWriterLockSlim MessageLock = new ReaderWriterLockSlim();
+
         public override void Initialize()
         {
+            LastMessages = new Dictionary<string, List<string>>();
             Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessageEvent;
         }
 
@@ -22,6 +27,31 @@ namespace Combot.Modules.Plugins
                 && !ChannelBlacklist.Contains(message.Channel)
                 && !NickBlacklist.Contains(message.Sender.Nickname))
             {
+                bool nickEnabled = false;
+                Boolean.TryParse(GetOptionValue("Nickname Enabled").ToString(), out nickEnabled);
+                bool channelEnabled = false;
+                Boolean.TryParse(GetOptionValue("Channel Enabled").ToString(), out channelEnabled);
+                int maxMessages = 10;
+                Int32.TryParse(GetOptionValue("Max Messages").ToString(), out maxMessages);
+
+                string key = string.Empty;
+                if (nickEnabled && channelEnabled)
+                {
+                    key = string.Format("{0} {1}", message.Channel, message.Sender.Nickname);
+                }
+                else if (nickEnabled)
+                {
+                    key = message.Sender.Nickname;
+                }
+                else if (channelEnabled)
+                {
+                    key = message.Channel;
+                }
+                else
+                {
+                    key = string.Empty;
+                }
+
                 Regex sedRegex = new Regex(@"^s\/(?<Match>[^\/\\]*(?:\\.[^\/\\]*)*)\/(?<Replace>[^\/\\]*(?:\\.[^\/\\]*)*)\/(?<Option>[g|I|0-9]*)?");
                 if (sedRegex.IsMatch(message.Message))
                 {
@@ -29,7 +59,6 @@ namespace Combot.Modules.Plugins
                     string match = sedMatch.Groups["Match"].ToString().Replace(@"\/", @"/");
                     string replace = sedMatch.Groups["Replace"].ToString().Replace(@"\/", @"/");
                     string option = sedMatch.Groups["Option"].ToString();
-                    string mysqlCase;
                     RegexOptions matchOptions;
                     int optionVal;
                     int replaceNum;
@@ -37,59 +66,66 @@ namespace Combot.Modules.Plugins
                     {
                         matchOptions = RegexOptions.None;
                         replaceNum = optionVal;
-                        mysqlCase = "CAST(`channelmessages`.`message` AS BINARY)";
                     }
                     else if (option == "g")
                     {
                         matchOptions = RegexOptions.None;
                         replaceNum = 1;
-                        mysqlCase = "CAST(`channelmessages`.`message` AS BINARY)";
                     }
                     else if (option == "I")
                     {
                         matchOptions = RegexOptions.IgnoreCase;
                         replaceNum = 1;
-                        mysqlCase = "`channelmessages`.`message`";
                     }
                     else
                     {
                         matchOptions = RegexOptions.None;
                         replaceNum = 1;
-                        mysqlCase = "CAST(`channelmessages`.`message` AS BINARY)";
                     }
-                    string mysqlMatch = match.Replace(@"\s", "[:space:]").Replace(@"\", @"\\");
-                    List<Dictionary<string, object>> resultList = GetMessageList(message.Channel, message.Sender.Nickname, mysqlMatch, mysqlCase, message.Message);
-                    if (resultList.Any())
+                    bool foundResult = false;
+                    MessageLock.EnterWriteLock();
+                    if (LastMessages.ContainsKey(key))
                     {
-                        string oldMessage = resultList.First()["message"].ToString();
-                        Regex messageRegex = new Regex(match, matchOptions);
-                        string newMessage = messageRegex.Replace(oldMessage, replace, replaceNum);
-                        string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
-                        SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
+                        foreach (string msg in LastMessages[key])
+                        {
+                            Regex messageRegex = new Regex(match, matchOptions);
+                            if (messageRegex.IsMatch(msg))
+                            {
+                                string newMessage = messageRegex.Replace(msg, replace, replaceNum);
+                                string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
+                                SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
+                                foundResult = true;
+                                break;
+                            }
+                        }
                     }
-                    else
+                    MessageLock.ExitWriteLock();
+                    if (!foundResult)
                     {
                         string noMatch = string.Format("You do not have any previous messages that match \u0002{0}\u0002.", match);
                         SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, noMatch, true);
                     }
                 }
+                else
+                {
+                    // Add or replace the message for the user/channel
+                    MessageLock.EnterWriteLock();
+                    if (LastMessages.ContainsKey(key))
+                    {
+                        List<string> messages = LastMessages[key];
+                        if (messages.Count >= maxMessages)
+                        {
+                            messages.RemoveAt(messages.Count - 1);
+                        }
+                        messages.Add(message.Message);
+                    }
+                    else
+                    {
+                        LastMessages.Add(key, new List<string> { message.Message });
+                    }
+                    MessageLock.ExitWriteLock();
+                }
             }
-        }
-
-        private List<Dictionary<string, object>> GetMessageList(string channel, string nickname, string regex, string caseString, string originalMessage)
-        {
-            Database database = new Database(Bot.ServerConfig.Database);
-            string search = "SELECT `channelmessages`.`message`, `channelmessages`.`date_added` FROM `channelmessages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelmessages`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelmessages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} AND `channelmessages`.`message` != {3} AND " + caseString + " REGEXP {4} " +
-                            "ORDER BY date_added DESC " +
-                            "LIMIT 1";
-            return database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname, originalMessage, regex });
         }
     }
 }
