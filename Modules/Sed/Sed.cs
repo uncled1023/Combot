@@ -86,7 +86,8 @@ namespace Combot.Modules.Plugins
                     MessageLock.EnterWriteLock();
                     if (LastMessages.ContainsKey(key))
                     {
-                        List<string> msgList = LastMessages[key];
+                        List<string> msgList = new List<string>();
+                        msgList.AddRange(LastMessages[key]);
                         msgList.Reverse();
                         foreach (string msg in msgList)
                         {
