@@ -70,9 +70,9 @@ namespace Combot.Modules.Plugins
                     else if (option == "g")
                     {
                         matchOptions = RegexOptions.None;
-                        replaceNum = 1;
+                        replaceNum = -1;
                     }
-                    else if (option == "I")
+                    else if (option == "I" || option == "i")
                     {
                         matchOptions = RegexOptions.IgnoreCase;
                         replaceNum = 1;
@@ -94,7 +94,15 @@ namespace Combot.Modules.Plugins
                             Regex messageRegex = new Regex(match, matchOptions);
                             if (messageRegex.IsMatch(msg))
                             {
-                                string newMessage = messageRegex.Replace(msg, replace, replaceNum);
+                                string newMessage = string.Empty;
+                                if (replaceNum < 0)
+                                {
+                                    newMessage = messageRegex.Replace(msg, replace);
+                                }
+                                else
+                                {
+                                    newMessage = messageRegex.Replace(msg, replace, replaceNum);
+                                }
                                 string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
                                 SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
                                 foundResult = true;
