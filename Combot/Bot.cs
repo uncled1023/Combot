@@ -455,7 +455,6 @@ namespace Combot
                 // Check the current delay for the module
                 DateTime curTime = DateTime.Now;
                 DateTime lastTime = session.LastInstance;
-                session.LastInstance = curTime;
                 session.CurrentCount++;
                 if (curTime.Subtract(lastTime) < ServerConfig.SpamSessionTime)
                 {
@@ -464,6 +463,7 @@ namespace Combot
                     if (session.CurrentCount > ServerConfig.SpamCountMax)
                     {
                         allowed = false;
+                        session.LastInstance = curTime;
                     }
                 }
                 else
