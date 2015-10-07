@@ -115,9 +115,10 @@ namespace Combot.Modules.Plugins
                         List<string> messages = LastMessages[key];
                         if (messages.Count >= maxMessages)
                         {
-                            messages.RemoveAt(messages.Count - 1);
+                            messages.RemoveAt(0);
                         }
                         messages.Add(message.Message);
+                        LastMessages[key] = messages;
                     }
                     else
                     {
