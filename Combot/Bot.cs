@@ -35,6 +35,7 @@ namespace Combot
         private int PreNickChoice;
         private int RetryCount;
         private bool RetryAllowed;
+        private Dictionary<string, SpamSession> SpamSessions;
 
         public Bot(ServerConfig serverConfig)
         {
@@ -46,6 +47,7 @@ namespace Combot
             ServerConfig = serverConfig;
             LoadTime = DateTime.Now;
             ConnectionTime = DateTime.Now;
+            SpamSessions = new Dictionary<string, SpamSession>();
 
             IRC = new IRC(serverConfig.MaxMessageLength, serverConfig.MessageSendDelay);
             IRC.ConnectEvent += HandleConnectEvent;
@@ -417,6 +419,65 @@ namespace Combot
                 }
             }
             return isCommand;
+        }
+
+        public bool SpamCheck(Channel channel, Nick nick, Module module, Command command)
+        {
+            bool allowed = true;
+
+            // Always allow the owner to skip the spam check
+            if (ServerConfig.Owners.Contains(nick.Nickname))
+                return true;
+
+            string source = string.Empty;
+            // Generate the source based on the configured source type
+            switch (ServerConfig.SpamSourceType)
+            {
+                case SpamSourceType.Server:
+                    source = ServerConfig.Name;
+                    break;
+                case SpamSourceType.Channel:
+                    source = channel.Name;
+                    break;
+                case SpamSourceType.Nick:
+                    source = nick.Nickname;
+                    break;
+                case SpamSourceType.Module:
+                    source = module.Name;
+                    break;
+                case SpamSourceType.Command:
+                    source = command.Name;
+                    break;
+            }
+            if (SpamSessions.ContainsKey(source))
+            {
+                SpamSession session = SpamSessions[source];
+                // Check the current delay for the module
+                DateTime curTime = DateTime.Now;
+                DateTime lastTime = session.LastInstance;
+                session.LastInstance = curTime;
+                session.CurrentCount++;
+                if (curTime.Subtract(lastTime) < ServerConfig.SpamSessionTime)
+                {
+                    // The time since the last command is within the spacing time setting
+                    // We need to check to see if we are over the max command count for this session
+                    if (session.CurrentCount > ServerConfig.SpamCountMax)
+                    {
+                        allowed = false;
+                    }
+                }
+                else
+                {
+                    SpamSessions.Remove(source);
+                    SpamSessions.Add(source, new SpamSession());
+                }
+            }
+            else
+            {
+                SpamSessions.Add(source, new SpamSession());
+            }
+
+            return allowed;
         }
 
         private void HandleJoinEvent(object sender, JoinChannelInfo info)

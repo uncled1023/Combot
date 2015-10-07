@@ -78,6 +78,8 @@
     <Compile Include="Modules\CommandArgument.cs" />
     <Compile Include="Modules\CommandMessage.cs" />
     <Compile Include="Modules\Option.cs" />
+    <Compile Include="SpamSession.cs" />
+    <Compile Include="SpamSourceType.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="Modules\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

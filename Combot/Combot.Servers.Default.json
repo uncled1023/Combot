@@ -35,6 +35,9 @@
     "CommandPrefix": ".",
     "JoinDelay": 100,
     "MaxMessageLength": 400,
-    "MessageSendDelay": 100
+    "MessageSendDelay": 100,
+    "SpamSourceType":  2,
+    "SpamCountMax": 5,
+    "SpamSessionTime": "00:00:01"
   }
 ]

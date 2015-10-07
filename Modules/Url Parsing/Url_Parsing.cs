@@ -32,72 +32,76 @@ namespace Combot.Modules.Plugins
             {
                 if (urlRegex.IsMatch(message.Message))
                 {
-                    MatchCollection urlMatches = urlRegex.Matches(message.Message);
-                    for (int i = 0; i < urlMatches.Count; i++)
+                    // Check to see if it's being spammed
+                    if (Bot.SpamCheck(Bot.IRC.Channels.Find(chan => chan.Name == message.Channel), message.Sender, this, new Command() { Name = string.Format( "{0} Commands", Name) }))
                     {
-                        Match urlMatch = urlMatches[i];
-                        Uri url = new Uri(urlMatch.Value);
-                        HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
-                        webRequest.Method = "HEAD";
-                        webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
-                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                        try
+                        MatchCollection urlMatches = urlRegex.Matches(message.Message);
+                        for (int i = 0; i < urlMatches.Count; i++)
                         {
-                            using (HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse())
+                            Match urlMatch = urlMatches[i];
+                            Uri url = new Uri(urlMatch.Value);
+                            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+                            webRequest.Method = "HEAD";
+                            webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
+                            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+                            try
                             {
-                                int code = (int) webResponse.StatusCode;
-                                if (code == 200)
+                                using (HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse())
                                 {
-                                    string contentType = webResponse.ContentType.Split('/')[0];
-                                    long contentLength = webResponse.ContentLength;
-                                    switch (contentType)
+                                    int code = (int)webResponse.StatusCode;
+                                    if (code == 200)
                                     {
-                                        case "image":
-                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
-                                            break;
-                                        case "video":
-                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                            break;
-                                        case "application":
-                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                            break;
-                                        case "audio":
-                                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                            break;
-                                        default:
-                                            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-                                            if (ytRegex.IsMatch(urlMatch.ToString()))
-                                            {
-                                                Match ytMatch = ytRegex.Match(urlMatch.ToString());
-                                                string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
-                                            }
-                                            else
-                                            {
-                                                ParseTitle(message, urlMatch.ToString());
-                                            }
-                                            break;
+                                        string contentType = webResponse.ContentType.Split('/')[0];
+                                        long contentLength = webResponse.ContentLength;
+                                        switch (contentType)
+                                        {
+                                            case "image":
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
+                                                break;
+                                            case "video":
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                                break;
+                                            case "application":
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                                break;
+                                            case "audio":
+                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                                break;
+                                            default:
+                                                Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+                                                if (ytRegex.IsMatch(urlMatch.ToString()))
+                                                {
+                                                    Match ytMatch = ytRegex.Match(urlMatch.ToString());
+                                                    string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
+                                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
+                                                }
+                                                else
+                                                {
+                                                    ParseTitle(message, urlMatch.ToString());
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
                                     }
                                 }
-                                else
+                            }
+                            catch (WebException ex)
+                            {
+                                if (ex.Response != null)
                                 {
-                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
+                                    int code = (int)((HttpWebResponse)ex.Response).StatusCode;
+                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
                                 }
                             }
-                        }
-                        catch (WebException ex)
-                        {
-                            if (ex.Response != null)
+                            catch (OutOfMemoryException ex)
                             {
-                                int code = (int) ((HttpWebResponse) ex.Response).StatusCode;
-                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] \u0002Site content was too large\u0002 ({0})", url.Host));
                             }
-                        }
-                        catch (OutOfMemoryException ex)
-                        {
-                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] \u0002Site content was too large\u0002 ({0})", url.Host));
                         }
                     }
                 }
