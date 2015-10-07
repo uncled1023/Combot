@@ -182,7 +182,7 @@ namespace Combot.Modules
 
         public object GetOptionValue(string name)
         {
-            object foundValue = null;
+            object foundValue = string.Empty;
             Option foundOption = Options.Find(opt => opt.Name == name);
             if (foundOption != null)
             {

@@ -140,7 +140,7 @@ namespace Combot.IRCServices.Messaging
                                 }
                                 else
                                 {
-                                    if (recipient.StartsWith("&") || recipient.StartsWith("#"))
+                                    if (Channel.IsChannel(recipient))
                                     {
                                         ChannelMessage msg = new ChannelMessage();
                                         msg.Channel = recipient;
@@ -204,7 +204,7 @@ namespace Combot.IRCServices.Messaging
                                         }
                                     });
                                 }
-                                if (recipient.StartsWith("&") || recipient.StartsWith("#"))
+                                if (Channel.IsChannel(recipient))
                                 {
                                     ChannelNotice msg = new ChannelNotice();
                                     msg.Channel = recipient;
@@ -236,7 +236,7 @@ namespace Combot.IRCServices.Messaging
                                 break;
                             // The message was a mode change message for a channel or nick
                             case "MODE":
-                                if (recipient.StartsWith("&") || recipient.StartsWith("#"))
+                                if (Channel.IsChannel(recipient))
                                 {
                                     ChannelModeChangeInfo modeMsg = new ChannelModeChangeInfo();
                                     modeMsg.Modes = new List<ChannelModeInfo>();

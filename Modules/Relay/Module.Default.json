@@ -1,0 +1,179 @@
+﻿{
+  "Name": "Relay",
+  "ClassName": "Relay",
+  "Enabled": true,
+  "ChannelBlacklist": [ ],
+  "NickBlacklist": [ ],
+  "Commands": [
+    {
+      "Name": "Relay",
+      "Description": "Relay messages from a channel or nick to another channel or nick.",
+      "Enabled": true,
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
+      "Triggers": [
+        "relay"
+      ],
+      "Arguments": [
+        {
+          "Name": "Method",
+          "Description": "What you want to do with the relay.",
+          "AllowedValues": [
+            "Add",
+            "Edit",
+            "Del",
+            "Delete",
+            "View"
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "ID",
+          "Description": "The ID of the relay you want to edit or delete.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Edit",
+                "Del",
+                "Delete"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "ID",
+          "Description": "The ID of the introduction you want to view.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "View"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": false
+        },
+        {
+          "Name": "Source",
+          "Description": "The channel or nick that is the source of the relay.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Add",
+                "Edit"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Target",
+          "Description": "The channel or nick you want the relay to message.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Add",
+                "Edit"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Type",
+          "Description": "The type of action to trigger the relay.",
+          "AllowedValues": [
+            "Message",
+            "Notice",
+            "Join",
+            "Part",
+            "Quit",
+            "Kick",
+            "Mode"
+          ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Add",
+                "Edit"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Modes",
+          "Description": "The modes to hook to.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Type",
+              "Values": [
+                "Mode"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        }
+      ],
+      "AllowedMessageTypes": [
+        0,
+        1,
+        2
+      ],
+      "AllowedAccess": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "ShowHelp": true,
+      "SpamCheck": true
+    }
+  ],
+  "Options": []
+}

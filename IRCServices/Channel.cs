@@ -130,5 +130,14 @@ namespace Combot.IRCServices
         {
             Bans.Remove(mask);
         }
+
+        public static bool IsChannel(string channel)
+        {
+            if (channel.StartsWith("&") || channel.StartsWith("#"))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

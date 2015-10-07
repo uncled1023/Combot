@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interface", "Interface\Interface.csproj", "{AE4AFD7A-CAA4-46A0-9E00-2B3D53F8D0AB}"
 EndProject
@@ -76,6 +76,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Whois", "Modules\Whois\Whois.csproj", "{A6EDD673-A10D-48BC-81D9-506D08AEC083}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Custom Commands", "Modules\Custom Commands\Custom Commands.csproj", "{B84A8D1B-C10A-4879-912A-83725A1638D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Relay", "Modules\Relay\Relay.csproj", "{4F01E8C8-C13E-4584-8925-7A6DA55E02DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -207,6 +209,10 @@ Global
 		{B84A8D1B-C10A-4879-912A-83725A1638D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B84A8D1B-C10A-4879-912A-83725A1638D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B84A8D1B-C10A-4879-912A-83725A1638D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F01E8C8-C13E-4584-8925-7A6DA55E02DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F01E8C8-C13E-4584-8925-7A6DA55E02DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F01E8C8-C13E-4584-8925-7A6DA55E02DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F01E8C8-C13E-4584-8925-7A6DA55E02DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -239,5 +245,6 @@ Global
 		{84166880-FC04-4F50-90CD-8486B797948A} = {D157677E-4D33-4156-B55E-E21C4B5A3024}
 		{A6EDD673-A10D-48BC-81D9-506D08AEC083} = {D157677E-4D33-4156-B55E-E21C4B5A3024}
 		{B84A8D1B-C10A-4879-912A-83725A1638D1} = {D157677E-4D33-4156-B55E-E21C4B5A3024}
+		{4F01E8C8-C13E-4584-8925-7A6DA55E02DB} = {D157677E-4D33-4156-B55E-E21C4B5A3024}
 	EndGlobalSection
 EndGlobal
