@@ -121,6 +121,7 @@ namespace Combot.IRCServices.Messaging
                                 {
                                     Match ctcpMatch = CTCPRegex.Match(args);
                                     CTCPMessage ctcpMessage = new CTCPMessage();
+                                    ctcpMessage.Location = recipient;
                                     ctcpMessage.Sender = new Nick()
                                     {
                                         Nickname = senderNick,

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Combot.IRCServices.Messaging;
+using Combot.IRCServices.Commanding;
 
 namespace Combot.Modules.Plugins
 {
@@ -12,6 +13,7 @@ namespace Combot.Modules.Plugins
         {
             Bot.CommandReceivedEvent += HandleCommandEvent;
 
+            // Incoming Messages
             Bot.IRC.Message.CTCPMessageReceivedEvent += CTCPRelayHandler;
             Bot.IRC.Message.CTCPNoticeReceivedEvent += CTCPRelayHandler;
             Bot.IRC.Message.ChannelMessageReceivedEvent += RelayChannelMessage;
@@ -24,7 +26,23 @@ namespace Combot.Modules.Plugins
             Bot.IRC.Message.InviteChannelEvent += RelayChannelInvite;
             Bot.IRC.Message.PartChannelEvent += RelayChannelPart;
             Bot.IRC.Message.KickEvent += RelayChannelKick;
+            Bot.IRC.Message.TopicChangeEvent += RelayTopicChange;
             Bot.IRC.Message.QuitEvent += RelayQuit;
+            Bot.IRC.Message.NickChangeEvent += RelayNickChange;
+
+            // Outgoing messages
+            //Bot.IRC.Command.CTCPMessageCommandEvent += RelayCTCPMessageCommand;
+            //Bot.IRC.Command.CTCPNoticeCommandEvent += RelayCTCPNoticeCommand;
+            //Bot.IRC.Command.PrivateMessageCommandEvent += RelayPrivateMessageCommand;
+            //Bot.IRC.Command.PrivateNoticeCommandEvent += RelayPrivateNoticeCommand;
+            //Bot.IRC.Command.ChannelModeCommandEvent += RelayChannelModeCommand;
+            //Bot.IRC.Command.UserModeCommandEvent += RelayUserModeCommand;
+            //Bot.IRC.Command.KickCommandEvent += RelayKickCommand;
+            //Bot.IRC.Command.InviteCommandEvent += RelayInviteCommand;
+            //Bot.IRC.Command.PartCommandEvent += RelayPartCommand;
+            //Bot.IRC.Command.TopicCommandEvent += RelayTopicCommand;
+            //Bot.IRC.Command.JoinCommandEvent += RelayJoinCommand;
+            //Bot.IRC.Command.NickCommandEvent += RelayNickCommand;
         }
 
         public override void ParseCommand(CommandMessage command)
@@ -60,15 +78,18 @@ namespace Combot.Modules.Plugins
             string target = command.Arguments.ContainsKey("Target") ? command.Arguments["Target"] : command.Nick.Nickname;
             string type = command.Arguments.ContainsKey("Type") ? command.Arguments["Type"] : "Message";
             string modes = command.Arguments.ContainsKey("Modes") ? command.Arguments["Modes"] : string.Empty;
+            string chanAccess = GetOptionValue("Channel Access").ToString();
+            AccessType access = AccessType.User;
+            Enum.TryParse(chanAccess, out access);
 
             // verify access in source and target
-            if (!CheckAccess(source, command.Nick.Nickname, command.Access))
+            if (!CheckAccess(source, command.Nick.Nickname, access))
             {
                 string invalid = string.Format("You do not have permission to use '{0}' as a source.", source);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 return;
             }
-            if (!CheckAccess(target, command.Nick.Nickname, command.Access))
+            if (Channel.IsChannel(target) && !CheckAccess(target, command.Nick.Nickname, access))
             {
                 string invalid = string.Format("You do not have permission to use '{0}' as a target.", source);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
@@ -76,7 +97,7 @@ namespace Combot.Modules.Plugins
             }
 
             RelayType relayType = RelayType.Message;
-            Enum.TryParse(type, out relayType);
+            Enum.TryParse(type, true, out relayType);
 
             AddNick(command.Nick);
             string query = "INSERT INTO `relays` SET " +
@@ -99,15 +120,18 @@ namespace Combot.Modules.Plugins
             string target = command.Arguments.ContainsKey("Target") ? command.Arguments["Target"] : command.Nick.Nickname;
             string type = command.Arguments.ContainsKey("Type") ? command.Arguments["Type"] : "Message";
             string modes = command.Arguments.ContainsKey("Modes") ? command.Arguments["Modes"] : string.Empty;
+            string chanAccess = GetOptionValue("Channel Access").ToString();
+            AccessType access = AccessType.User;
+            Enum.TryParse(chanAccess, out access);
 
             // verify access in source and target
-            if (!CheckAccess(source, command.Nick.Nickname, command.Access))
+            if (!CheckAccess(source, command.Nick.Nickname, access))
             {
                 string invalid = string.Format("You do not have permission to use '{0}' as a source.", source);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
                 return;
             }
-            if (!CheckAccess(target, command.Nick.Nickname, command.Access))
+            if (Channel.IsChannel(target) && !CheckAccess(target, command.Nick.Nickname, access))
             {
                 string invalid = string.Format("You do not have permission to use '{0}' as a target.", source);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
@@ -115,7 +139,7 @@ namespace Combot.Modules.Plugins
             }
 
             RelayType relayType = RelayType.Message;
-            Enum.TryParse(type, out relayType);
+            Enum.TryParse(type, true, out relayType);
 
             int num = HasValidID(command);
 
@@ -233,7 +257,7 @@ namespace Combot.Modules.Plugins
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, source, (int)type });
         }
 
-        private bool CheckAccess(string source, string nick, List<AccessType> types)
+        private bool CheckAccess(string source, string nick, AccessType access)
         {
             // Owners get to have all the fun
             if (Bot.ServerConfig.Owners.Contains(nick))
@@ -242,12 +266,9 @@ namespace Combot.Modules.Plugins
             // The source is a channel
             if (Bot.IRC.Channels.Exists(chan => chan.Name == source))
             {
-                foreach (AccessType access in types)
-                {
-                    bool valid = Bot.CheckChannelAccess(source, nick, AccessType.Operator);
-                    if (!valid)
-                        return false;
-                }
+                bool valid = Bot.CheckChannelAccess(source, nick, AccessType.Operator);
+                if (!valid)
+                    return false;
             }
             // The source is a nickname
             else
@@ -276,77 +297,214 @@ namespace Combot.Modules.Plugins
             return ret;
         }
 
-        private void ProcessRelay(string source, RelayType type, string message)
+        private void ProcessRelay(string source, RelayType type, string message, List<UserModeInfo> userModes = null, List<ChannelModeInfo> channelModes = null)
         {
+            List<Dictionary<string, object>> relays = GetRelayList(source, type);
             switch (type)
             {
-
+                case RelayType.Mode:
+                    for (int i = 0; i < relays.Count; i++)
+                    {
+                        string modeStr = relays[i]["modes"].ToString();
+                        char[] modes = modeStr.ToCharArray();
+                        bool modeFound = false;
+                        foreach (char mode in modes)
+                        {
+                            if (userModes != null)
+                            {
+                                if (userModes.Exists(info => info.Mode.ToString() == mode.ToString()))
+                                {
+                                    modeFound = true;
+                                    break;
+                                }
+                            }
+                            if (channelModes != null)
+                            {
+                                if (channelModes.Exists(info => info.Mode.ToString() == mode.ToString()))
+                                {
+                                    modeFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!modeFound)
+                        {
+                            relays.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            foreach (Dictionary<string, object> relay in relays)
+            {
+                string target = relay["target"].ToString();
+                MessageType msgType = MessageType.Channel;
+                if (!Channel.IsChannel(target))
+                    msgType = MessageType.Query;
+                SendResponse(msgType, target, target, message);
             }
         }
 
+        #region Incomming Messages
         private void RelayQuit(object sender, QuitInfo e)
         {
-            string msg = string.Format("{0} has quit. ({1})", e.Nick.Nickname, e.Message);
+            string msg = string.Format(" * {0} has quit. ({1})", e.Nick.Nickname, e.Message);
             ProcessRelay(e.Nick.Nickname, RelayType.Quit, msg);
+        }
+
+        private void RelayTopicChange(object sender, TopicChangeInfo e)
+        {
+            string msg = string.Format("[{0}] {1} has changed the topic to: {2}.", e.Channel, e.Nick.Nickname, e.Topic);
+            ProcessRelay(e.Channel, RelayType.Topic, msg);
         }
 
         private void RelayChannelKick(object sender, KickInfo e)
         {
-            string msg = string.Format("[{0}] {1} has kicked {2} ({3})", e.Channel, e.Nick.Nickname, e.KickedNick.Nickname, e.Reason);
+            string msg = string.Format("[{0}] * {1} has kicked {2} ({3})", e.Channel, e.Nick.Nickname, e.KickedNick.Nickname, e.Reason);
             ProcessRelay(e.Channel, RelayType.Kick, msg);
         }
 
         private void RelayChannelPart(object sender, PartChannelInfo e)
         {
-            string msg = string.Format("[{0}] {1} has left.", e.Channel, e.Nick.Nickname);
+            string msg = string.Format("[{0}] * {1} has left.", e.Channel, e.Nick.Nickname);
             ProcessRelay(e.Channel, RelayType.Part, msg);
         }
 
         private void RelayChannelInvite(object sender, InviteChannelInfo e)
         {
-            string msg = string.Format("[{0}] {1} invited {2}", e.Channel, e.Requester.Nickname, e.Recipient.Nickname);
-            ProcessRelay(e.Channel, RelayType.Part, msg);
+            string msg = string.Format("[{0}] * {1} invited {2}", e.Channel, e.Requester.Nickname, e.Recipient.Nickname);
+            ProcessRelay(e.Channel, RelayType.Invite, msg);
         }
 
         private void RelayChannelJoin(object sender, JoinChannelInfo e)
         {
-            string msg = string.Format("[{0}] {1} ({2}) has joined.", e.Channel, e.Nick.Nickname, e.Nick.Host);
-            ProcessRelay(e.Channel, RelayType.Part, msg);
+            string msg = string.Format("[{0}] * {1} ({2}) has joined.", e.Channel, e.Nick.Nickname, e.Nick.Host);
+            ProcessRelay(e.Channel, RelayType.Join, msg);
         }
 
         private void RelayUserMode(object sender, UserModeChangeInfo e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format(" * {0} sets mode {1}", e.Nick.Nickname, e.Modes.ModesToString());
+            ProcessRelay(e.Nick.Nickname, RelayType.Mode, msg, e.Modes);
         }
 
         private void RelayChannelMode(object sender, ChannelModeChangeInfo e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] * {1} sets mode {2} on {3}.", e.Channel, e.Nick.Nickname, e.Modes.ModesToString(), e.Channel);
+            ProcessRelay(e.Channel, RelayType.Mode, msg, null, e.Modes);
         }
 
         private void RelayPrivateNotice(object sender, PrivateNotice e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[-{0}-] {1}", e.Sender.Nickname, e.Message);
+            ProcessRelay(e.Sender.Nickname, RelayType.Message, msg);
         }
 
         private void RelayChannelNotice(object sender, ChannelNotice e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] [-{1}-] {2}", e.Channel, e.Sender.Nickname, e.Message);
+            ProcessRelay(e.Channel, RelayType.Message, msg);
         }
 
         private void RelayPrivateMessage(object sender, PrivateMessage e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] {1}", e.Sender.Nickname, e.Message);
+            ProcessRelay(e.Sender.Nickname, RelayType.Message, msg);
         }
 
         private void RelayChannelMessage(object sender, ChannelMessage e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] [{1}] {2}", e.Channel, e.Sender.Nickname, e.Message);
+            ProcessRelay(e.Channel, RelayType.Message, msg);
         }
 
         private void CTCPRelayHandler(object sender, CTCPMessage e)
         {
-            throw new NotImplementedException();
+            string msg = string.Format("[{0}] [CTCP] <{1}> {2}", e.Sender.Nickname, e.Command, e.Arguments);
+            ProcessRelay(e.Location, RelayType.CTCP, msg);
         }
+
+        private void RelayNickChange(object sender, NickChangeInfo e)
+        {
+            string msg = string.Format(" * {0} is now known as {1}", e.OldNick.Nickname, e.NewNick.Nickname);
+            ProcessRelay(e.NewNick.Nickname, RelayType.Nick, msg);
+        }
+        #endregion
+
+        #region Outgoing Commands
+        private void RelayPrivateNoticeCommand(object sender, PrivateNoticeCommand e)
+        {
+            string msg = string.Format("[-{0}-] {1}", Bot.IRC.Nickname, e.Message);
+            ProcessRelay(e.Recipient, RelayType.Message, msg);
+        }
+
+        private void RelayPrivateMessageCommand(object sender, PrivateMessageCommand e)
+        {
+            string msg = string.Format("[{0}] {1}", Bot.IRC.Nickname, e.Message);
+            //ProcessRelay(e.Recipient, RelayType.Message, msg);
+        }
+
+        private void RelayUserModeCommand(object sender, UserModeCommand e)
+        {
+            string msg = string.Format(" * {0} sets mode {1}", e.Nick, e.Mode.ModeToString());
+            ProcessRelay(e.Nick, RelayType.Mode, msg, new List<UserModeInfo> { e.Mode });
+        }
+
+        private void RelayChannelModeCommand(object sender, ChannelModeCommand e)
+        {
+            string msg = string.Format("[{0}] * {1} sets mode {2} on {3}.", e.Channel, Bot.IRC.Nickname, e.Mode.ModeToString(), e.Channel);
+            ProcessRelay(e.Channel, RelayType.Mode, msg, null, new List<ChannelModeInfo> { e.Mode });
+        }
+
+        private void RelayCTCPNoticeCommand(object sender, CTCPNoticeCommand e)
+        {
+            string msg = string.Format("[-{0}-] [CTCP] <{1}> {2}", Bot.IRC.Nickname, e.Command, e.Arguments);
+            ProcessRelay(e.Recipient, RelayType.CTCP, msg);
+        }
+
+        private void RelayCTCPMessageCommand(object sender, CTCPMessageCommand e)
+        {
+            string msg = string.Format("[{0}] [CTCP] <{1}> {2}", Bot.IRC.Nickname, e.Command, e.Arguments);
+            ProcessRelay(e.Recipient, RelayType.CTCP, msg);
+        }
+
+        private void RelayNickCommand(object sender, NickCommand e)
+        {
+            string msg = string.Format(" * {0} is now known as {1}", Bot.IRC.Nickname, e.Nick);
+            ProcessRelay(Bot.IRC.Nickname, RelayType.Nick, msg);
+        }
+
+        private void RelayJoinCommand(object sender, JoinCommand e)
+        {
+            string msg = string.Format("[{0}] * {1} has joined.", e.Channel, Bot.IRC.Nickname);
+            ProcessRelay(e.Channel, RelayType.Join, msg);
+        }
+
+        private void RelayTopicCommand(object sender, TopicCommand e)
+        {
+            string msg = string.Format("[{0}] {1} has changed the topic to: {2}.", e.Channel, Bot.IRC.Nickname, e.Topic);
+            ProcessRelay(e.Channel, RelayType.Topic, msg);
+        }
+
+        private void RelayPartCommand(object sender, PartCommand e)
+        {
+            string msg = string.Format("[{0}] * {1} has left.", e.Channel, Bot.IRC.Nickname);
+            ProcessRelay(e.Channel, RelayType.Part, msg);
+        }
+
+        private void RelayKickCommand(object sender, KickCommand e)
+        {
+            string msg = string.Format("[{0}] * {1} has kicked {2} ({3})", e.Channel, Bot.IRC.Nickname, e.Nick, e.Reason);
+            ProcessRelay(e.Channel, RelayType.Kick, msg);
+        }
+
+        private void RelayInviteCommand(object sender, InviteCommand e)
+        {
+            string msg = string.Format("[{0}] * {1} invited {2}", e.Channel, Bot.IRC.Nickname, e.Nick);
+            ProcessRelay(e.Channel, RelayType.Invite, msg);
+        }
+        #endregion
     }
 }

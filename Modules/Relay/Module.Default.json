@@ -118,11 +118,15 @@
           "AllowedValues": [
             "Message",
             "Notice",
+            "CTCP",
             "Join",
             "Part",
             "Quit",
             "Kick",
-            "Mode"
+            "Invite",
+            "Mode",
+            "Topic",
+            "Nick"
           ],
           "DependentArguments": [
             {
@@ -166,6 +170,9 @@
         2
       ],
       "AllowedAccess": [
+        0,
+        1,
+        2,
         3,
         4,
         5,
@@ -175,5 +182,11 @@
       "SpamCheck": true
     }
   ],
-  "Options": []
+  "Options": [
+    {
+      "Name": "Channel Access",
+      "Description": "The minimum channel level a user must have in order to add a channel as a source/target.",
+      "Value": 3
+    }
+  ]
 }

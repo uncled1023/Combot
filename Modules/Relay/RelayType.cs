@@ -10,10 +10,14 @@ namespace Combot.Modules.Plugins
     {
         Message,
         Notice,
+        CTCP,
         Join,
         Part,
         Quit,
         Kick,
-        Mode
+        Invite,
+        Mode,
+        Topic,
+        Nick
     }
 }

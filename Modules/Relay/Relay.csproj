@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Relay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RelayMessage.cs" />
     <Compile Include="RelayType.cs" />
   </ItemGroup>
   <ItemGroup>

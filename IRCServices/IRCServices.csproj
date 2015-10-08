@@ -58,6 +58,7 @@
     <Compile Include="Channel.cs" />
     <Compile Include="Commanding\Commands.cs" />
     <Compile Include="Commanding\CommandTypes.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="IRC.cs" />
     <Compile Include="Messaging\GetError.cs" />
     <Compile Include="Messaging\GetReply.cs" />
