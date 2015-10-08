@@ -26,6 +26,8 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 * Channel Rules
 * Nick Last Seen
 * SED
+* Custom Command Repsponses
+* Channel and Nick Relaying
 
 ## Requirements
 
