@@ -13,6 +13,7 @@ using System.Windows.Documents;
 using Combot;
 using Combot.IRCServices.Messaging;
 using Combot.IRCServices.Commanding;
+using Combot.IRCServices;
 
 namespace Interface.ViewModels
 {
@@ -162,9 +163,17 @@ namespace Interface.ViewModels
                 Combot.IRC.Message.ChannelNoticeReceivedEvent += (sender, e) => ChannelNoticeReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PrivateMessageReceivedEvent += (sender, e) => PrivateMessageReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PrivateNoticeReceivedEvent += (sender, e) => PrivateNoticeReceivedHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.CTCPMessageReceivedEvent += (sender, e) => CTCPReceivedHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.CTCPNoticeReceivedEvent += (sender, e) => CTCPReceivedHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.JoinChannelEvent += (sender, e) => JoinEventHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.InviteChannelEvent += (sender, e) => InviteEventHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.PartChannelEvent += (sender, e) => PartEventHandler(sender, e, Combot.ServerConfig.Name);
                 Combot.IRC.Message.QuitEvent += (sender, e) => QuitEventHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.KickEvent += (sender, e) => KickEventHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.TopicChangeEvent += (sender, e) => TopicChangeEventHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.ChannelModeChangeEvent += (sender, e) => ChannelModeChangeHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.UserModeChangeEvent += (sender, e) => UserModeChangeHandler(sender, e, Combot.ServerConfig.Name);
+                Combot.IRC.Message.NickChangeEvent += (sender, e) => NickChangeHandler(sender, e, Combot.ServerConfig.Name);
 
                 // Outgoing Messages
                 Combot.IRC.Command.PrivateMessageCommandEvent += (sender, e) => PrivateMessageCommandHandler(sender, e, Combot.ServerConfig.Name);
@@ -183,6 +192,48 @@ namespace Interface.ViewModels
             SubmitText = new DelegateCommand(ExecuteSubmitText, CanSubmitText);
             RemoveLocation = new DelegateCommand(ExecuteRemoveLocation, CanRemoveLocation);
             ClearLocation = new DelegateCommand(ExecuteClearLocation, CanClearLocation);
+        }
+
+        private void NickChangeHandler(object sender, NickChangeInfo e, string name)
+        {
+            string msg = string.Format(" * {0} is now known as {1}", e.OldNick.Nickname, e.NewNick.Nickname);
+            AddToBuffer(name, null, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void KickEventHandler(object sender, KickInfo e, string name)
+        {
+            string msg = string.Format(" * {1} has kicked {2} ({3})", e.Channel, e.Nick.Nickname, e.KickedNick.Nickname, e.Reason);
+            AddToBuffer(name, e.Channel, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void TopicChangeEventHandler(object sender, TopicChangeInfo e, string name)
+        {
+            string msg = string.Format(" * {1} has changed the topic to: {2}.", e.Channel, e.Nick.Nickname, e.Topic);
+            AddToBuffer(name, e.Channel, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void InviteEventHandler(object sender, InviteChannelInfo e, string name)
+        {
+            string msg = string.Format(" * {0} invited {1}", e.Requester.Nickname, e.Recipient.Nickname);
+            AddToBuffer(name, e.Channel, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void UserModeChangeHandler(object sender, UserModeChangeInfo e, string name)
+        {
+            string msg = string.Format(" * {0} sets mode {1}", e.Nick.Nickname, e.Modes.ModesToString());
+            AddToBuffer(name, null, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void ChannelModeChangeHandler(object sender, ChannelModeChangeInfo e, string name)
+        {
+            string msg = string.Format(" * {0} sets mode {1} on {2}.", e.Nick.Nickname, e.Modes.ModesToString(), e.Channel);
+            AddToBuffer(name, e.Channel, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
+        }
+
+        private void CTCPReceivedHandler(object sender, CTCPMessage e, string name)
+        {
+            string msg = string.Format("[CTCP] [{0}] {1}: {2}", e.Command, e.Sender.Nickname, e.Arguments);
+            AddToBuffer(name, e.Location, string.Format("[{0}] {1}", e.TimeStamp.ToString("HH:mm:ss"), msg));
         }
 
         private void BotErrorHandler(BotError error, string server)
