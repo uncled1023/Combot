@@ -101,7 +101,7 @@ namespace Combot.Modules
 
         virtual public void ParseCommand(CommandMessage command) { }
 
-        protected void OnError(string e)
+        protected void ThrowError(string e)
         {
             string errorMsg = string.Format("[{0}] {1}", Name, e);
             EventHandler<string> handler = ModuleErrorEvent;

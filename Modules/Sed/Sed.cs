@@ -91,22 +91,29 @@ namespace Combot.Modules.Plugins
                         msgList.Reverse();
                         foreach (string msg in msgList)
                         {
-                            Regex messageRegex = new Regex(match, matchOptions);
-                            if (messageRegex.IsMatch(msg))
+                            try
                             {
-                                string newMessage = string.Empty;
-                                if (replaceNum < 0)
+                                Regex messageRegex = new Regex(match, matchOptions);
+                                if (messageRegex.IsMatch(msg))
                                 {
-                                    newMessage = messageRegex.Replace(msg, replace);
+                                    string newMessage = string.Empty;
+                                    if (replaceNum < 0)
+                                    {
+                                        newMessage = messageRegex.Replace(msg, replace);
+                                    }
+                                    else
+                                    {
+                                        newMessage = messageRegex.Replace(msg, replace, replaceNum);
+                                    }
+                                    string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
+                                    SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
+                                    foundResult = true;
+                                    break;
                                 }
-                                else
-                                {
-                                    newMessage = messageRegex.Replace(msg, replace, replaceNum);
-                                }
-                                string replacedMessage = string.Format("\u0002{0}\u0002 meant to say: {1}", message.Sender.Nickname, newMessage);
-                                SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, replacedMessage);
-                                foundResult = true;
-                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                ThrowError(ex.Message);
                             }
                         }
                     }
