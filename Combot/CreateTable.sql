@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `servers` (
 CREATE TABLE IF NOT EXISTS `channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `server_id` int(11) NOT NULL,
-  `requester_id` varchar(50) NOT NULL,
+  `name` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=0 ;
 
@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `nickinfo` (
   `username` varchar(50) NULL,
   `realname` varchar(50) NULL,
   `host` varchar(100) NULL,
+  `registered` boolean NOT NULL DEFAULT false,
   `date_added` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=0 ;

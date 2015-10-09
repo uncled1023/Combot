@@ -45,8 +45,6 @@ namespace Combot.Modules
 
         public Module()
         {
-            InitializeTable();
-
             SetDefaults();
             ConfigRWLock = new ReaderWriterLockSlim();
             ConfigFileRWLock = new ReaderWriterLockSlim();
@@ -54,16 +52,6 @@ namespace Combot.Modules
             JsonSettings.Converters.Add(new IPAddressConverter());
             JsonSettings.Converters.Add(new IPEndPointConverter());
             JsonSettings.Formatting = Formatting.Indented;
-        }
-
-        private void InitializeTable()
-        {
-            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "CreateTable.sql");
-            if (File.Exists(sqlPath))
-            {
-                string query = File.ReadAllText(sqlPath);
-                Bot.Database.Execute(query);
-            }
         }
 
         public void HandleCommandEvent(CommandMessage command)
@@ -289,6 +277,7 @@ namespace Combot.Modules
 
         public void AddNick(Nick nick)
         {
+            // Let's see if the nick already is added
             string search = "SELECT * FROM `nicks` WHERE " +
                             "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}) AND " +
                             "`nickname` = {1}";
@@ -301,13 +290,25 @@ namespace Combot.Modules
                                 "`nickname` = {1}";
                 Bot.Database.Execute(insert, new object[] { Bot.ServerConfig.Name, nick.Nickname });
             }
+            // search for the nick's modes (if any)
+            foreach (Channel channel in Bot.IRC.Channels)
+            {
+                if (channel.Nicks.Exists(chn => chn.Nickname == nick.Nickname))
+                {
+                    Nick foundNick = channel.Nicks.Find(chn => chn.Nickname == nick.Nickname);
+                    nick.AddModes(foundNick.Modes);
+                    nick.AddPrivileges(foundNick.Privileges);
+                }
+            }
+
+            // Now add that nick's info to the db
             AddNickInfo(nick);
         }
 
         public void AddNickInfo(Nick nickInfo)
         {
             int argIndex = 2;
-            string search = "SELECT * FROM `nickinfo` WHERE " +
+            string search = "SELECT `nickinfo`.`id` FROM `nickinfo` WHERE " +
                             "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `nicks`.`server_id` = `servers`.`id` WHERE `nicks`.`nickname` = {0} AND `servers`.`name` = {1})";
             List<object> argList = new List<object>() { nickInfo.Nickname, Bot.ServerConfig.Name };
             if (!string.IsNullOrEmpty(nickInfo.Username))
@@ -351,8 +352,19 @@ namespace Combot.Modules
                 {
                     insert += ", `host` = {" + argIndex + "}";
                     argList.Add(nickInfo.Host);
+                    argIndex++;
+                }
+                if (nickInfo.Modes.Any() && nickInfo.Modes.Contains(UserMode.r))
+                {
+                    insert += ", `registered` = {" + argIndex + "}";
+                    argList.Add(true);
                 }
                 Bot.Database.Execute(insert, argList.ToArray());
+            }
+            else
+            {
+                string update = "UPDATE `nickinfo` SET `registered` = {0} WHERE `id` = {1}";
+                Bot.Database.Execute(update, new object[] { (nickInfo.Modes.Any() && nickInfo.Modes.Contains(UserMode.r)), results.First()["id"] });
             }
         }
 

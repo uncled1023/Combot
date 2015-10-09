@@ -63,7 +63,19 @@ namespace Combot
             Database = new Database(serverConfig.Database);
             Database.MysqlErrorEvent += HandleMysqlErrorEvent;
 
+            InitializeTable();
+
             LoadModules();
+        }
+
+        private void InitializeTable()
+        {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Database.Execute(query);
+            }
         }
 
         /// <summary>
