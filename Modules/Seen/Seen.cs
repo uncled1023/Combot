@@ -81,6 +81,8 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetSeenList(string channel, string nickname)
         {
+            if (channel == null)
+                channel = "--Server--";
 
             string search = "SELECT `seen`.`id`, `seen`.`date_seen`, `seen`.`message`, `channels`.`name` FROM `seen` " +
                             "INNER JOIN `nicks` " +
@@ -88,19 +90,10 @@ namespace Combot.Modules.Plugins
                             "INNER JOIN `channels` " +
                             "ON `seen`.`channel_id` = `channels`.`id` " +
                             "INNER JOIN `servers` " +
-                            "ON `seen`.`server_id` = `servers`.`id` ";
-            if (channel != null)
-            {
-                search += "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
-                          "ORDER BY date_seen DESC";
-                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
-            }
-            else
-            {
-                search += "WHERE `servers`.`name` = {0} AND `nicks`.`nickname` = {1} " +
-                          "ORDER BY date_seen DESC";
-                return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nickname });
-            }
+                            "ON `seen`.`server_id` = `servers`.`id` " +
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2} " +
+                            "ORDER BY date_seen DESC";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
 
         private void NickChangeHandler(object sender, NickChangeInfo e)
@@ -166,6 +159,10 @@ namespace Combot.Modules.Plugins
         private void UpdateSeen(string channel, Nick nick, string message, DateTime time)
         {
             List<Dictionary<string, object>> results = GetSeenList(channel, nick.Nickname);
+            if (channel == null)
+            {
+                channel = "--Server--";
+            }
             if (results.Any())
             {
                 foreach (Dictionary<string, object> row in results)
