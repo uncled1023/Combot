@@ -20,6 +20,8 @@ namespace Combot.Modules.Plugins
 
         public override void Initialize()
         {
+            InitializeTable();
+
             logLock = new ReaderWriterLockSlim();
 
             Bot.IRC.ConnectEvent += AddServer;
@@ -35,6 +37,16 @@ namespace Combot.Modules.Plugins
             Bot.IRC.Message.KickEvent += LogChannelKick;
             Bot.IRC.Message.QuitEvent += LogQuit;
             Bot.IRC.Message.NickChangeEvent += LogNickChange;
+        }
+
+        private void InitializeTable()
+        {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigPath, "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Bot.Database.Execute(query);
+            }
         }
 
         private void LogChannelMessage(object sender, ChannelMessage message)

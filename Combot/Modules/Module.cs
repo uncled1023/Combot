@@ -45,6 +45,8 @@ namespace Combot.Modules
 
         public Module()
         {
+            InitializeTable();
+
             SetDefaults();
             ConfigRWLock = new ReaderWriterLockSlim();
             ConfigFileRWLock = new ReaderWriterLockSlim();
@@ -52,6 +54,16 @@ namespace Combot.Modules
             JsonSettings.Converters.Add(new IPAddressConverter());
             JsonSettings.Converters.Add(new IPEndPointConverter());
             JsonSettings.Formatting = Formatting.Indented;
+        }
+
+        private void InitializeTable()
+        {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Bot.Database.Execute(query);
+            }
         }
 
         public void HandleCommandEvent(CommandMessage command)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Combot.Databases;
 using Combot.IRCServices.Messaging;
+using System.IO;
 
 namespace Combot.Modules.Plugins
 {
@@ -10,8 +11,20 @@ namespace Combot.Modules.Plugins
     {
         public override void Initialize()
         {
+            InitializeTable();
+
             Bot.CommandReceivedEvent += HandleCommandEvent;
             Bot.IRC.Message.JoinChannelEvent += HandleJoinEvent;
+        }
+
+        private void InitializeTable()
+        {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigPath, "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Bot.Database.Execute(query);
+            }
         }
 
         public override void ParseCommand(CommandMessage command)

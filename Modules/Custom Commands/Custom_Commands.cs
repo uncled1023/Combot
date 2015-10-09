@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Combot.IRCServices;
 using Combot.IRCServices.Messaging;
+using System.IO;
 
 namespace Combot.Modules.Plugins
 {
@@ -12,11 +13,23 @@ namespace Combot.Modules.Plugins
     {
         public override void Initialize()
         {
+            InitializeTable();
+
             Bot.CommandReceivedEvent += HandleCommandEvent;
             Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessage;
             Bot.IRC.Message.PrivateMessageReceivedEvent += HandlePrivateMessage;
             Bot.IRC.Message.ChannelNoticeReceivedEvent += HandleChannelNotice;
             Bot.IRC.Message.PrivateNoticeReceivedEvent += HandlePrivateNotice;
+        }
+
+        private void InitializeTable()
+        {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigPath, "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Bot.Database.Execute(query);
+            }
         }
 
         public override void ParseCommand(CommandMessage command)
