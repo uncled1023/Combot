@@ -70,7 +70,8 @@
   <PropertyGroup>
     <PostBuildEvent>md "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
 copy /Y "$(TargetPath)" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
-copy /Y "$(TargetDir)Module.Default.json" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"</PostBuildEvent>
+copy /Y "$(TargetDir)Module.Default.json" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"
+copy /Y "$(TargetDir)CreateTable.sql" "$(SolutionDir)$(ConfigurationName)\Modules\$(TargetName)"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

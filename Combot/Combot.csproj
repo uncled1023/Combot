@@ -137,7 +137,8 @@ copy "$(TargetDir)Combot.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)MySql.Data.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)Newtonsoft.Json.dll" "$(SolutionDir)$(ConfigurationName)\" /y
 copy "$(TargetDir)System.Windows.Interactivity.dll" "$(SolutionDir)$(ConfigurationName)\" /y
-copy "$(TargetDir)Combot.Servers.Default.json" "$(SolutionDir)$(ConfigurationName)\" /y</PostBuildEvent>
+copy "$(TargetDir)Combot.Servers.Default.json" "$(SolutionDir)$(ConfigurationName)\" /y
+copy "$(TargetDir)CreateTable.sql" "$(SolutionDir)$(ConfigurationName)\" /y</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
