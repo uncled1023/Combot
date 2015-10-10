@@ -45,7 +45,7 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 
 1) Download the Release zip file from the latest release in https://git.teknik.io/Uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
 2) Copy Combot.Servers.Default.json to Combot.Servers.json and configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
-3) Install Mono-Complete: `sudo apt-get mono-complete`
+3) Install Mono-Complete: `sudo apt-get mono-complete`<br>
 4) Run Combot-CLI.exe: `mono Combot-CLI.exe`
 
 ## Building
