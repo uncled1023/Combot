@@ -52,7 +52,7 @@ namespace Combot.IRCServices.Messaging
             Regex errorRegex = new Regex(@"^ERROR :(?<Message>.+)", RegexOptions.None);
             Regex CTCPRegex = new Regex(@"^\u0001(?<Command>[^\s]+)\s?(?<Args>.*)\u0001", RegexOptions.None);
 
-            string[] messages = tcpMessage.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            string[] messages = tcpMessage.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string message in messages)
             {
@@ -244,10 +244,13 @@ namespace Combot.IRCServices.Messaging
                                     modeMsg.Channel = recipient;
                                     modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
-                                    string[] modeArgs = args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                    List<string> argList = modeArgs.ToList();
-                                    argList.RemoveAt(0);
-                                    modeMsg.Modes.AddRange(_IRC.ParseChannelModeString(modeArgs[0].TrimStart(':'), string.Join(" ", argList)));
+                                    if (!string.IsNullOrEmpty(args))
+                                    {
+                                        string[] modeArgs = args.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                                        List<string> argList = modeArgs.ToList();
+                                        argList.RemoveAt(0);
+                                        modeMsg.Modes.AddRange(_IRC.ParseChannelModeString(modeArgs[0].TrimStart(':'), string.Join(" ", argList)));
+                                    }
 
                                     await Task.Run(() =>
                                     {
@@ -263,25 +266,30 @@ namespace Combot.IRCServices.Messaging
                                     modeMsg.Modes = new List<UserModeInfo>();
                                     modeMsg.Nick = new Nick() { Nickname = senderNick, Realname = senderRealname, Host = senderHost };
 
-                                    string[] modeArgs = args.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                    char[] modeInfo = modeArgs[0].TrimStart(':').ToCharArray();
-                                    bool set = true;
-                                    foreach (char mode in modeInfo)
+                                    if (!string.IsNullOrEmpty(args))
                                     {
-                                        if (mode.Equals('-'))
+                                        string[] modeArgs = args.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                                        char[] modeInfo = modeArgs[0].TrimStart(':').ToCharArray();
+                                        bool set = true;
+                                        foreach (char mode in modeInfo)
                                         {
-                                            set = false;
-                                        }
-                                        else if (mode.Equals('+'))
-                                        {
-                                            set = true;
-                                        }
-                                        else if (mode.ToString() != string.Empty)
-                                        {
-                                            UserModeInfo newMode = new UserModeInfo();
-                                            newMode.Set = set;
-                                            newMode.Mode = (UserMode)Enum.Parse(typeof(UserMode), mode.ToString());
-                                            modeMsg.Modes.Add(newMode);
+                                            if (mode.Equals('-'))
+                                            {
+                                                set = false;
+                                            }
+                                            else if (mode.Equals('+'))
+                                            {
+                                                set = true;
+                                            }
+                                            else if (!string.IsNullOrEmpty(mode.ToString()))
+                                            {
+                                                UserModeInfo newMode = new UserModeInfo();
+                                                newMode.Set = set;
+                                                UserMode md;
+                                                Enum.TryParse(mode.ToString(), out md);
+                                                newMode.Mode = md;
+                                                modeMsg.Modes.Add(newMode);
+                                            }
                                         }
                                     }
 

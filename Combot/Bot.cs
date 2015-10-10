@@ -19,6 +19,7 @@ namespace Combot
     {
         public event Action<CommandMessage> CommandReceivedEvent;
         public event Action<BotError> ErrorEvent;
+        public event Action<string> LogEvent;
         public ServerConfig ServerConfig;
         public IRC IRC;
         public Database Database;
@@ -185,6 +186,7 @@ namespace Combot
 
         public void LoadModules()
         {
+            Log("Loading Modules");
             // Get all config files from Module directory
             string[] moduleLocations = Directory.GetDirectories(ServerConfig.ModuleLocation);
             foreach (string location in moduleLocations)
@@ -195,17 +197,20 @@ namespace Combot
 
         public bool LoadModule(string module)
         {
+            Log(string.Format("Loading Module from: {0}", module));
             Module newModule = new Module();
             newModule.ConfigPath = module;
             newModule.LoadConfig();
 
             if (newModule.Enabled && !Modules.Exists(mod => mod.ClassName == newModule.ClassName))
             {
-                if (File.Exists(string.Format(@"{0}\{1}.dll", module, newModule.Name)))
+                if (File.Exists(string.Format(Path.Combine(module, newModule.Name + ".dll"))))
                 {
+                    Log(string.Format("Creating instance of {0} module.", newModule.Name));
                     Module loadedModule = newModule.CreateInstance(this);
                     if (loadedModule.Loaded)
                     {
+                        Log(string.Format("{0} module successfully loaded.", newModule.Name));
                         loadedModule.ModuleErrorEvent += HandleModuleErrorEvent;
                         Modules.Add(loadedModule);
                         return true;
@@ -221,6 +226,7 @@ namespace Combot
             for (int i = 0; i < moduleList.Count; i++)
             {
                 UnloadModule(moduleList[i].Name);
+                Log(string.Format("Unloaded {0} module.", moduleList[i].Name));
             }
         }
 
@@ -649,14 +655,18 @@ namespace Combot
             List<string> argsOnly = msgArgs.ToList();
             argsOnly.RemoveAt(0);
 
+            Log("Parsing Command " + command + " Now.");
+
             // Find the module that contains the command
             Module module = Modules.Find(mod => mod.Commands.Exists(c => c.Triggers.Contains(command)) && mod.Loaded && mod.Enabled);
             if (module != null)
             {
+                Log("Found Module " + module.Name);
                 // Find the command
                 Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
                 if (cmd != null)
                 {
+                    Log("Found Command " + cmd.Name);
                     CommandMessage newCommand = new CommandMessage();
                     newCommand.Nick.Copy(sender);
                     bool nickFound = false;
@@ -825,6 +835,14 @@ namespace Combot
             if (ErrorEvent != null)
             {
                 ErrorEvent(error);
+            }
+        }
+
+        public void Log(string message)
+        {
+            if (LogEvent != null)
+            {
+                LogEvent(message);
             }
         }
     }

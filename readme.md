@@ -32,19 +32,21 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 ## Requirements
 
 * MySQL v5.5 or greater
-* .NET Framework v4.5.1
+* .NET Framework v4.5.1 or Mono Runtime >3.2.8
 * Git (If using the GitVersionTask Nuget Package)
 
 ## Installation - Windows
 
-1) Download the Release.zip from the latest release in https://github.com/uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
-2) Edit Combot.Servers.json to configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
-3) If the database has not been created yet, import Database.sql from the master branch into the database.<br>
-4) Run Combot-Interface.exe
+1) Download the Release zip file from the latest release in https://git.teknik.io/Uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
+2) Copy Combot.Servers.Default.json to Combot.Servers.json and configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
+3) Run Combot-Interface.exe or Combot-CLI.exe
 
-## Installation - Linux
+## Installation - Linux (Ubuntu)
 
-This is currently untested and not supported.  If you would like to venture into the realm of unreliability and errors, you can try running the Console Interface in Mono. 
+1) Download the Release zip file from the latest release in https://git.teknik.io/Uncled1023/Combot/releases and extract the files to a directory of your choice.<br>
+2) Copy Combot.Servers.Default.json to Combot.Servers.json and configure the bot for the correct servers, channels, owner information, and MySQL database.<br>
+3) Install Mono-Complete: `sudo apt-get mono-complete`
+4) Run Combot-CLI.exe: `mono Combot-CLI.exe`
 
 ## Building
 
@@ -60,5 +62,5 @@ Please report all bugs you find to me so I can fix them as soon as possible.  Al
 
 Email: admin@teknik.io<br>
 IRC: (irc.teknik.io)#Combot<br>
-IRC: (irc.rizon.net)#/g/technology<br>
+IRC: (irc.rizon.net)#Combot<br>
 Nick: Uncled1023

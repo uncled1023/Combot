@@ -68,6 +68,7 @@ namespace Combot.Modules
                                     )
                 )
             {
+                Bot.Log("Checking Command " + command.Command);
                 // Figure out access of the nick
                 Command cmd = Commands.Find(c => c.Triggers.Contains(command.Command));
                 List<AccessType> nickAccessTypes = new List<AccessType>() { AccessType.User };
@@ -218,7 +219,7 @@ namespace Combot.Modules
         {
             ConfigFileRWLock.EnterReadLock();
             string path = Path.Combine(ConfigPath, "Module.json");
-
+            
             if (!File.Exists(path))
             {
                 string defaultPath = Path.Combine(ConfigPath, "Module.Default.json");

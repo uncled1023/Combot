@@ -475,13 +475,15 @@ namespace Combot.IRCServices
                             Nick changedNick = channel.GetNick(mode.Parameter);
                             if (changedNick != null)
                             {
+                                PrivilegeMode priv;
+                                Enum.TryParse(mode.Mode.ToString(), out priv);
                                 if (mode.Set)
                                 {
-                                    changedNick.AddPrivilege((PrivilegeMode) Enum.Parse(typeof (PrivilegeMode), mode.Mode.ToString()));
+                                    changedNick.AddPrivilege(priv);
                                 }
                                 else
                                 {
-                                    changedNick.RemovePrivilege((PrivilegeMode) Enum.Parse(typeof (PrivilegeMode), mode.Mode.ToString()));
+                                    changedNick.RemovePrivilege(priv);
                                 }
                             }
                             break;

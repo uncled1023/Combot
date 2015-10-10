@@ -28,6 +28,7 @@ namespace Console_Interface
                 Bot Combot = new Bot(server);
 
                 Combot.ErrorEvent += e => BotErrorHandler(e, Combot.ServerConfig.Name);
+                Combot.LogEvent += e => LogEventHandler(e, Combot.ServerConfig.Name);
 
                 // Incoming Messages
                 Combot.IRC.Message.RawMessageEvent += (sender, e) => RawMessageHandler(sender, e, Combot.ServerConfig.Name);
@@ -58,6 +59,12 @@ namespace Console_Interface
                     run = false;
                 }
             }
+        }
+
+        private static void LogEventHandler(string message, string server)
+        {
+            string msg = string.Format("[{0}] [{1}] [LOG] {2}", DateTime.Now.ToString("HH:mm:ss"), server, message);
+            Console.WriteLine(msg);
         }
 
         private static void RawMessageHandler(object sender, string message, string server)
