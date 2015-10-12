@@ -14,6 +14,7 @@ namespace Combot.Modules.Plugins
 {
     public class Url_Parsing : Module
     {
+        private const string YOUTUBE_URL = "(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))";
         public override void Initialize()
         {
             Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessage;
@@ -70,11 +71,17 @@ namespace Combot.Modules.Plugins
                                                 Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
                                                 break;
                                             default:
-                                                Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+                                                Regex ytRegex = new Regex(YOUTUBE_URL);
                                                 if (ytRegex.IsMatch(urlMatch.ToString()))
                                                 {
                                                     Match ytMatch = ytRegex.Match(urlMatch.ToString());
                                                     string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
+
+                                                    Regex ytTitle = new Regex(YOUTUBE_URL);
+                                                    if (ytTitle.IsMatch(youtubeMessage))
+                                                    {
+                                                        youtubeMessage = ytTitle.Replace(youtubeMessage, string.Empty);
+                                                    }
                                                     Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
                                                 }
                                                 else
