@@ -2,15 +2,15 @@
   "Name": "Configuration",
   "ClassName": "Configuration",
   "Enabled": true,
-  "ChannelBlacklist": [],
-  "NickBlacklist": [],
+  "ChannelBlacklist": [ ],
+  "NickBlacklist": [ ],
   "Commands": [
     {
       "Name": "Command Configuration",
       "Description": "Allows you access to a command's configuration.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "command"
       ],
@@ -18,8 +18,8 @@
         {
           "Name": "Command",
           "Description": "The command you want to interact with.",
-          "AllowedValues": [],
-          "DependentArguments": [],
+          "AllowedValues": [ ],
+          "DependentArguments": [ ],
           "MessageTypes": [
             0,
             1,
@@ -43,7 +43,7 @@
             "ShowHelp",
             "SpamCheck"
           ],
-          "DependentArguments": [],
+          "DependentArguments": [ ],
           "MessageTypes": [
             0,
             1,
@@ -108,7 +108,7 @@
         {
           "Name": "Value",
           "Description": "The value for the parameter you want to modify.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "DependentArguments": [
             {
               "Name": "Action",
@@ -142,8 +142,8 @@
       "Name": "Module Configuration",
       "Description": "Allows you access to a module's configuration.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "module"
       ],
@@ -151,8 +151,8 @@
         {
           "Name": "Module",
           "Description": "The module you want to interact with.",
-          "AllowedValues": [],
-          "DependentArguments": [],
+          "AllowedValues": [ ],
+          "DependentArguments": [ ],
           "MessageTypes": [
             0,
             1,
@@ -172,7 +172,7 @@
             "Commands",
             "Options"
           ],
-          "DependentArguments": [],
+          "DependentArguments": [ ],
           "MessageTypes": [
             0,
             1,
@@ -233,7 +233,7 @@
         {
           "Name": "Value",
           "Description": "The value for the parameter you want to modify.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "DependentArguments": [
             {
               "Name": "Action",
@@ -258,6 +258,110 @@
         2
       ],
       "AllowedAccess": [
+        6
+      ],
+      "ShowHelp": true,
+      "SpamCheck": true
+    },
+    {
+      "Name": "Channel Configuration",
+      "Description": "Allows you to modify channel specific configurations.",
+      "Enabled": true,
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
+      "Triggers": [
+        "channel"
+      ],
+      "Arguments": [
+        {
+          "Name": "Channel",
+          "Description": "The channel the configuration is for.",
+          "AllowedValues": [ ],
+          "DependentArguments": [ ],
+          "MessageTypes": [
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Type",
+          "Description": "The type of configuration you want to edit.",
+          "AllowedValues": [
+            "Module",
+            "Command"
+          ],
+          "DependentArguments": [ ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Command",
+          "Description": "The command you want to edit.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Type",
+              "Values": [
+                "Command"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Module",
+          "Description": "The module you want to edit.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Type",
+              "Values": [
+                "Module"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Action",
+          "Description": "The action you want to perform on the config.",
+          "AllowedValues": [
+            "Enable",
+            "Disable"
+          ],
+          "DependentArguments": [ ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        }
+      ],
+      "AllowedMessageTypes": [
+        0,
+        1,
+        2
+      ],
+      "AllowedAccess": [
+        3,
+        4,
+        5,
         6
       ],
       "ShowHelp": true,

@@ -648,6 +648,84 @@ namespace Combot.Modules.Plugins
                         SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notFound);
                     }
                     break;
+                case "Channel Configuration":
+                    string chanType = command.Arguments["Type"];
+                    string channel = (command.Arguments.ContainsKey("Channel")) ? command.Arguments["Channel"] : command.Location;
+                    if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, command.Access))
+                    {
+                        switch (chanType.ToLower())
+                        {
+                            case "command":
+                                Module cmdModule = Bot.Modules.Find(module => module.Commands.Exists(c => c.Triggers.Contains(command.Arguments["Command"]) || c.Name.ToLower() == command.Arguments["Command"].ToLower()));
+                                if (cmdModule != null)
+                                {
+                                    ConfigLock.EnterWriteLock();
+                                    Command cmd = cmdModule.Commands.Find(c => c.Triggers.Contains(command.Arguments["Command"]) || c.Name == command.Arguments["Command"]);
+                                    string action = command.Arguments["Action"];
+                                    string cmdMsg = string.Empty;
+                                    if (action.ToLower() == "enable")
+                                    {
+                                        cmd.ChannelBlacklist.Remove(channel);
+                                        cmdMsg = string.Format("\u0002{0}\u0002 is now \u0002Enabled\u0002 in \u0002{1}\u0002", command.Arguments["Command"], channel);
+                                    }
+                                    else
+                                    {
+                                        if (!cmd.ChannelBlacklist.Contains(channel))
+                                        {
+                                            cmd.ChannelBlacklist.Add(channel);
+                                        }
+                                        cmdMsg = string.Format("\u0002{0}\u0002 is now \u0002Disabled\u0002 in \u0002{1}\u0002", command.Arguments["Command"], channel);
+                                    }
+                                    cmdModule.SaveConfig();
+                                    ConfigLock.ExitWriteLock();
+
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, cmdMsg);
+                                }
+                                else
+                                {
+                                    string notFound = string.Format("\u0002{0}\u000F is not a valid command.", command.Arguments["Command"]);
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notFound);
+                                }
+                                break;
+                            case "module":
+                                Module modConfig = Bot.Modules.Find(module => module.Name.ToLower() == command.Arguments["Module"].ToLower() || module.ClassName.ToLower() == command.Arguments["Module"].ToLower());
+                                if (modConfig != null)
+                                {
+                                    ConfigLock.EnterWriteLock();
+                                    string action = command.Arguments["Action"];
+                                    string modMsg = string.Empty;
+                                    if (action.ToLower() == "enable")
+                                    {
+                                        modConfig.ChannelBlacklist.Remove(channel);
+                                        modMsg = string.Format("\u0002{0}\u0002 is now \u0002Enabled\u0002 in \u0002{1}\u0002", command.Arguments["Module"], channel);
+                                    }
+                                    else
+                                    {
+                                        if (!modConfig.ChannelBlacklist.Contains(channel))
+                                        {
+                                            modConfig.ChannelBlacklist.Add(channel);
+                                        }
+                                        modMsg = string.Format("\u0002{0}\u0002 is now \u0002Disabled\u0002 in \u0002{1}\u0002", command.Arguments["Module"], channel);
+                                    }
+                                    modConfig.SaveConfig();
+                                    ConfigLock.ExitWriteLock();
+
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, modMsg);
+                                }
+                                else
+                                {
+                                    string notFound = string.Format("\u0002{0}\u000F is not a valid module.", command.Arguments["Module"]);
+                                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, notFound);
+                                }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        string noAccess = string.Format("You do not have access to change the configuration for \u0002{0}\u0002.", channel);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccess);
+                    }
+                    break;
             }
         }
     }
