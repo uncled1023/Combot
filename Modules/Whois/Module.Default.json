@@ -30,6 +30,7 @@
                     "Name": "Option",
                     "Description": "Specify the type of information you want.",
                     "AllowedValues": [
+                        "Detail",
                         "Nicks",
                         "Hosts"
                     ],

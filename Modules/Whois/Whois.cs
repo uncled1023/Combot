@@ -20,16 +20,17 @@ namespace Combot.Modules.Plugins
                     string mask = (command.Arguments.ContainsKey("Nickname")) ? command.Arguments["Nickname"] : command.Nick.Nickname;
                     List<string> nicksList = new List<string>();
                     List<string> hostList = new List<string>();
-                    findMatches(ref nicksList, ref hostList, mask, mask);
+                    bool detail = (option.ToLower() == "detail");
+                    findMatches(ref nicksList, ref hostList, mask, mask, detail);
                     if (nicksList.Any() || hostList.Any())
                     {
                         // display results
-                        if (nicksList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "nicks"))
+                        if (nicksList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "nicks" || option.ToLower() == "detail"))
                         {
                             string nicksFound = string.Format("\u0002{0}\u0002 has been seen as: \u0002{1}\u0002", mask, string.Join(", ", nicksList));
                             SendResponse(command.MessageType, command.Location, command.Nick.Nickname, nicksFound, true);
                         }
-                        if (hostList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "hosts"))
+                        if (hostList.Any() && (string.IsNullOrEmpty(option) || option.ToLower() == "hosts" || option.ToLower() == "detail"))
                         {
                             string hostsFound = string.Format("\u0002{0}\u0002 has used the following hosts: \u0002{1}\u0002", mask, string.Join(", ", hostList));
                             SendResponse(command.MessageType, command.Location, command.Nick.Nickname, hostsFound, true);
@@ -43,9 +44,9 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private void findMatches(ref List<string> nickList, ref List<string> hostList, string nick, string host)
+        private void findMatches(ref List<string> nickList, ref List<string> hostList, string nick, string host, bool detail)
         {
-            List<Dictionary<string, object>> results = findAssociationList(nick, host);
+            List<Dictionary<string, object>> results = findAssociationList(nick, host, detail);
             for (int i = 0; i < results.Count; i++)
             {
                 string foundNick = results[i]["nickname"].ToString();
@@ -53,24 +54,35 @@ namespace Combot.Modules.Plugins
                 if (nickList != null && !nickList.Contains(foundNick))
                 {
                     nickList.Add(foundNick);
-                    findMatches(ref nickList, ref hostList, foundNick, foundNick);
+                    findMatches(ref nickList, ref hostList, foundNick, foundNick, detail);
                 }
                 if (hostList != null && !hostList.Contains(foundHost))
                 {
                     hostList.Add(foundHost);
-                    findMatches(ref nickList, ref hostList, foundHost, foundHost);
+                    findMatches(ref nickList, ref hostList, foundHost, foundHost, detail);
                 }
             }
         }
 
-        private List<Dictionary<string, object>> findAssociationList(string nick, string host)
+        private List<Dictionary<string, object>> findAssociationList(string nick, string host, bool detail)
         {
+            string reg = string.Empty;
+            if (detail)
+            {
+                reg = "(`nicks`.`nickname` = {1} OR `nickinfo`.`host` = {2}) ";
+            }
+            else
+            {
+                reg = "(`nicks`.`nickname` = {1} OR (`nickinfo`.`host` = {2} AND `nickinfo`.`registered` = true)) ";
+            }
+
             string search = "SELECT `nickinfo`.`host`, `nicks`.`nickname` FROM `nickinfo` " +
                                     "INNER JOIN `nicks` " +
                                     "ON `nickinfo`.`nick_id` = `nicks`.`id` " +
                                     "INNER JOIN `servers` " +
                                     "ON `nicks`.`server_id` = `servers`.`id` " +
-                                    "WHERE `servers`.`name` = {0} AND (`nicks`.`nickname` = {1} OR `nickinfo`.`host` = {2})" +
+                                    "WHERE `servers`.`name` = {0} AND " +
+                                    reg +
                                     "GROUP BY `nickinfo`.`host`, `nicks`.`nickname`";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, nick, host });
         }
