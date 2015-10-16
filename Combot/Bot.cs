@@ -37,6 +37,7 @@ namespace Combot
         private int RetryCount;
         private bool RetryAllowed;
         private Dictionary<string, SpamSession> SpamSessions;
+        private ReaderWriterLockSlim SpamSessionLock = new ReaderWriterLockSlim();
 
         public Bot(ServerConfig serverConfig)
         {
@@ -467,6 +468,7 @@ namespace Combot
                     source = command.Name;
                     break;
             }
+            SpamSessionLock.EnterWriteLock();
             if (SpamSessions.ContainsKey(source))
             {
                 SpamSession session = SpamSessions[source];
@@ -494,6 +496,7 @@ namespace Combot
             {
                 SpamSessions.Add(source, new SpamSession());
             }
+            SpamSessionLock.ExitWriteLock();
 
             return allowed;
         }
