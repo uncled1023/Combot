@@ -79,13 +79,7 @@ namespace Combot.Modules.Plugins
             {
                 string page = web.DownloadString(searchUrl);
 
-                JObject parsed = (JObject) JsonConvert.DeserializeObject(page);
-
-                if (!parsed["items"].Any())
-                {
-                    return "\u0002No Results\u0002";
-                }
-
+                JObject parsed = (JObject)JsonConvert.DeserializeObject(page);
                 var data = parsed["items"].First();
 
                 description = string.Format("\u0002{0}\u000F", data["snippet"]["title"]);
@@ -118,11 +112,12 @@ namespace Combot.Modules.Plugins
 
                 if (data["statistics"] != null)
                 {
-                    int likes = data["statistics"]["likeCount"].Value<int>();
+                    JToken stats = data["statistics"];
+                    int likes = (stats["likecount"] != null) ? stats["likeCount"].Value<int>() : 0;
                     string pluralLikes = (likes > 1) ? "s" : string.Empty;
-                    int dislikes = data["statistics"]["dislikeCount"].Value<int>();
+                    int dislikes = (stats["dislikeCount"] != null) ? stats["dislikeCount"].Value<int>() : 0;
                     string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
-                    double percent = 100.0*((double) likes/(likes + dislikes));
+                    double percent = 100.0 * ((double)likes / (likes + dislikes));
                     description += string.Format(" | Rating: {0} Like{1}, {2} Dislike{3} (\u0002{4}\u000F%)", likes, pluralLikes, dislikes, pluralDislikes, Math.Round(percent, 1));
 
                     description += string.Format(" | Views: \u0002{0}\u000F", data["statistics"]["viewCount"].Value<int>());

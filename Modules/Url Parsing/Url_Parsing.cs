@@ -279,9 +279,10 @@ namespace Combot.Modules.Plugins
 
                 if (data["statistics"] != null)
                 {
-                    int likes = data["statistics"]["likeCount"].Value<int>();
+                    JToken stats = data["statistics"];
+                    int likes = (stats["likecount"] != null) ? stats["likeCount"].Value<int>() : 0;
                     string pluralLikes = (likes > 1) ? "s" : string.Empty;
-                    int dislikes = data["statistics"]["dislikeCount"].Value<int>();
+                    int dislikes = (stats["dislikeCount"] != null) ? stats["dislikeCount"].Value<int>() : 0;
                     string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
                     double percent = 100.0 * ((double)likes / (likes + dislikes));
                     description += string.Format(" | Rating: {0} Like{1}, {2} Dislike{3} (\u0002{4}\u000F%)", likes, pluralLikes, dislikes, pluralDislikes, Math.Round(percent, 1));
