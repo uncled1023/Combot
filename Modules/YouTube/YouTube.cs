@@ -113,7 +113,7 @@ namespace Combot.Modules.Plugins
                 if (data["statistics"] != null)
                 {
                     JToken stats = data["statistics"];
-                    int likes = (stats["likecount"] != null) ? stats["likeCount"].Value<int>() : 0;
+                    int likes = (stats["likeCount"] != null) ? stats["likeCount"].Value<int>() : 0;
                     string pluralLikes = (likes > 1) ? "s" : string.Empty;
                     int dislikes = (stats["dislikeCount"] != null) ? stats["dislikeCount"].Value<int>() : 0;
                     string pluralDislikes = (dislikes > 1) ? "s" : string.Empty;
