@@ -49,7 +49,7 @@ namespace Combot.Modules.Plugins
                 int maxResults = Convert.ToInt32(GetOptionValue("Max Response Length"));
                 if (resultMessage.Length > (int)maxResults)
                 {
-                    resultMessage = string.Format("{0}...", resultMessage.Substring(0, (int)maxResults));
+                    resultMessage = string.Format("{0}...", resultMessage.Substring(0, (int)maxResults - 3));
                 }
                 char[] tails = {';', ' '};
                 resultMessage = resultMessage

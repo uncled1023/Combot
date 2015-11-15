@@ -67,16 +67,35 @@ namespace Combot.IRCServices.Commanding
         {
             if (message.Length > MaxMessageLength)
             {
-                List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<string> splitMessage = message.Split(new char[] { ' ' }).ToList();
                 string subMessage = string.Empty;
                 string nextMessage = string.Empty;
                 for (int i = 0; i < splitMessage.Count; i++)
                 {
                     int wordLength = splitMessage[i].Length + 1;
                     int totalLength = subMessage.Length;
+                    int leftover = MaxMessageLength - totalLength;
                     if (totalLength + wordLength > MaxMessageLength)
                     {
-                        nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        if (wordLength > MaxMessageLength)
+                        {
+                            if (leftover > 0)
+                            {
+                                string firstPart = splitMessage[i].Substring(0, leftover);
+                                subMessage = string.Join(" ", subMessage, firstPart);
+                            }
+                            string lastPart = (leftover > 0) ? splitMessage[i].Substring(leftover, (wordLength - leftover) - 1) : splitMessage[i];
+                            nextMessage = string.Join(" ", new string[]
+                            {
+                                lastPart,
+                                (splitMessage.Count > i + 1) ? string.Join(" ", splitMessage.GetRange(i + 1, splitMessage.Count - i)) : string.Empty
+                            
+                            });
+                        }
+                        else
+                        {
+                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        }
                         break;
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
@@ -123,16 +142,35 @@ namespace Combot.IRCServices.Commanding
         {
             if (message.Length > MaxMessageLength)
             {
-                List<string> splitMessage = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                List<string> splitMessage = message.Split(new char[] { ' ' }).ToList();
                 string subMessage = string.Empty;
                 string nextMessage = string.Empty;
                 for (int i = 0; i < splitMessage.Count; i++)
                 {
                     int wordLength = splitMessage[i].Length + 1;
                     int totalLength = subMessage.Length;
+                    int leftover = MaxMessageLength - totalLength;
                     if (totalLength + wordLength > MaxMessageLength)
                     {
-                        nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        if (wordLength > MaxMessageLength)
+                        {
+                            if (leftover > 0)
+                            {
+                                string firstPart = splitMessage[i].Substring(0, leftover);
+                                subMessage = string.Join(" ", subMessage, firstPart);
+                            }
+                            string lastPart = (leftover > 0) ? splitMessage[i].Substring(leftover, (wordLength - leftover) - 1) : splitMessage[i];
+                            nextMessage = string.Join(" ", new string[]
+                            {
+                                lastPart,
+                                (splitMessage.Count > i + 1) ? string.Join(" ", splitMessage.GetRange(i + 1, splitMessage.Count - i)) : string.Empty
+
+                            });
+                        }
+                        else
+                        {
+                            nextMessage = string.Join(" ", splitMessage.GetRange(i, splitMessage.Count - i));
+                        }
                         break;
                     }
                     subMessage = string.Join(" ", subMessage, splitMessage[i]);
