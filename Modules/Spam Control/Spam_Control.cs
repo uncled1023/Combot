@@ -68,10 +68,6 @@ namespace Combot.Modules.Plugins
                         {
                             TimedDeVoice(message, devoiceTime);
                         }
-                        if (kickResponse)
-                        {
-                            Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold));
-                        }
                         if (banResponse)
                         {
                             if (unbanResponse)
@@ -83,8 +79,12 @@ namespace Combot.Modules.Plugins
                                 BanNick(true, message);
                             }
                         }
-                        if (!kickResponse)
+                        if (kickResponse)
                         {
+                            Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold));
+                        }
+                        else
+                        { 
                             string spamMessage = string.Format("Please do not spam.  You have messaged {0} times within {1}ms.", info.Lines, timeThreshold);
                             SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, spamMessage);
                         }
@@ -160,10 +160,6 @@ namespace Combot.Modules.Plugins
                             {
                                 TimedDeVoice(message, devoiceTime);
                             }
-                            if (kickResponse)
-                            {
-                                Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold));
-                            }
                             if (banResponse)
                             {
                                 if (unbanResponse)
@@ -175,7 +171,11 @@ namespace Combot.Modules.Plugins
                                     BanNick(true, message);
                                 }
                             }
-                            if (!kickResponse)
+                            if (kickResponse)
+                            {
+                                Bot.IRC.Command.SendKick(info.Channel, info.Nick, string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold));
+                            }
+                            else
                             {
                                 string spamMessage = string.Format("Please do not highlight spam.  You have highlighted {0} nicks within {1}ms.", info.Highlights, timeThreshold);
                                 SendResponse(MessageType.Channel, message.Channel, message.Sender.Nickname, spamMessage);
