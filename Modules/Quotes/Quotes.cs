@@ -60,35 +60,107 @@ namespace Combot.Modules.Plugins
 
         private List<Dictionary<string, object>> GetQuoteList(string channel)
         {
-            string search = "SELECT `channelmessages`.`id` FROM `channelmessages` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelmessages`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelmessages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}";
+            string search = @"SELECT `channelmessages`.`id` FROM `channelmessages` 
+                                INNER JOIN `channels` 
+                                ON `channelmessages`.`channel_id` = `channels`.`id` 
+                                INNER JOIN `servers` 
+                                ON `channelmessages`.`server_id` = `servers`.`id` 
+                                WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
         }
 
         private List<Dictionary<string, object>> GetQuoteList(string channel, string nickname)
         {
-            string search = "SELECT `channelmessages`.`id` FROM `channelmessages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `channelmessages`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `channelmessages`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
+            string search = @"SELECT `channelmessages`.`id` FROM `channelmessages` 
+                                INNER JOIN `nicks` 
+                                ON `channelmessages`.`nick_id` = `nicks`.`id` 
+                                INNER JOIN `channels` 
+                                ON `channelmessages`.`channel_id` = `channels`.`id` 
+                                INNER JOIN `servers` 
+                                ON `channelmessages`.`server_id` = `servers`.`id` 
+                                WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
             return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
 
         private List<Dictionary<string, object>> GetQuote(int id)
         {
-            string search = "SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
-                            "WHERE `channelmessages`.`id` = {0}";
+            string search = @"SELECT `channelmessages`.`message`, `nicks`.`nickname` FROM `channelmessages` 
+                                INNER JOIN `nicks` 
+                                ON `channelmessages`.`nick_id` = `nicks`.`id` 
+                                WHERE `channelmessages`.`id` = {0}";
             return Bot.Database.Query(search, new object[] { id });
+        }
+
+        private List<Dictionary<string, object>> GetQuote(string channel)
+        {
+            string search = @"
+                                set max_heap_table_size = 33554432;
+
+                                CREATE TEMPORARY TABLE IF NOT EXISTS tempQuotes
+                                (tempID BIGINT NOT NULL AUTO_INCREMENT,  
+                                 id INT(11) NOT NULL,
+                                PRIMARY KEY tempID (tempID), UNIQUE KEY id (id))
+                                ENGINE=memory 
+                                AS (
+                                    SELECT `channelmessages`.`id` 
+                                    FROM `channelmessages` 
+                                    INNER JOIN `channels` 
+                                        ON `channelmessages`.`channel_id` = `channels`.`id` 
+                                    INNER JOIN `servers` 
+                                        ON `channelmessages`.`server_id` = `servers`.`id` 
+                                    WHERE `channels`.`name` = {1} AND `servers`.`name` = {0}
+                                );
+
+                                CREATE TEMPORARY TABLE tempQuotes2 LIKE tempQuotes;
+                                INSERT INTO tempQuotes2 SELECT * FROM tempQuotes;
+
+                                SELECT r1.id
+                                  FROM tempQuotes AS r1 JOIN
+                                       (SELECT CEIL(RAND() *
+                                                     (SELECT MAX(tempID)
+                                                        FROM tempQuotes2)) AS tempID)
+                                        AS r2
+                                 WHERE r1.tempID >= r2.tempID
+                                 ORDER BY r1.tempID ASC
+                                 LIMIT 1;";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
+        }
+
+        private List<Dictionary<string, object>> GetQuote(string channel, string nickname)
+        {
+            string search = @"
+                                set max_heap_table_size = 33554432;
+
+                                CREATE TEMPORARY TABLE IF NOT EXISTS tempQuotes
+                                (tempID BIGINT NOT NULL AUTO_INCREMENT, 
+                                 id INT(11) NOT NULL,
+                                PRIMARY KEY tempID (tempID), UNIQUE KEY id (id))
+                                ENGINE=memory 
+                                AS (
+                                    SELECT `channelmessages`.`id` 
+                                    FROM `channelmessages` 
+                                    INNER JOIN `nicks` 
+                                        ON `channelmessages`.`nick_id` = `nicks`.`id`                                         
+                                    INNER JOIN `channels` 
+                                        ON `channelmessages`.`channel_id` = `channels`.`id` 
+                                    INNER JOIN `servers` 
+                                        ON `channelmessages`.`server_id` = `servers`.`id` 
+                                    WHERE `nicks`.`nickname` = {2} AND `channels`.`name` = {1} AND `servers`.`name` = {0}
+                                );
+
+                                CREATE TEMPORARY TABLE tempQuotes2 LIKE tempQuotes;
+                                INSERT INTO tempQuotes2 SELECT * FROM tempQuotes;
+
+                                SELECT r1.id
+                                  FROM tempQuotes AS r1 JOIN
+                                       (SELECT CEIL(RAND() *
+                                                     (SELECT MAX(tempID)
+                                                        FROM tempQuotes2)) AS tempID)
+                                        AS r2
+                                 WHERE r1.tempID >= r2.tempID
+                                 ORDER BY r1.tempID ASC
+                                 LIMIT 1;";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
     }
 }
