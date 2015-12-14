@@ -667,7 +667,7 @@ namespace Combot
                 Log("Found Module " + module.Name);
                 // Find the command
                 Command cmd = module.Commands.Find(c => c.Triggers.Contains(command));
-                if (cmd != null)
+                if (cmd != null && cmd.AllowedMessageTypes.Contains(messageType))
                 {
                     Log("Found Command " + cmd.Name);
                     CommandMessage newCommand = new CommandMessage();
