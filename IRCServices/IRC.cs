@@ -174,7 +174,6 @@ namespace Combot.IRCServices
             List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
             try
             {
-                parameterString = null;
                 string[] modeArgs = parameterString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 char[] modeInfo = modeString.ToCharArray();
                 bool set = true;
