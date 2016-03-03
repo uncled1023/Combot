@@ -155,6 +155,7 @@ namespace Interface.ViewModels
                 ServerList.Add(Combot.ServerConfig.Name);
 
                 Combot.ErrorEvent += e => BotErrorHandler(e, Combot.ServerConfig.Name);
+                Combot.ExceptionThrown += e => BotExceptionHandler(e, Combot.ServerConfig.Name);
 
                 // Incoming Messages
                 Combot.IRC.Message.ErrorMessageEvent += (sender, e) => ErrorMessageHandler(sender, e, Combot.ServerConfig.Name);
@@ -239,6 +240,12 @@ namespace Interface.ViewModels
         private void BotErrorHandler(BotError error, string server)
         {
             AddToBuffer(server, null, string.Format("[{0}] \u0002{1} Error\u0002: {2}", DateTime.Now.ToString("HH:mm:ss"), error.Type, error.Message));
+        }
+
+        private void BotExceptionHandler(Exception ex, string server)
+        {
+            string msg = CreateExceptionMessage(ex);
+            AddToBuffer(server, null, string.Format("[{0}] \u0002Exception Thrown\u0002: {1}", DateTime.Now.ToString("HH:mm:ss"), msg));
         }
 
         private void TCPErrorHandler(Combot.IRCServices.TCP.TCPError error, string server)
@@ -538,6 +545,17 @@ namespace Interface.ViewModels
                     Connected = session.Connected;
                 }
             }
+        }
+
+        private string CreateExceptionMessage(Exception ex)
+        {
+            string message = ex.Message;
+            if (ex.InnerException != null)
+            {
+                message += " Inner Exception: ";
+                message += CreateExceptionMessage(ex.InnerException);
+            }
+            return message;
         }
     }
 }

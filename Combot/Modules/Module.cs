@@ -25,6 +25,8 @@ namespace Combot.Modules
 
         public event EventHandler<string> ModuleErrorEvent;
 
+        public event Action<Exception> ExceptionThrown;
+
         public bool Loaded { get; set; }
         public bool ShouldSerializeLoaded()
         {
@@ -56,45 +58,52 @@ namespace Combot.Modules
 
         public void HandleCommandEvent(CommandMessage command)
         {
-            // Check to make sure the command exists, the nick or channel isn't on a blacklist, and the module is loaded.
-            if (Loaded
-                && Enabled
-                && !ChannelBlacklist.Contains(command.Location)
-                && !NickBlacklist.Contains(command.Nick.Nickname)
-                && Commands.Exists(c => c.Triggers.Contains(command.Command)
-                                        && c.Enabled
-                                        && !c.ChannelBlacklist.Contains(command.Location)
-                                        && !c.NickBlacklist.Contains(command.Nick.Nickname)
-                                    )
-                )
+            try
             {
-                Bot.Log("Checking Command " + command.Command);
-                // Figure out access of the nick
-                Command cmd = Commands.Find(c => c.Triggers.Contains(command.Command));
-                List<AccessType> nickAccessTypes = new List<AccessType>() { AccessType.User };
-                foreach (PrivilegeMode privilege in command.Nick.Privileges)
+                // Check to make sure the command exists, the nick or channel isn't on a blacklist, and the module is loaded.
+                if (Loaded
+                    && Enabled
+                    && !ChannelBlacklist.Contains(command.Location)
+                    && !NickBlacklist.Contains(command.Nick.Nickname)
+                    && Commands.Exists(c => c.Triggers.Contains(command.Command)
+                                            && c.Enabled
+                                            && !c.ChannelBlacklist.Contains(command.Location)
+                                            && !c.NickBlacklist.Contains(command.Nick.Nickname)
+                                        )
+                    )
                 {
-                    nickAccessTypes.Add(Bot.PrivilegeModeMapping[privilege]);
-                }
-                if ((Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Exists(mode => mode == UserMode.r || mode == UserMode.o)) || command.Nick.Nickname == Bot.IRC.Nickname)
-                {
-                    nickAccessTypes.Add(AccessType.Owner);
-                }
-                command.Access.AddRange(nickAccessTypes);
-                // If they have the correct access for the command, send it
-                if (cmd.AllowedAccess.Exists(access => nickAccessTypes.Contains(access)))
-                {
-                    // Make sure that the command isn't being spammed
-                    if (Bot.SpamCheck(Bot.IRC.Channels.Find(chan => chan.Name == command.Location), command.Nick, this, cmd))
+                    Bot.Log("Checking Command " + command.Command);
+                    // Figure out access of the nick
+                    Command cmd = Commands.Find(c => c.Triggers.Contains(command.Command));
+                    List<AccessType> nickAccessTypes = new List<AccessType>() { AccessType.User };
+                    foreach (PrivilegeMode privilege in command.Nick.Privileges)
                     {
-                        ParseCommand(command);
+                        nickAccessTypes.Add(Bot.PrivilegeModeMapping[privilege]);
+                    }
+                    if ((Bot.ServerConfig.Owners.Contains(command.Nick.Nickname) && command.Nick.Modes.Exists(mode => mode == UserMode.r || mode == UserMode.o)) || command.Nick.Nickname == Bot.IRC.Nickname)
+                    {
+                        nickAccessTypes.Add(AccessType.Owner);
+                    }
+                    command.Access.AddRange(nickAccessTypes);
+                    // If they have the correct access for the command, send it
+                    if (cmd.AllowedAccess.Exists(access => nickAccessTypes.Contains(access)))
+                    {
+                        // Make sure that the command isn't being spammed
+                        if (Bot.SpamCheck(Bot.IRC.Channels.Find(chan => chan.Name == command.Location), command.Nick, this, cmd))
+                        {
+                            ParseCommand(command);
+                        }
+                    }
+                    else
+                    {
+                        string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F.", command.Command);
+                        SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
                     }
                 }
-                else
-                {
-                    string noAccessMessage = string.Format("You do not have access to use \u0002{0}\u000F.", command.Command);
-                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
-                }
+            }
+            catch (Exception ex)
+            {
+                ThrowException(ex, "Unable to handle module command.");
             }
         }
 
@@ -109,6 +118,20 @@ namespace Combot.Modules
             if (handler != null)
             {
                 handler(this, errorMsg);
+            }
+        }
+
+        protected void ThrowException(Exception ex)
+        {
+            ThrowException(ex, string.Format("Module {0} threw exception.", Name));
+        }
+
+        protected void ThrowException(Exception ex, string message)
+        {
+            Exception newEx = new Exception(message, ex);
+            if (ExceptionThrown != null)
+            {
+                ExceptionThrown(newEx);
             }
         }
 
@@ -159,25 +182,31 @@ namespace Combot.Modules
         public Module CreateInstance(Bot bot)
         {
             Module newModule = new Module();
-            if (!Loaded)
+            try
             {
-                //create the class base on string
-                //note : include the namespace and class name (namespace=Combot.Modules, class name=<class_name>)
-                Assembly a = Assembly.LoadFrom(Path.Combine(ConfigPath, string.Format("{0}.dll", Name)));
-                Type t = a.GetType("Combot.Modules.Plugins." + ClassName);
-
-                //check to see if the class is instantiated or not
-                if (t != null)
+                if (!Loaded)
                 {
-                    newModule = (Module)Activator.CreateInstance(t);
-                    newModule.Copy(this);
-                    newModule.Loaded = true;
-                    newModule.ConfigPath = ConfigPath;
-                    newModule.Bot = bot;
-                    newModule.Initialize();
+                    //create the class base on string
+                    //note : include the namespace and class name (namespace=Combot.Modules, class name=<class_name>)
+                    Assembly a = Assembly.LoadFrom(Path.Combine(ConfigPath, string.Format("{0}.dll", Name)));
+                    Type t = a.GetType("Combot.Modules.Plugins." + ClassName);
+
+                    //check to see if the class is instantiated or not
+                    if (t != null)
+                    {
+                        newModule = (Module)Activator.CreateInstance(t);
+                        newModule.Copy(this);
+                        newModule.Loaded = true;
+                        newModule.ConfigPath = ConfigPath;
+                        newModule.Bot = bot;
+                        newModule.Initialize();
+                    }
                 }
             }
-
+            catch (Exception ex)
+            {
+                ThrowException(ex, "Unable to create module instance for " + Name + ".");
+            }
             return newModule;
         }
 

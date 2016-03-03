@@ -22,6 +22,7 @@ namespace Combot.IRCServices
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<TCPError> TCPErrorEvent;
+        public event Action<Exception> ExceptionThrown;
         public string Nickname;
         public Dictionary<string, PrivilegeMode> PrivilegeMapping = new Dictionary<string, PrivilegeMode>() { { "+", PrivilegeMode.v }, { "%", PrivilegeMode.h }, { "@", PrivilegeMode.o }, { "&", PrivilegeMode.a }, { "~", PrivilegeMode.q }, { "!", PrivilegeMode.q } };
 
@@ -76,26 +77,32 @@ namespace Combot.IRCServices
         public bool Connect(IPAddress IP, int port)
         {
             bool result = false;
-            if (!_TCP.Connected)
+            try
             {
-                result = _TCP.Connect(IP, port, ReadTimeout, AllowedFailedReads);
-                if (result)
+                if (!_TCP.Connected)
                 {
-                    TCPReader = new Thread(ReadTCPMessages);
-                    TCPReader.IsBackground = true;
-                    TCPReader.Start();
-
-                    KeepAlive = new Thread(() => CheckConnection(IP, port));
-                    KeepAlive.IsBackground = true;
-                    KeepAlive.Start();
-
-                    if (ConnectEvent != null)
+                    result = _TCP.Connect(IP, port, ReadTimeout, AllowedFailedReads);
+                    if (result)
                     {
-                        ConnectEvent();
+                        TCPReader = new Thread(ReadTCPMessages);
+                        TCPReader.IsBackground = true;
+                        TCPReader.Start();
+
+                        KeepAlive = new Thread(() => CheckConnection(IP, port));
+                        KeepAlive.IsBackground = true;
+                        KeepAlive.Start();
+
+                        if (ConnectEvent != null)
+                        {
+                            ConnectEvent();
+                        }
                     }
                 }
             }
-
+            catch(Exception ex)
+            {
+                ThrowException(ex);
+            }
             return result;
         }
 
@@ -105,28 +112,35 @@ namespace Combot.IRCServices
         /// <returns></returns>
         public void Disconnect()
         {
-            if (_TCP.Connected)
+            try
             {
-                _TCP.Disconnect();
+                if (_TCP.Connected)
+                {
+                    _TCP.Disconnect();
+                }
+
+                if (KeepAlive.IsAlive)
+                {
+                    KeepAlive.Join();
+                }
+
+                if (TCPReader.IsAlive)
+                {
+                    TCPReader.Join();
+                }
+
+                ChannelRWLock.EnterWriteLock();
+                Channels = new List<Channel>();
+                ChannelRWLock.ExitWriteLock();
+
+                if (DisconnectEvent != null)
+                {
+                    DisconnectEvent();
+                }
             }
-
-            if (KeepAlive.IsAlive)
+            catch (Exception ex)
             {
-                KeepAlive.Join();
-            }
-
-            if (TCPReader.IsAlive)
-            {
-                TCPReader.Join();
-            }
-
-            ChannelRWLock.EnterWriteLock();
-            Channels = new List<Channel>();
-            ChannelRWLock.ExitWriteLock();
-
-            if (DisconnectEvent != null)
-            {
-                DisconnectEvent();
+                ThrowException(ex, "Disconnect Exception");
             }
         }
 
@@ -137,9 +151,16 @@ namespace Combot.IRCServices
         /// <param name="nick">The nick information for the login.</param>
         public void Login(string serverName, Nick nick)
         {
-            Nickname = nick.Nickname;
-            Command.SendNick(nick.Nickname);
-            Command.SendUser(nick.Username, nick.Host, serverName, nick.Realname);
+            try
+            {
+                Nickname = nick.Nickname;
+                Command.SendNick(nick.Nickname);
+                Command.SendUser(nick.Username, nick.Host, serverName, nick.Realname);
+            }
+            catch (Exception ex)
+            {
+                ThrowException(ex, "Login Exception.");
+            }
         }
 
         /// <summary>
@@ -150,59 +171,67 @@ namespace Combot.IRCServices
         /// <returns></returns>
         public List<ChannelModeInfo> ParseChannelModeString(string modeString, string parameterString)
         {
-            string[] modeArgs = parameterString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            char[] modeInfo = modeString.ToCharArray();
-            bool set = true;
-            int argIndex = 0;
             List<ChannelModeInfo> modeInfos = new List<ChannelModeInfo>();
-            foreach (char mode in modeInfo)
+            try
             {
-                if (mode.Equals('-'))
+                parameterString = null;
+                string[] modeArgs = parameterString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                char[] modeInfo = modeString.ToCharArray();
+                bool set = true;
+                int argIndex = 0;
+                foreach (char mode in modeInfo)
                 {
-                    set = false;
-                }
-                else if (mode.Equals('+'))
-                {
-                    set = true;
-                }
-                else
-                {
-                    ChannelModeInfo newMode = new ChannelModeInfo();
-                    newMode.Set = set;
-                    ChannelMode foundMode;
-                    bool validMode = Enum.TryParse(mode.ToString(), false, out foundMode);
-                    if (validMode)
+                    if (mode.Equals('-'))
                     {
-                        newMode.Mode = foundMode;
-                        if (modeArgs.GetUpperBound(0) >= argIndex)
+                        set = false;
+                    }
+                    else if (mode.Equals('+'))
+                    {
+                        set = true;
+                    }
+                    else
+                    {
+                        ChannelModeInfo newMode = new ChannelModeInfo();
+                        newMode.Set = set;
+                        ChannelMode foundMode;
+                        bool validMode = Enum.TryParse(mode.ToString(), false, out foundMode);
+                        if (validMode)
                         {
-                            switch (newMode.Mode)
+                            newMode.Mode = foundMode;
+                            if (modeArgs.GetUpperBound(0) >= argIndex)
                             {
-                                case ChannelMode.k:
-                                case ChannelMode.l:
-                                case ChannelMode.b:
-                                case ChannelMode.e:
-                                case ChannelMode.I:
-                                case ChannelMode.v:
-                                case ChannelMode.h:
-                                case ChannelMode.o:
-                                case ChannelMode.a:
-                                case ChannelMode.q:
-                                    newMode.Parameter = modeArgs[argIndex];
-                                    argIndex++;
-                                    break;
-                                default:
-                                    newMode.Parameter = string.Empty;
-                                    break;
+                                switch (newMode.Mode)
+                                {
+                                    case ChannelMode.k:
+                                    case ChannelMode.l:
+                                    case ChannelMode.b:
+                                    case ChannelMode.e:
+                                    case ChannelMode.I:
+                                    case ChannelMode.v:
+                                    case ChannelMode.h:
+                                    case ChannelMode.o:
+                                    case ChannelMode.a:
+                                    case ChannelMode.q:
+                                        newMode.Parameter = modeArgs[argIndex];
+                                        argIndex++;
+                                        break;
+                                    default:
+                                        newMode.Parameter = string.Empty;
+                                        break;
+                                }
                             }
+                            else
+                            {
+                                newMode.Parameter = string.Empty;
+                            }
+                            modeInfos.Add(newMode);
                         }
-                        else
-                        {
-                            newMode.Parameter = string.Empty;
-                        }
-                        modeInfos.Add(newMode);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                ThrowException(ex, "Unable to parse Channel Mode.");
             }
             return modeInfos;
         }
@@ -210,37 +239,43 @@ namespace Combot.IRCServices
         public List<UserModeInfo> ParseUserModeString(string modeString)
         {
             List<UserModeInfo> userModes = new List<UserModeInfo>();
-
-            bool set = true;
-            char[] modeArr = modeString.ToCharArray();
-            for (int i = 1; i <= modeArr.GetUpperBound(0); i++)
+            try
             {
-                UserModeInfo newMode = new UserModeInfo();
-                if (modeArr[i].Equals('-'))
+                bool set = true;
+                char[] modeArr = modeString.ToCharArray();
+                for (int i = 1; i <= modeArr.GetUpperBound(0); i++)
                 {
-                    set = false;
-                }
-                else if (modeArr[i].Equals('+'))
-                {
-                    set = true;
-                }
-                else if (modeArr[i].Equals('*'))
-                {
-                    newMode.Mode = UserMode.o;
-                    newMode.Set = set;
-                    userModes.Add(newMode);
-                }
-                else
-                {
-                    UserMode foundMode;
-                    bool validMode = Enum.TryParse(modeArr[i].ToString(), false, out foundMode);
-                    if (validMode)
+                    UserModeInfo newMode = new UserModeInfo();
+                    if (modeArr[i].Equals('-'))
                     {
-                        newMode.Mode = foundMode;
+                        set = false;
+                    }
+                    else if (modeArr[i].Equals('+'))
+                    {
+                        set = true;
+                    }
+                    else if (modeArr[i].Equals('*'))
+                    {
+                        newMode.Mode = UserMode.o;
                         newMode.Set = set;
                         userModes.Add(newMode);
                     }
+                    else
+                    {
+                        UserMode foundMode;
+                        bool validMode = Enum.TryParse(modeArr[i].ToString(), false, out foundMode);
+                        if (validMode)
+                        {
+                            newMode.Mode = foundMode;
+                            newMode.Set = set;
+                            userModes.Add(newMode);
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                ThrowException(ex, "Unable to parse User Mode.");
             }
             return userModes;
         }
@@ -661,6 +696,20 @@ namespace Combot.IRCServices
                 Channels[i].RemoveNick(e.Nick.Nickname);
             }
             ChannelRWLock.ExitWriteLock();
+        }
+
+        private void ThrowException(Exception ex)
+        {
+            ThrowException(ex, "Irc Service threw exception.");
+        }
+
+        private void ThrowException(Exception ex, string message)
+        {
+            Exception newEx = new Exception(message, ex);
+            if (ExceptionThrown != null)
+            {
+                ExceptionThrown(newEx);
+            }
         }
     }
 }
