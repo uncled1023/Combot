@@ -448,10 +448,13 @@ namespace Combot.IRCServices.Messaging
                     ErrorMessage error = new ErrorMessage();
                     error.Message = match.Groups["Message"].Value;
 
-                    if (ErrorMessageEvent != null)
+                    await Task.Run(() =>
                     {
-                        ErrorMessageEvent(this, error);
-                    }
+                        if (ErrorMessageEvent != null)
+                        {
+                            ErrorMessageEvent(this, error);
+                        }
+                    });
                 }
 
                 string rawMessage = message;
