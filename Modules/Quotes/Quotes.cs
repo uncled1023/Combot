@@ -29,17 +29,15 @@ namespace Combot.Modules.Plugins
             List<Dictionary<string, object>> results = new List<Dictionary<string, object>>();
             if (command.Arguments.ContainsKey("Nickname"))
             {
-                results = GetQuoteList(channel, command.Arguments["Nickname"]);
+                results = GetQuote(channel, command.Arguments["Nickname"]);
             }
             else
             {
-                results = GetQuoteList(channel);
+                results = GetQuote(channel);
             }
             if (results.Any())
             {
-                Random randNum = new Random();
-                int index = randNum.Next(results.Count - 1);
-                Dictionary<string, object> quote = GetQuote(Convert.ToInt32(results[index]["id"])).First();
+                Dictionary<string, object> quote = results.First();
                 string quoteMessage = string.Format("[{0}] {1}", quote["nickname"], quote["message"]);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, quoteMessage);
             }
@@ -89,6 +87,46 @@ namespace Combot.Modules.Plugins
                             "ON `channelmessages`.`nick_id` = `nicks`.`id` " +
                             "WHERE `channelmessages`.`id` = {0}";
             return Bot.Database.Query(search, new object[] { id });
+        }
+
+        private List<Dictionary<string, object>> GetQuote(string channel)
+        {
+            string search = @"SELECT r1.`message`, `nicks`.`nickname`
+                                FROM `channelmessages` AS r1 JOIN
+                                    (SELECT CEIL(RAND() *
+                                                    (SELECT MAX(id)
+                                                    FROM `channelmessages`)) AS id)
+                                    AS r2
+                                INNER JOIN `nicks` 
+                                ON r1.`nick_id` = `nicks`.`id`
+                                INNER JOIN `channels`
+                                ON r1.`channel_id` = `channels`.`id`
+                                INNER JOIN `servers`
+                                ON r1.`server_id` = `servers`.`id`
+                                WHERE r1.id >= r2.id AND `servers`.`name` = {0} AND `channels`.`name` = {1}
+                                ORDER BY r1.id ASC
+                                LIMIT 1";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
+        }
+
+        private List<Dictionary<string, object>> GetQuote(string channel, string nickname)
+        {
+            string search = @"SELECT r1.`message`, `nicks`.`nickname`
+                                FROM `channelmessages` AS r1 JOIN
+                                    (SELECT CEIL(RAND() *
+                                                    (SELECT MAX(id)
+                                                    FROM `channelmessages`)) AS id)
+                                    AS r2
+                                INNER JOIN `nicks` 
+                                ON r1.`nick_id` = `nicks`.`id`
+                                INNER JOIN `channels`
+                                ON r1.`channel_id` = `channels`.`id`
+                                INNER JOIN `servers`
+                                ON r1.`server_id` = `servers`.`id`
+                                WHERE r1.id >= r2.id AND `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}
+                                ORDER BY r1.id ASC
+                                LIMIT 1";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
         }
     }
 }

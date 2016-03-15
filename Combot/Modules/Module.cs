@@ -292,7 +292,8 @@ namespace Combot.Modules
                 Bot.Database.Execute(insert, new object[] { Bot.ServerConfig.Name, nick.Nickname });
             }
             // search for the nick's modes (if any)
-            foreach (Channel channel in Bot.IRC.Channels)
+            List<Channel> tmpChannels = new List<Channel>(Bot.IRC.Channels);
+            foreach (Channel channel in tmpChannels)
             {
                 if (channel.Nicks.Exists(chn => chn.Nickname == nick.Nickname))
                 {
