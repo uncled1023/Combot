@@ -30,6 +30,8 @@ namespace Combot.Configurations
         public SpamSourceType SpamSourceType { get; set; }
         public int SpamCountMax { get; set; }
         public TimeSpan SpamSessionTime { get; set; }
+        public string LogFilePath { get; set; }
+        public int LogFileSizeMax { get; set; }
 
         public ServerConfig()
         {
@@ -53,6 +55,8 @@ namespace Combot.Configurations
             SpamSourceType = SpamSourceType.Nick;
             SpamCountMax = 5;
             SpamSessionTime = new TimeSpan(0, 0, 1);
+            LogFilePath = Utility.GetAssemblyDirectory();
+            LogFileSizeMax = 10000;
             ModuleLocation = string.Empty;
             Owners = new List<string>();
             ChannelBlacklist = new List<string>();
