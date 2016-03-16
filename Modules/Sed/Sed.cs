@@ -113,7 +113,7 @@ namespace Combot.Modules.Plugins
                             }
                             catch (Exception ex)
                             {
-                                ThrowError(ex.Message);
+                                ThrowError(ex);
                             }
                         }
                     }

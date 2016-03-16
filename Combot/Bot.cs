@@ -882,24 +882,24 @@ namespace Combot
             }
         }
 
-        private void HandleMysqlErrorEvent(object sender, string message)
+        private void HandleMysqlErrorEvent(object sender, Exception message)
         {
             BotError error = new BotError();
-            error.Message = message;
+            error.Message = message.GetExceptionMessage(true);
             error.Type = ErrorType.MySQL;
-            Logger.LogToFile(ServerConfig.LogFilePath, "errors", "Mysql Error: " + message, ServerConfig.LogFileSizeMax);
+            Logger.LogToFile(ServerConfig.LogFilePath, "errors", "Mysql Error: " + message.GetExceptionMessage(true, true), ServerConfig.LogFileSizeMax);
             if (ErrorEvent != null)
             {
                 ErrorEvent(error);
             }
         }
 
-        private void HandleModuleErrorEvent(object sender, string message)
+        private void HandleModuleErrorEvent(object sender, Exception message)
         {
             BotError error = new BotError();
-            error.Message = message;
+            error.Message = message.GetExceptionMessage(true);
             error.Type = ErrorType.Module;
-            Logger.LogToFile(ServerConfig.LogFilePath, "errors", "Module Error: " + message, ServerConfig.LogFileSizeMax);
+            Logger.LogToFile(ServerConfig.LogFilePath, "errors", message.GetExceptionMessage(true, true), ServerConfig.LogFileSizeMax);
             if (ErrorEvent != null)
             {
                 ErrorEvent(error);
@@ -937,26 +937,11 @@ namespace Combot
         public void ThrowException(Exception ex, string message)
         {
             Exception newEx = new Exception(message, ex);
-            Logger.LogToFile(ServerConfig.LogFilePath, "errors", CreateExceptionMessage(newEx), ServerConfig.LogFileSizeMax);
+            Logger.LogToFile(ServerConfig.LogFilePath, "errors", newEx.GetExceptionMessage(true, true), ServerConfig.LogFileSizeMax);
             if (ExceptionThrown != null)
             {
                 ExceptionThrown(newEx);
             }
-        }
-
-        public string CreateExceptionMessage(Exception ex)
-        {
-            string message = ex.Message;
-            if (ex.InnerException != null)
-            {
-                message += " Inner Exception: ";
-                message += CreateExceptionMessage(ex.InnerException);
-            }
-            else if (ex.StackTrace != null)
-            {
-                message += " Stack Trace: " + ex.StackTrace;
-            }
-            return message;
         }
     }
 }

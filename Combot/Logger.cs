@@ -10,6 +10,11 @@ namespace Combot
 {
     public static class Logger
     {
+        public static void LogToFile(string directory, string fileName, Exception ex, int maxSize)
+        {
+            LogToFile(directory, fileName, ex.GetExceptionMessage(true), maxSize);
+        }
+
         public static void LogToFile(string directory, string fileName, string message, int maxSize)
         {
             if (!Directory.Exists(directory))

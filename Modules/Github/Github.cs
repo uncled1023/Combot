@@ -81,11 +81,11 @@ namespace Combot.Modules.Plugins
             }
             catch (Octokit.RateLimitExceededException ex)
             {
-                ThrowError(ex.Message);
+                ThrowError(ex);
             }
             catch (Octokit.ApiValidationException ex)
             {
-                ThrowError(ex.Message);
+                ThrowError(ex);
             }
         }
 
@@ -117,11 +117,11 @@ namespace Combot.Modules.Plugins
             }
             catch (Octokit.RateLimitExceededException ex)
             {
-                ThrowError(ex.Message);
+                ThrowError(ex);
             }
             catch (Octokit.ApiValidationException ex)
             {
-                ThrowError(ex.Message);
+                ThrowError(ex);
                 return;
             }
         }

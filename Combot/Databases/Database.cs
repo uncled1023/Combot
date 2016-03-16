@@ -8,7 +8,7 @@ namespace Combot.Databases
 {
     public class Database
     {
-        public event EventHandler<string> MysqlErrorEvent;
+        public event EventHandler<Exception> MysqlErrorEvent;
 
         private bool Connected { get; set; }
         private MySqlConnection Connection { get; set; }
@@ -47,14 +47,14 @@ namespace Combot.Databases
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 catch (Exception exception)
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 DatabaseLock.ExitWriteLock();
@@ -78,14 +78,14 @@ namespace Combot.Databases
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 catch (Exception exception)
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 DatabaseLock.ExitWriteLock();
@@ -108,14 +108,14 @@ namespace Combot.Databases
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 catch (Exception exception)
                 {
                     if (MysqlErrorEvent != null)
                     {
-                        MysqlErrorEvent(this, exception.Message);
+                        MysqlErrorEvent(this, exception);
                     }
                 }
                 DatabaseLock.ExitWriteLock();

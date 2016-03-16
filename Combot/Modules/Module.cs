@@ -23,7 +23,7 @@ namespace Combot.Modules
         public List<Command> Commands { get; set; }
         public List<Option> Options { get; set; }
 
-        public event EventHandler<string> ModuleErrorEvent;
+        public event EventHandler<Exception> ModuleErrorEvent;
 
         public event Action<Exception> ExceptionThrown;
 
@@ -111,13 +111,13 @@ namespace Combot.Modules
 
         virtual public void ParseCommand(CommandMessage command) { }
 
-        protected void ThrowError(string e)
+        protected void ThrowError(Exception e)
         {
-            string errorMsg = string.Format("[{0}] {1}", Name, e);
-            EventHandler<string> handler = ModuleErrorEvent;
+            Exception newEx = new Exception(string.Format("Module Error: {0}", Name), e);
+            EventHandler<Exception> handler = ModuleErrorEvent;
             if (handler != null)
             {
-                handler(this, errorMsg);
+                handler(this, newEx);
             }
         }
 

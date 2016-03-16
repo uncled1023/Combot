@@ -17,5 +17,19 @@ namespace Combot
             string path = Uri.UnescapeDataString(uri.Path);
             return Path.GetDirectoryName(path);
         }
+
+        public static string GetExceptionMessage(this Exception ex, bool recursive = false, bool stackTrace = false)
+        {
+            string message = ex.Message;
+            if (ex.InnerException != null && recursive)
+            {
+                message += "Inner Exception: " + GetExceptionMessage(ex.InnerException, recursive);
+            }
+            else if(ex.StackTrace != null && stackTrace)
+            {
+                message += "Stack Trace: " + ex.StackTrace;
+            }
+            return message;
+        }
     }
 }
