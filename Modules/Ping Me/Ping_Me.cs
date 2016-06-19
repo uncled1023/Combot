@@ -58,23 +58,28 @@ namespace Combot.Modules.Plugins
                     string timeString = string.Empty;
                     if (difTime.Days > 0)
                     {
-                        timeString += difTime.Days.ToString() + " Days, ";
+                        timeString += difTime.Days.ToString();
+                        timeString += (difTime.Days == 1) ? " Day, " : " Days, ";
                     }
                     if (difTime.Hours > 0)
                     {
-                        timeString += difTime.Hours.ToString() + " Hours, ";
+                        timeString += difTime.Hours.ToString();
+                        timeString += (difTime.Hours == 1) ? " Hour, " : " Hours, ";
                     }
                     if (difTime.Minutes > 0)
                     {
-                        timeString += difTime.Minutes.ToString() + " Minutes, ";
+                        timeString += difTime.Minutes.ToString();
+                        timeString += (difTime.Minutes == 1) ? " Minute, " : " Minutes, ";
                     }
                     if (difTime.Seconds > 0)
                     {
-                        timeString += difTime.Seconds.ToString() + " Seconds, ";
+                        timeString += difTime.Seconds.ToString();
+                        timeString += (difTime.Seconds == 1) ? " Second, " : " Seconds, ";
                     }
                     if (difTime.Milliseconds > 0)
                     {
-                        timeString += difTime.Milliseconds.ToString() + " Milliseconds";
+                        timeString += difTime.Milliseconds.ToString();
+                        timeString += (difTime.Milliseconds == 1) ? " Millisecond" : " Milliseconds";
                     }
                     switch (pingItem.MessageType)
                     {
