@@ -39,79 +39,93 @@ namespace Combot.Modules.Plugins
                         MatchCollection urlMatches = urlRegex.Matches(message.Message);
                         for (int i = 0; i < urlMatches.Count; i++)
                         {
-                            Match urlMatch = urlMatches[i];
-                            Uri url = new Uri(urlMatch.Value);
-                            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-                            webRequest.Method = "HEAD";
-                            webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
-                            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                            try
-                            {
-                                using (HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse())
-                                {
-                                    int code = (int)webResponse.StatusCode;
-                                    if (code == 200)
-                                    {
-                                        string contentType = webResponse.ContentType.Split('/')[0];
-                                        long contentLength = webResponse.ContentLength;
-                                        switch (contentType)
-                                        {
-                                            case "image":
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
-                                                break;
-                                            case "video":
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                                break;
-                                            case "application":
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                                break;
-                                            case "audio":
-                                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
-                                                break;
-                                            default:
-                                                Regex ytRegex = new Regex(YOUTUBE_URL);
-                                                if (ytRegex.IsMatch(urlMatch.ToString()))
-                                                {
-                                                    Match ytMatch = ytRegex.Match(urlMatch.ToString());
-                                                    string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
-
-                                                    Regex ytTitle = new Regex(YOUTUBE_URL);
-                                                    if (ytTitle.IsMatch(youtubeMessage))
-                                                    {
-                                                        youtubeMessage = ytTitle.Replace(youtubeMessage, string.Empty);
-                                                    }
-                                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
-                                                }
-                                                else
-                                                {
-                                                    ParseTitle(message, urlMatch.ToString());
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
-                                    }
-                                }
-                            }
-                            catch (WebException ex)
-                            {
-                                if (ex.Response != null)
-                                {
-                                    int code = (int)((HttpWebResponse)ex.Response).StatusCode;
-                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
-                                }
-                            }
-                            catch (OutOfMemoryException ex)
-                            {
-                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] \u0002Site content was too large\u0002 ({0})", url.Host));
-                            }
+                            DisplayTitle(message, urlMatches[i], true);
                         }
                     }
                 }
+            }
+        }
+
+        public void DisplayTitle(ChannelMessage message, Match urlMatch, bool head)
+        {
+            Uri url = new Uri(urlMatch.Value);
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Method = (head) ? "HEAD" : "GET";
+            webRequest.Credentials = CredentialCache.DefaultCredentials;
+            webRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36";
+            webRequest.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            try
+            {
+                using (HttpWebResponse webResponse = webRequest.GetHttpResponse())
+                {
+                    int code = (int)webResponse.StatusCode;
+                    if (code < 400)
+                    {
+                        string contentType = webResponse.ContentType.Split('/')[0];
+                        long contentLength = webResponse.ContentLength;
+                        switch (contentType)
+                        {
+                            case "image":
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[{0}] Size: {1}", webResponse.ContentType, ToFileSize(contentLength)));
+                                break;
+                            case "video":
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Video] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                break;
+                            case "application":
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Application] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                break;
+                            case "audio":
+                                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[Audio] Type: {0} | Size: {1}", webResponse.ContentType.Split('/')[1], ToFileSize(contentLength)));
+                                break;
+                            default:
+                                Regex ytRegex = new Regex(YOUTUBE_URL);
+                                if (ytRegex.IsMatch(urlMatch.ToString()))
+                                {
+                                    Match ytMatch = ytRegex.Match(urlMatch.ToString());
+                                    string youtubeMessage = GetYoutubeDescription(ytMatch.Groups["ID"].Value);
+
+                                    Regex ytTitle = new Regex(YOUTUBE_URL);
+                                    if (ytTitle.IsMatch(youtubeMessage))
+                                    {
+                                        youtubeMessage = ytTitle.Replace(youtubeMessage, string.Empty);
+                                    }
+                                    Bot.IRC.Command.SendPrivateMessage(message.Channel, youtubeMessage);
+                                }
+                                else
+                                {
+                                    ParseTitle(message, urlMatch.ToString());
+                                }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        if (head)
+                        {
+                            DisplayTitle(message, urlMatch, false);
+                            return;
+                        }
+                        else
+                        {
+                            Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Returned Status Code \u0002{0}\u0002 ({1})", code, url.Host));
+                        }
+                    }
+                }
+            }
+            catch (WebException ex)
+            {
+                if (ex.Response != null)
+                {
+                    int code = (int)((HttpWebResponse)ex.Response).StatusCode;
+                    Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] Response Code: \u0002{0}\u0002 ({1})", code, url.Host));
+                }
+            }
+            catch (OutOfMemoryException ex)
+            {
+                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] \u0002Site content was too large\u0002 ({0})", url.Host));
             }
         }
 
@@ -128,10 +142,11 @@ namespace Combot.Modules.Plugins
             int count = streamReader.Read(buf, 0, 256);
 
             var stopwatch = Stopwatch.StartNew();
-            TimeSpan timeout = new TimeSpan(0, 0, 15);
+            TimeSpan timeout = new TimeSpan(0, 1, 0);
+            string outputData = string.Empty;
             while (count > 0 && stopwatch.Elapsed < timeout)
             {
-                String outputData = new String(buf, 0, count);
+                outputData += new String(buf, 0, count);
 
                 if (!startTagFound)
                 {
@@ -151,10 +166,9 @@ namespace Combot.Modules.Plugins
                     Match match = Regex.Match(outputData, pattern, RegexOptions.IgnoreCase);
                     if (match.Success)
                     {
-                        title += match.Groups["Title"].Value;
+                        title = match.Groups["Title"].Value;
                         break;
                     }
-                    title += outputData;
                 }
                 else
                 {
@@ -163,6 +177,7 @@ namespace Combot.Modules.Plugins
                     if (match.Success)
                     {
                         title = match.Groups["Title"].Value;
+                        outputData = title;
                         startTagFound = true;
                     }
                 }
@@ -178,6 +193,11 @@ namespace Combot.Modules.Plugins
                     title = string.Format("{0}...", title.Substring(0, (int)maxTitle));
                 }
                 Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] {0} ({1})", HttpUtility.HtmlDecode(HttpUtility.UrlDecode(StripTagsCharArray(title))), url.Host));
+            }
+            else
+            {
+                // No title, output regular stuff
+                Bot.IRC.Command.SendPrivateMessage(message.Channel, string.Format("[URL] No Title ({0})", url.Host));
             }
         }
 
@@ -305,6 +325,32 @@ namespace Combot.Modules.Plugins
             }
 
             return description;
+        }
+    }
+
+    public static class HttpExtensions
+    {
+        public static HttpWebResponse GetHttpResponse(this HttpWebRequest request)
+        {
+            HttpWebResponse response = null;
+
+            try
+            {
+                response = (HttpWebResponse)request.GetResponse();
+            }
+            catch (WebException exception)
+            {
+                if (exception.Status == WebExceptionStatus.ProtocolError)
+                {
+                    response = (HttpWebResponse)exception.Response;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return response;
         }
     }
 }
