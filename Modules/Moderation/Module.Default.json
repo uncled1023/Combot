@@ -9,8 +9,8 @@
       "Name": "Founder",
       "Description": "Sets the specified nick as Founder of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "founder"
       ],
@@ -18,7 +18,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being set to Founder status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -29,7 +29,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -38,7 +38,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -62,8 +62,8 @@
       "Name": "Remove Founder",
       "Description": "Removes the specified nick as Founder of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "defounder"
       ],
@@ -71,7 +71,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being removed of Founder status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -82,7 +82,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -91,7 +91,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -115,8 +115,8 @@
       "Name": "SOP",
       "Description": "Sets the specified nick as Super Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "sop"
       ],
@@ -124,7 +124,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being set to Super Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -135,7 +135,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -144,7 +144,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -169,8 +169,8 @@
       "Name": "Remove SOP",
       "Description": "Removes the specified nick as Super Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "desop"
       ],
@@ -178,7 +178,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being removed of Super Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -189,7 +189,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -198,7 +198,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -223,8 +223,8 @@
       "Name": "OP",
       "Description": "Sets the specified nick as Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "op"
       ],
@@ -232,7 +232,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being set to Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -243,7 +243,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -252,7 +252,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -278,8 +278,8 @@
       "Name": "Remove OP",
       "Description": "Removes the specified nick as Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "deop"
       ],
@@ -287,7 +287,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being removed of Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -298,7 +298,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -307,7 +307,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -333,8 +333,8 @@
       "Name": "HOP",
       "Description": "Sets the specified nick as Half Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "hop"
       ],
@@ -342,7 +342,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being set to Half Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -353,7 +353,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -362,7 +362,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -389,8 +389,8 @@
       "Name": "Remove HOP",
       "Description": "Removes the specified nick as Half Operator of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "dehop"
       ],
@@ -398,7 +398,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being removed of Half Operator status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -409,7 +409,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -418,7 +418,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -445,8 +445,8 @@
       "Name": "Voice",
       "Description": "Sets the specified nick as Voiced in the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "voice"
       ],
@@ -454,7 +454,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being set to Voice status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -465,7 +465,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -474,7 +474,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -501,8 +501,8 @@
       "Name": "Remove Voice",
       "Description": "Removes the specified nick as Voiced of the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "devoice"
       ],
@@ -510,7 +510,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being removed of Voice status.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -521,7 +521,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -530,7 +530,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -557,8 +557,8 @@
       "Name": "ASOP",
       "Description": "Modifies the ChanServ Auto Super Operators list for the specified nick.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "asop"
       ],
@@ -580,7 +580,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being modified in the Auto Super Operator's list.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -591,7 +591,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -600,7 +600,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -624,8 +624,8 @@
       "Name": "AOP",
       "Description": "Modifies the ChanServ Auto Operators list for the specified nick.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "aop"
       ],
@@ -647,7 +647,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being modified in the Auto Operator's list.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -658,7 +658,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -667,7 +667,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -692,8 +692,8 @@
       "Name": "AHOP",
       "Description": "Modifies the ChanServ Auto Half Operators list for the specified nick.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "ahop"
       ],
@@ -715,7 +715,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being modified in the Auto Half Operator's list.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -726,7 +726,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -735,7 +735,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -761,8 +761,8 @@
       "Name": "AVoice",
       "Description": "Modifies the ChanServ Auto Voice list for the specified nick.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "avoice"
       ],
@@ -784,7 +784,7 @@
         {
           "Name": "Nickname",
           "Description": "The nickname that is being modified in the Auto Voice's list.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -795,7 +795,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.  If none is specified, uses the current channel.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -804,7 +804,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the mode is being set on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -831,8 +831,8 @@
       "Name": "Mode",
       "Description": "Changes the channel mode with optional parameters.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "mode"
       ],
@@ -840,7 +840,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the modes are being changed on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -850,7 +850,7 @@
         {
           "Name": "Modes",
           "Description": "The modes to be changed.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -861,7 +861,7 @@
         {
           "Name": "Parameters",
           "Description": "Parameters that go with the modes changed.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -888,8 +888,8 @@
       "Name": "Topic",
       "Description": "Changes the channel topic.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "topic"
       ],
@@ -897,7 +897,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the topic is being changed on.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -907,7 +907,7 @@
         {
           "Name": "Message",
           "Description": "The message for the topic.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -934,8 +934,8 @@
       "Name": "Invite",
       "Description": "Invites the specified nick to the channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "invite"
       ],
@@ -943,7 +943,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be invited.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -954,7 +954,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be invited to.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -963,7 +963,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be invited to.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -986,11 +986,124 @@
       "SpamCheck": true
     },
     {
+      "Name": "Auto Ban",
+      "Description": "Allows adding nicknames to an autoban list for channels.",
+      "Enabled": true,
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
+      "Triggers": [
+        "ab",
+        "aban",
+        "autoban"
+      ],
+      "Arguments": [
+        {
+          "Name": "Method",
+          "Description": "What you want to do with the auto ban.",
+          "AllowedValues": [
+            "Add",
+            "Del",
+            "Delete",
+            "View"
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Nickname",
+          "Description": "The nick to be auto banned.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Add",
+                "Del",
+                "Delete"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Nickname",
+          "Description": "The nick to be auto banned.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "View"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": false
+        },
+        {
+          "Name": "Channel",
+          "Description": "The channel the nick will be auto banned from.",
+          "AllowedValues": [ ],
+          "MessageTypes": [
+            1,
+            2
+          ],
+          "Required": true
+        },
+        {
+          "Name": "Reason",
+          "Description": "The reason the nick is being auto banned.",
+          "AllowedValues": [ ],
+          "DependentArguments": [
+            {
+              "Name": "Method",
+              "Values": [
+                "Add"
+              ]
+            }
+          ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": false
+        }
+      ],
+      "AllowedMessageTypes": [
+        0,
+        1,
+        2
+      ],
+      "AllowedAccess": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "ShowHelp": true,
+      "SpamCheck": true
+    },
+    {
       "Name": "Ban",
       "Description": "Bans the specified nick from a channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "b",
         "ban"
@@ -999,7 +1112,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1010,7 +1123,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -1019,7 +1132,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1046,8 +1159,8 @@
       "Name": "UnBan",
       "Description": "UnBans the specified nick from a channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "ub",
         "unban"
@@ -1056,7 +1169,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be unbanned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1067,7 +1180,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be unbanned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -1076,7 +1189,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be unbanned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1103,8 +1216,8 @@
       "Name": "Kick Ban",
       "Description": "Bans and then Kicks the specified nick from a channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "kb",
         "kickban"
@@ -1113,7 +1226,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be kick banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1124,7 +1237,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be kick banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1134,7 +1247,7 @@
         {
           "Name": "Reason",
           "Description": "The reason the nick is being kick banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1162,8 +1275,8 @@
       "Name": "Timed Ban",
       "Description": "Bans the specified nick from a channel for a specified amount of time.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "tb",
         "timedban"
@@ -1172,7 +1285,7 @@
         {
           "Name": "Time",
           "Description": "The time for the nick to be banned in seconds.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1183,7 +1296,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1194,7 +1307,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -1203,7 +1316,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1230,8 +1343,8 @@
       "Name": "Timed Kick Ban",
       "Description": "Bans and Kicks the specified nick from a channel for a specified amount of time.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "tkb",
         "timedkickban"
@@ -1240,7 +1353,7 @@
         {
           "Name": "Time",
           "Description": "The time for the nick to be banned in seconds.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1251,7 +1364,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be kick banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1262,7 +1375,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be kick banned from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1272,7 +1385,7 @@
         {
           "Name": "Reason",
           "Description": "The reason the nick is being kick banned.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1300,8 +1413,8 @@
       "Name": "Kick",
       "Description": "Kicks the specified nick from a channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "k",
         "kick"
@@ -1310,7 +1423,7 @@
         {
           "Name": "Nickname",
           "Description": "The nick to be kicked.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1321,7 +1434,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the nick will be kicked from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1331,7 +1444,7 @@
         {
           "Name": "Reason",
           "Description": "The reason the nick is being kicked.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1359,8 +1472,8 @@
       "Name": "Kick Self",
       "Description": "Kicks the caller from a channel.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "kme",
         "kickme"
@@ -1369,7 +1482,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the caller will be kicked from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1379,7 +1492,7 @@
         {
           "Name": "Reason",
           "Description": "The reason the you are being kicked.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -1409,8 +1522,8 @@
       "Name": "Clear",
       "Description": "Clears the specified channel of the specified target.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "clear"
       ],
@@ -1438,7 +1551,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the target is being cleared from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -1447,7 +1560,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the target is being cleared from.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1471,8 +1584,8 @@
       "Name": "Roll Call",
       "Description": "Sends a message to a channel highlighting all of the nicks in it.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "rollcall"
       ],
@@ -1480,7 +1593,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the roll call is for.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             0
           ],
@@ -1489,7 +1602,7 @@
         {
           "Name": "Channel",
           "Description": "The channel the roll call is for.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
           "MessageTypes": [
             1,
             2
@@ -1510,5 +1623,11 @@
       "SpamCheck": true
     }
   ],
-  "Options": []
+  "Options": [
+    {
+      "Name": "Seconds To Ban",
+      "Description": "The number of seconds to temporarily ban a nick on an auto-ban.",
+      "Value": 1800
+    }
+  ]
 }

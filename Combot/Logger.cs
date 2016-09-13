@@ -34,7 +34,7 @@ namespace Combot
 
         private static void TrimLogFile(string logDir, string fileName, int maxSize)
         {
-            string logFile = Path.Combine(logDir, fileName);
+            string logFile = Path.Combine(logDir, fileName + Constants.LOGFILEEXT);
             FileInfo file = new FileInfo(logFile);
             long fileSize = file.Length;
             if (fileSize > maxSize)

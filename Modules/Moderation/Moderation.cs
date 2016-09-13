@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using Combot.IRCServices;
 using Timer = System.Timers.Timer;
+using System.IO;
+using Combot.IRCServices.Messaging;
 
 namespace Combot.Modules.Plugins
 {
@@ -14,9 +16,19 @@ namespace Combot.Modules.Plugins
 
         public override void Initialize()
         {
+            string sqlPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigPath, "CreateTable.sql");
+            if (File.Exists(sqlPath))
+            {
+                string query = File.ReadAllText(sqlPath);
+                Bot.Database.Execute(query);
+            }
+
             unbanTimers = new List<Timer>();
             listLock = new ReaderWriterLockSlim();
             Bot.CommandReceivedEvent += HandleCommandEvent;
+            Bot.IRC.Message.JoinChannelEvent += HandleJoinEvent;
+            Bot.IRC.Message.ChannelMessageReceivedEvent += HandleChannelMessageEvent;
+            Bot.IRC.Message.ChannelNoticeReceivedEvent += HandleChannelNoticeEvent;
         }
 
         public override void ParseCommand(CommandMessage command)
@@ -69,6 +81,7 @@ namespace Combot.Modules.Plugins
                 case "AVoice":
                     ModifyAutoUserPrivilege("VOP", command, ChannelMode.v);
                     break;
+                // Channel Moderation
                 case "Mode":
                     ModifyChannelModes(foundCommand, command);
                     break;
@@ -77,6 +90,9 @@ namespace Combot.Modules.Plugins
                     break;
                 case "Invite":
                     InviteNick(foundCommand, command);
+                    break;
+                case "Auto Ban":
+                    AutoBan(foundCommand, command);
                     break;
                 case "Ban":
                     BanNick(true, foundCommand, command);
@@ -118,6 +134,42 @@ namespace Combot.Modules.Plugins
                         SendResponse(command.MessageType, command.Location, command.Nick.Nickname, string.Format("I am not in \u0002{0}\u0002", channel));
                     }
                     break;
+            }
+        }
+
+        private void HandleJoinEvent(object sender, JoinChannelInfo info)
+        {
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
+                && !Bot.ServerConfig.NickBlacklist.Contains(info.Nick.Nickname)
+                && !ChannelBlacklist.Contains(info.Channel)
+                && !NickBlacklist.Contains(info.Nick.Nickname))
+            {
+                ProcessAutoBan(info.Channel, info.Nick.Nickname);
+            }
+        }
+
+        private void HandleChannelMessageEvent(object sender, ChannelMessage info)
+        {
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
+                && !Bot.ServerConfig.NickBlacklist.Contains(info.Sender.Nickname)
+                && !ChannelBlacklist.Contains(info.Channel)
+                && !NickBlacklist.Contains(info.Sender.Nickname))
+            {
+                ProcessAutoBan(info.Channel, info.Sender.Nickname);
+            }
+        }
+
+        private void HandleChannelNoticeEvent(object sender, ChannelNotice info)
+        {
+            if (Enabled
+                && !Bot.ServerConfig.ChannelBlacklist.Contains(info.Channel)
+                && !Bot.ServerConfig.NickBlacklist.Contains(info.Sender.Nickname)
+                && !ChannelBlacklist.Contains(info.Channel)
+                && !NickBlacklist.Contains(info.Sender.Nickname))
+            {
+                ProcessAutoBan(info.Channel, info.Sender.Nickname);
             }
         }
 
@@ -254,6 +306,55 @@ namespace Combot.Modules.Plugins
             else
             {
                 string noAccessMessage = string.Format("You do not have access to invite someone to \u0002{0}\u000F.", channel);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
+            }
+        }
+
+        private void AutoBan(Command curCommand, CommandMessage command)
+        {
+            int timeToBan = 1;
+            int.TryParse(GetOptionValue("Seconds To Ban").ToString(), out timeToBan);
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            bool hasNick = command.Arguments.ContainsKey("Nickname");
+            string nickname = hasNick ? command.Arguments["Nickname"] : string.Empty;
+            string method = command.Arguments["Method"];
+            if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess) && (!hasNick || Bot.CheckNickAccess(channel, command.Nick.Nickname, nickname)))
+            {
+                command.Arguments.Add("Time", timeToBan.ToString());
+                switch (method.ToLower())
+                {
+                    case "add":
+                        // Set the auto ban
+                        AddAutoBan(command);
+
+                        // Process the auto ban now that we added it
+                        if (command.Arguments.ContainsKey("Reason"))
+                        {
+                            command.Arguments["Reason"] = string.Format("[Auto Ban] {0}", command.Arguments["Reason"].ToString());
+                        }
+                        else
+                        {
+                            command.Arguments.Add("Reason", "[Auto Ban] No Reason Specified");
+                        }
+                        TimedBan(curCommand, command);
+                        KickNick(curCommand, command);
+                        break;
+                    case "delete":
+                    case "del":
+                        // Remove the auto-ban
+                        DeleteAutoBan(command);
+
+                        // Force an unban in case they are still banned
+                        BanNick(false, curCommand, command);
+                        break;
+                    case "view":
+                        ViewAutoBan(command);
+                        break;
+                }
+            }
+            else
+            {
+                string noAccessMessage = string.Format("You do not have access to {0} an auto ban for \u0002{1}\u000F on \u0002{2}\u000F.", method, command.Arguments["Nickname"], channel);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
         }
@@ -402,6 +503,137 @@ namespace Combot.Modules.Plugins
                 string noAccessMessage = string.Format("You do not have access to clear \u0002{0}\u000F on \u0002{1}\u000F.", command.Arguments["Target"], channel);
                 SendResponse(command.MessageType, command.Location, command.Nick.Nickname, noAccessMessage, true);
             }
+        }
+
+        private void ProcessAutoBan(string channel, string nickname)
+        {
+            int timeToBan = 1;
+            int.TryParse(GetOptionValue("Seconds To Ban").ToString(), out timeToBan);
+            // Handle Auto Bans
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+            if (results.Any())
+            {
+                foreach (Dictionary<string, object> result in results)
+                {
+                    // temp ban/kick them
+                    CommandMessage newMsg = new CommandMessage();
+                    newMsg.Arguments.Add("Channel", channel);
+                    newMsg.Arguments.Add("Nickname", nickname);
+                    newMsg.Arguments.Add("Time", timeToBan.ToString());
+                    newMsg.Arguments.Add("Reason", string.Format("[Auto Ban] {0}", result["Reason"].ToString()));
+                    newMsg.Nick = new Nick() { Nickname = Bot.IRC.Nickname };
+                    Command foundCommand = Commands.Find(c => c.Name == "Auto Ban");
+                    TimedBan(foundCommand, newMsg);
+                    KickNick(foundCommand, newMsg);
+                }
+            }
+        }
+
+        private void AddAutoBan(CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            string nickname = command.Arguments["Nickname"];
+            string reason = command.Arguments.ContainsKey("Reason") ? command.Arguments["Reason"] : "No Reason Specified";
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+
+            if (!results.Any())
+            {
+                AddChannel(channel);
+                AddNick(command.Nick);
+                AddNick(new Nick() { Nickname = nickname });
+                string query = "INSERT INTO `autobans` SET " +
+                                "`server_id` = (SELECT `id` FROM `servers` WHERE `name` = {0}), " +
+                                "`channel_id` = (SELECT `channels`.`id` FROM `channels` INNER JOIN `servers` ON `servers`.`id` = `channels`.`server_id` WHERE `servers`.`name` = {1} && `channels`.`name` = {2}), " +
+                                "`nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {3} && `nickname` = {4}), " +
+                                "`request_nick_id` = (SELECT `nicks`.`id` FROM `nicks` INNER JOIN `servers` ON `servers`.`id` = `nicks`.`server_id` WHERE `servers`.`name` = {5} && `nickname` = {6}), " +
+                                "`reason` = {7}, " +
+                                "`date_added` = {8}";
+                Bot.Database.Execute(query, new object[] { Bot.ServerConfig.Name, Bot.ServerConfig.Name, channel, Bot.ServerConfig.Name, nickname, Bot.ServerConfig.Name, command.Nick.Nickname, reason, command.TimeStamp });
+                string introMessage = string.Format("Added Auto Ban for {0}.", nickname);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+            }
+            else
+            {
+                string maxMessage = string.Format("There is already an Auto Ban set for {0}.", command.Nick.Nickname);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, maxMessage, true);
+            }
+        }
+
+        private void DeleteAutoBan(CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            string nickname = command.Arguments["Nickname"];
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+
+            if (results.Any())
+            {
+                foreach (Dictionary<string, object> result in results)
+                {
+                    int id = Convert.ToInt32(result["BanID"]);
+                    string query = "DELETE FROM `autobans` " +
+                                    "WHERE `id` = {0}";
+                    Bot.Database.Execute(query, new object[] { id });
+                    string introMessage = string.Format("Auto Ban has been deleted for: {0}", nickname);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage);
+                }
+            }
+            else
+            {
+                string invalid = string.Format("No Auto Ban exists for: {0}", nickname);
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
+            }
+        }
+
+        private void ViewAutoBan(CommandMessage command)
+        {
+            string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+
+            List<Dictionary<string, object>> results = command.Arguments.ContainsKey("Nickname") ? GetAutoBanList(channel, command.Arguments["Nickname"]) : GetAutoBanList(channel);
+            if (results.Any())
+            {
+                for (int i = 0; i < results.Count; i++)
+                {
+                    int nickID = 0;
+                    int requestID = 0;
+                    int.TryParse(results[i]["NickID"].ToString(), out nickID);
+                    int.TryParse(results[i]["RequestID"].ToString(), out requestID);
+                    DateTime addedTime = DateTime.Now;
+                    DateTime.TryParse(results[i]["DateAdded"].ToString(), out addedTime);
+                    string introMessage = string.Format("Auto Ban #\u0002{0}\u0002 by {1} on {2} for reason: {3}", GetNickname(nickID), GetNickname(requestID), addedTime.ToString("G"), results[i]["Reason"]);
+                    SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage, true);
+                }
+            }
+            else
+            {
+                string invalid = "No Auto Bans Available.";
+                SendResponse(command.MessageType, command.Location, command.Nick.Nickname, invalid, true);
+            }
+        }
+
+        private List<Dictionary<string, object>> GetAutoBanList(string channel, string nickname)
+        {
+            // Check to see if they have reached the max number of introductions
+            string search = "SELECT `autobans`.`id` AS `BanID`, `autobans`.`nick_id` AS `NickID`, `autobans`.`request_nick_id` AS `RequestID`, `autobans`.`reason` AS `Reason`, `autobans`.`date_added` AS `DateAdded` FROM `autobans` " +
+                            "INNER JOIN `nicks` " +
+                            "ON `autobans`.`nick_id` = `nicks`.`id` " +
+                            "INNER JOIN `channels` " +
+                            "ON `autobans`.`channel_id` = `channels`.`id` " +
+                            "INNER JOIN `servers` " +
+                            "ON `autobans`.`server_id` = `servers`.`id` " +
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
+        }
+
+        private List<Dictionary<string, object>> GetAutoBanList(string channel)
+        {
+            // Check to see if they have reached the max number of introductions
+            string search = "SELECT `autobans`.`id` AS `BanID`, `autobans`.`nick_id` AS `NickID`, `autobans`.`request_nick_id` AS `RequestID`, `autobans`.`reason` AS `Reason`, `autobans`.`date_added` AS `DateAdded` FROM `autobans` " +
+                            "INNER JOIN `channels` " +
+                            "ON `autobans`.`channel_id` = `channels`.`id` " +
+                            "INNER JOIN `servers` " +
+                            "ON `autobans`.`server_id` = `servers`.`id` " +
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}";
+            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
         }
     }
 }
