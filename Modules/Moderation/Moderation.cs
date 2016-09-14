@@ -145,7 +145,7 @@ namespace Combot.Modules.Plugins
                 && !ChannelBlacklist.Contains(info.Channel)
                 && !NickBlacklist.Contains(info.Nick.Nickname))
             {
-                ProcessAutoBan(info.Channel, info.Nick.Nickname);
+                ProcessAutoBan(info.Channel, info.Nick.Nickname, info.Nick.Host);
             }
         }
 
@@ -157,7 +157,7 @@ namespace Combot.Modules.Plugins
                 && !ChannelBlacklist.Contains(info.Channel)
                 && !NickBlacklist.Contains(info.Sender.Nickname))
             {
-                ProcessAutoBan(info.Channel, info.Sender.Nickname);
+                ProcessAutoBan(info.Channel, info.Sender.Nickname, info.Sender.Host);
             }
         }
 
@@ -169,7 +169,7 @@ namespace Combot.Modules.Plugins
                 && !ChannelBlacklist.Contains(info.Channel)
                 && !NickBlacklist.Contains(info.Sender.Nickname))
             {
-                ProcessAutoBan(info.Channel, info.Sender.Nickname);
+                ProcessAutoBan(info.Channel, info.Sender.Nickname, info.Sender.Host);
             }
         }
 
@@ -505,12 +505,12 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private void ProcessAutoBan(string channel, string nickname)
+        private void ProcessAutoBan(string channel, string nickname, string host)
         {
             int timeToBan = 1;
             int.TryParse(GetOptionValue("Seconds To Ban").ToString(), out timeToBan);
             // Handle Auto Bans
-            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname, host);
             if (results.Any())
             {
                 foreach (Dictionary<string, object> result in results)
@@ -534,7 +534,7 @@ namespace Combot.Modules.Plugins
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             string nickname = command.Arguments["Nickname"];
             string reason = command.Arguments.ContainsKey("Reason") ? command.Arguments["Reason"] : "No Reason Specified";
-            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname, string.Empty);
 
             if (!results.Any())
             {
@@ -563,7 +563,7 @@ namespace Combot.Modules.Plugins
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
             string nickname = command.Arguments["Nickname"];
-            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname);
+            List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname, string.Empty);
 
             if (results.Any())
             {
@@ -587,8 +587,9 @@ namespace Combot.Modules.Plugins
         private void ViewAutoBan(CommandMessage command)
         {
             string channel = command.Arguments.ContainsKey("Channel") ? command.Arguments["Channel"] : command.Location;
+            string nickname = command.Arguments.ContainsKey("Nickname") ? command.Arguments["Nickname"] : string.Empty;
 
-            List<Dictionary<string, object>> results = command.Arguments.ContainsKey("Nickname") ? GetAutoBanList(channel, command.Arguments["Nickname"]) : GetAutoBanList(channel);
+            List <Dictionary<string, object>> results = GetAutoBanList(channel, nickname, string.Empty);
             if (results.Any())
             {
                 for (int i = 0; i < results.Count; i++)
@@ -599,7 +600,7 @@ namespace Combot.Modules.Plugins
                     int.TryParse(results[i]["RequestID"].ToString(), out requestID);
                     DateTime addedTime = DateTime.Now;
                     DateTime.TryParse(results[i]["DateAdded"].ToString(), out addedTime);
-                    string introMessage = string.Format("Auto Ban #\u0002{0}\u0002 by {1} on {2} for reason: {3}", GetNickname(nickID), GetNickname(requestID), addedTime.ToString("G"), results[i]["Reason"]);
+                    string introMessage = string.Format("Auto Ban \u0002{0}\u0002 by {1} on {2} for reason: {3}", GetNickname(nickID), GetNickname(requestID), addedTime.ToString("G"), results[i]["Reason"]);
                     SendResponse(command.MessageType, command.Location, command.Nick.Nickname, introMessage, true);
                 }
             }
@@ -610,30 +611,37 @@ namespace Combot.Modules.Plugins
             }
         }
 
-        private List<Dictionary<string, object>> GetAutoBanList(string channel, string nickname)
+        private List<Dictionary<string, object>> GetAutoBanList(string channel, string nickname, string host)
         {
-            // Check to see if they have reached the max number of introductions
-            string search = "SELECT `autobans`.`id` AS `BanID`, `autobans`.`nick_id` AS `NickID`, `autobans`.`request_nick_id` AS `RequestID`, `autobans`.`reason` AS `Reason`, `autobans`.`date_added` AS `DateAdded` FROM `autobans` " +
-                            "INNER JOIN `nicks` " +
-                            "ON `autobans`.`nick_id` = `nicks`.`id` " +
-                            "INNER JOIN `channels` " +
-                            "ON `autobans`.`channel_id` = `channels`.`id` " +
-                            "INNER JOIN `servers` " +
-                            "ON `autobans`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1} AND `nicks`.`nickname` = {2}";
-            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel, nickname });
-        }
+            string nickJoin = string.Empty;
+            string nickWhere = string.Empty;
+            List<object> queryObj = new List<object>();
+            queryObj.Add(Bot.ServerConfig.Name);
+            queryObj.Add(channel);
 
-        private List<Dictionary<string, object>> GetAutoBanList(string channel)
-        {
+            if (!string.IsNullOrEmpty(nickname))
+            {
+                nickJoin = @"INNER JOIN `nicks` ON `autobans`.`nick_id` = `nicks`.`id` ";
+                nickWhere = @" AND `nicks`.`nickname` = {2}";
+                queryObj.Add(nickname);
+
+                if (!string.IsNullOrEmpty(host))
+                {
+                    nickJoin = @"INNER JOIN `nicks` ON `autobans`.`nick_id` = `nicks`.`id` INNER JOIN `nickinfo` ON `autobans`.`nick_id` = `nickinfo`.`nick_id` ";
+                    nickWhere = @" AND (`nicks`.`nickname` = {2} OR `nickinfo`.`host` = {3})";
+                    queryObj.Add(host);
+                }
+            }
+
             // Check to see if they have reached the max number of introductions
             string search = "SELECT `autobans`.`id` AS `BanID`, `autobans`.`nick_id` AS `NickID`, `autobans`.`request_nick_id` AS `RequestID`, `autobans`.`reason` AS `Reason`, `autobans`.`date_added` AS `DateAdded` FROM `autobans` " +
+                            nickJoin +
                             "INNER JOIN `channels` " +
                             "ON `autobans`.`channel_id` = `channels`.`id` " +
                             "INNER JOIN `servers` " +
                             "ON `autobans`.`server_id` = `servers`.`id` " +
-                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}";
-            return Bot.Database.Query(search, new object[] { Bot.ServerConfig.Name, channel });
+                            "WHERE `servers`.`name` = {0} AND `channels`.`name` = {1}" + nickWhere;
+            return Bot.Database.Query(search, queryObj.ToArray());
         }
     }
 }
