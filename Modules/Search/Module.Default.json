@@ -9,8 +9,8 @@
       "Name": "Google",
       "Description": "Searches Google for your query and returns the first result.",
       "Enabled": true,
-      "ChannelBlacklist": [],
-      "NickBlacklist": [],
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
       "Triggers": [
         "g",
         "google"
@@ -19,7 +19,47 @@
         {
           "Name": "Query",
           "Description": "The query you want to search for.",
-          "AllowedValues": [],
+          "AllowedValues": [ ],
+          "MessageTypes": [
+            0,
+            1,
+            2
+          ],
+          "Required": true
+        }
+      ],
+      "AllowedMessageTypes": [
+        0,
+        1,
+        2
+      ],
+      "AllowedAccess": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "ShowHelp": true,
+      "SpamCheck": true
+    },
+    {
+      "Name": "Searx",
+      "Description": "Searches Searx for your query and returns the first result.",
+      "Enabled": true,
+      "ChannelBlacklist": [ ],
+      "NickBlacklist": [ ],
+      "Triggers": [
+        "s",
+        "searx"
+      ],
+      "Arguments": [
+        {
+          "Name": "Query",
+          "Description": "The query you want to search for.",
+          "AllowedValues": [ ],
           "MessageTypes": [
             0,
             1,
@@ -46,5 +86,32 @@
       "SpamCheck": true
     }
   ],
-  "Options": []
+  "Options": [
+    {
+      "Name": "Hosts",
+      "Description": "The hosts to try to query against until we get a valid response.  (Queried in order)",
+      "Value": [
+        "https://searx.nulltime.net/",
+        "https://searx.volcanis.me/",
+        "https://searx.new-admin.net/",
+        "https://searx.info/",
+        "https://www.ready.pm/",
+        "https://searx.4ray.co/",
+        "https://srx.stdout.net/",
+        "https://searx.me/"
+      ]
+    },
+    {
+      "Name": "Engines",
+      "Description": "The engines to run the query against.  (Valid Engines are [bing, duckduckgo, faroo, gigablast, google, mediawiki, startpage, yacy, yahoo])",
+      "Value": [
+        "bing",
+        "google",
+        "yahoo",
+        "duckduckgo",
+        "faroo",
+        "startpage"
+      ]
+    }
+  ]
 }
