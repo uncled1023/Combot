@@ -17,7 +17,8 @@ Combot is designed to provide an all-in-one solution for those who wish to run a
 * Message and Highlight Spam Control
 * Messaging System
 * Weather Information
-* Google and Youtube search
+* Youtube search
+* Searx Search
 * URL Information Display
 * Channel Introductions
 * Wolfram Alpha
