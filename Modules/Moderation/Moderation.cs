@@ -318,6 +318,7 @@ namespace Combot.Modules.Plugins
             bool hasNick = command.Arguments.ContainsKey("Nickname");
             string nickname = hasNick ? command.Arguments["Nickname"] : string.Empty;
             string method = command.Arguments["Method"];
+            string banMask = string.Format("{0}!*@*", nickname);
             if (Bot.CheckChannelAccess(channel, command.Nick.Nickname, curCommand.AllowedAccess) && (!hasNick || Bot.CheckNickAccess(channel, command.Nick.Nickname, nickname)))
             {
                 command.Arguments.Add("Time", timeToBan.ToString());
@@ -336,7 +337,9 @@ namespace Combot.Modules.Plugins
                         {
                             command.Arguments.Add("Reason", "[Auto Ban] No Reason Specified");
                         }
+                        command.Arguments["Nickname"] = banMask;
                         TimedBan(curCommand, command);
+                        command.Arguments["Nickname"] = nickname;
                         KickNick(curCommand, command);
                         break;
                     case "delete":
@@ -345,6 +348,7 @@ namespace Combot.Modules.Plugins
                         DeleteAutoBan(command);
 
                         // Force an unban in case they are still banned
+                        command.Arguments["Nickname"] = banMask;
                         BanNick(false, curCommand, command);
                         break;
                     case "view":
@@ -509,6 +513,7 @@ namespace Combot.Modules.Plugins
         {
             int timeToBan = 1;
             int.TryParse(GetOptionValue("Seconds To Ban").ToString(), out timeToBan);
+            string banMask = string.Format("{0}!*@*", nickname);
             // Handle Auto Bans
             List<Dictionary<string, object>> results = GetAutoBanList(channel, nickname, host);
             if (results.Any())
@@ -518,12 +523,14 @@ namespace Combot.Modules.Plugins
                     // temp ban/kick them
                     CommandMessage newMsg = new CommandMessage();
                     newMsg.Arguments.Add("Channel", channel);
-                    newMsg.Arguments.Add("Nickname", nickname);
+                    newMsg.Arguments.Add("Nickname", banMask);
                     newMsg.Arguments.Add("Time", timeToBan.ToString());
                     newMsg.Arguments.Add("Reason", string.Format("[Auto Ban] {0}", result["Reason"].ToString()));
                     newMsg.Nick = new Nick() { Nickname = Bot.IRC.Nickname };
                     Command foundCommand = Commands.Find(c => c.Name == "Auto Ban");
                     TimedBan(foundCommand, newMsg);
+                    // reset nickname
+                    newMsg.Arguments["Nickname"] = nickname;
                     KickNick(foundCommand, newMsg);
                 }
             }
